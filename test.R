@@ -1,8 +1,7 @@
 library(DemoTools)
 library(tidyverse)
-library(xlsx)
 library(scales)
-
+library(readxl)
 ?lt_abridged
 
 Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
@@ -17,12 +16,15 @@ abridged_data <- tibble(Deaths = Deaths,
                         Exposures = Exposures, 
                         Age = c(0, 1, seq(5, 100, by = 5)),
                         AgeInt = c(diff(Age), NA))
-
+write_delim(abridged_data,"data/abridged_data2.csv",";")
 write_csv(abridged_data,"data/abridged_data.csv")
+write_tsv(abridged_data,"data/abridged_data.tsv")
 abridged_data
 
 # this is fed to us from the user
 user_file <- "abridged_data.csv" ### 1
+user_file <- "abridged_data.tsv" ### 1
+user_file <- "abridged_data2.csv" # semicolon separated
 user_file <- "abridged_data1.xlsx"
 user_file <- "abridged_data2.xls"
 user_file <- "abridged_data2.txt" # to check that function in NOT working with this format
@@ -51,21 +53,26 @@ read_data <- function(user_file) {
   extension <- extension_check(user_file)
   
   # if extension is not allowed, throw an error
-  stopifnot("Error. The allowable extenction was not detected. Please provide the data in .csv, .xlsx, or .xls format" 
-            = length(extension) == 1)
+  stopifnot("File extension not supported at this time. Please provide the data in .csv, .xlsx, or .xls format" =length(extension) == 1 )
   
   # read csv ort excel data
   if(extension == "csv") {
+    # TR: changed to file.path() because the path separator is then 
+    # OS dependent
     
-    data <- read_delim(str_c("data/", user_file), show_col_types = FALSE)
+    # For read_delim() no need to specify delim, it's apparently detected; I tried
+    # , ; \t
+    data <- read_delim(file.path("data", user_file), show_col_types = FALSE)
     
     
   } else { 
     # can handle both xls and xlsx data. 
     # we can use readxl if we want to hard code format
     # assumes the data is on a first sheet
+    # TR: I think read_excel does both formats too and can handle flexible 
+    # positioning
     
-    data <- read.xlsx(str_c("data/", user_file), sheetIndex = 1)
+    data <- read_excel(file.path("data", user_file), sheet = 1)
     
   } 
   
@@ -91,7 +98,9 @@ data <- read_data(user_file)
 #   reframe(e0 = sum(exp(-cumsum(rep(mx, times = AgeInt)))) + .5)
 
 # Lets break everything in a little check functions
-# alternative. asserive package
+# alternative. assertive package
+
+# TR: note NA is the value we use for AgeInt in the open age group
 check_numeric <- function(data) { 
   
   isnumeric <- data %>%
@@ -107,7 +116,10 @@ check_numeric <- function(data) {
 }
 
 check_missing_cols <- function(data) { 
-  
+  # TR: DemoTools has the function age2int() to infer age intervals from an Age vector,
+  # to technically we don't need it. We do however need ages specified as lower bounds of
+  # abridged age groups (for the abridged lifetable function anyway). Let's not insist on
+  # AgeInt being given.
   missing_cols <- setdiff(c("Deaths", "Exposures","Age", "AgeInt"), names(data))
   
   if(ncol(data) < 4) { 
@@ -154,7 +166,19 @@ check_nas <- function(data) {
   
 }
 
-# not sure it is needed. Maybe better display line by line. This combiines them all
+
+# TR: see also DemoTools functions:
+# is_age_coherent()
+# is_age_sequential()
+# is_age_redundant()
+parse_number("40-44")
+
+# TR add a check that the lowest age is 0. 
+# Currently the lt_abridged function assumes this,
+# although it would be nice to generalize it to allow for truncated age ranges.
+# TR: check_abridged() only relevant for lt_abridged(), so that can happen elsewhere.
+
+# not sure it is needed. Maybe better display line by line. This combines them all
 check_data <- function(data) { 
   
   check_numeric(data)
@@ -224,18 +248,26 @@ tibble(for_us = c("extrapLaw",
 # and the outgoing rates with a dashed line in a different color, potentially
 # only starting at the extrapFrom age. This function anticipates the output
 # of lt_abridged().
+
+# TR: wrap this in calc_lt() 
+# Idea: we can detect whether incoming ages are abridged or single. The user should just need to select whether they want abridged or single outgoing ages. Make sense?
+
+# So out wrapper function would be calc_lt(), passing in all arguments.
+# we have lt_single2abridged() and lt_abridged2single(), for instance for
+
 data1 <- lt_abridged(Deaths = abridged_data$Deaths,
                      Exposures = abridged_data$Exposures,
                      Age = abridged_data$Age,
-                     OAnew = 100,
+                     OAnew = 100,  
                      extrapFrom = 70,
                      extrapFit = seq(70,100,by=5))
 
-OAnew      = 100
-extrapFrom = 70
-extrapFit  = seq(70, 100, by = 5)
-
-# I made it a litttle fancy. SInce the data from the function are expected to be provided I had coded the values
+OAnew      = 100   # TR element of basic, gets passed in
+extrapFrom = 70    # TR element of advanced, gets passed in
+extrapFit  = seq(70, 100, by = 5) # TR element of advanced, gets passed in
+Mx_emp <- abridged_data$Deaths/ abridged_data$Exposures
+# I made it a little fancy. Since the data from the function are expected 
+# to be provided I had coded the values
 # If needed can be turned into a function with compled return()
 ggplot() + 
   geom_line(data = data, aes(x = Age, y = Mx_emp), linewidth = 0.8) + 
