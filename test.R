@@ -166,27 +166,58 @@ check_nas <- function(data) {
   
 }
 
-
 # TR: see also DemoTools functions:
 # is_age_coherent()
-# is_age_sequential()
-# is_age_redundant()
-parse_number("40-44")
+check_coherent <- function(data) { 
+  
+  tst <- is_age_coherent(data$Age, data$AgeInt)
+  
+  stopifnot("The age is not coherent" = tst)
+  
+}
 
+# is_age_sequential()
+check_sequential <- function(data) { 
+  
+  tst <- is_age_sequential(data$Age)
+  
+  stopifnot("The age is not sequential" = tst)
+  
+}
+
+# is_age_redundant()
+check_redundant <- function(data) { 
+  
+  tst <- is_age_redundant(data$Age, data$AgeInt)
+  
+  stopifnot("Provided age data is redundadt" = !tst)
+  
+}
+
+parse_number("40-44")
 # TR add a check that the lowest age is 0. 
+
+check_lower <- function(data) { 
+
+stopifnot("Age should start with 0." = min(data$Age) == 0)
+
+}
+  
 # Currently the lt_abridged function assumes this,
 # although it would be nice to generalize it to allow for truncated age ranges.
 # TR: check_abridged() only relevant for lt_abridged(), so that can happen elsewhere.
-
 # not sure it is needed. Maybe better display line by line. This combines them all
 check_data <- function(data) { 
   
   check_numeric(data)
   check_missing_cols(data)
   check_rows(data)
-  check_abridged(data)
+  # check_abridged(data) # replace it or remove
   check_nas(data)
-  
+  check_lower(data)
+  check_coherent(data)
+  check_sequential(data)
+  check_redundant(data)
 }
 
 check_data(data)
@@ -281,3 +312,148 @@ ggplot() +
        subtitle = "The difference between the empirical Mx and the extrapolated values for a given age range on a log10 scale.")+
   theme(axis.text = element_text(color = "black"),
         plot.subtitle = element_text(size = 12, color = "black"))
+
+
+#### HEre it is
+
+calc_lt <- function(Deaths    = abridged_data$Deaths, # replace with NULL. this is for demonstration purposes
+                    Exposures = abridged_data$Exposures,
+                    Age       = abridged_data$Age,
+                    OAnew     = 100,
+                    sing_year = TRUE, # CHECK! This is for option number 2 
+                    etrapFrom = 80,
+                    extrapFit = seq(60, 100, by = 5), # maybe somehow modify the argument? Not sure if needed
+                    radix     = 1e+05,
+                    extrapLaw = NULL,
+                    SRB       = 1.05,
+                    a0rule    = "ak",
+                    axmethod  = "un",
+                    Sex       = "m") {
+  # Idea: we can detect whether incoming ages are abridged or single. 
+  #  The user should just need to select whether they want abridged or single outgoing ages. Make sense?
+  # So out wrapper function would be calc_lt(), passing in all arguments.
+  # we have lt_single2abridged() and lt_abridged2single(), for instance for
+  extrapLaws <-
+    c("Kannisto",
+      "Kannisto_Makeham",
+      "Makeham",
+      "Gompertz",
+      "GGompertz",
+      "Beard",
+      "Beard_Makeham",
+      "Quadratic",
+      "UN_South_Asian",
+      "user")
+  
+  # which law to consider. QUESTION: Do we need this part?
+  # I did not write this mathing for other arguments since they are very simple and basically binary A or B
+  # this one requires some typing so mistakes might occur
+  if (is.null(extrapLaw) & max(Age) > 89) {
+    
+    extrapLaw <- "Kannisto"
+    
+  } else if (is.null(extrapLaw) & max(Age) < 90) {
+    
+    extrapLaw <- "makeham"
+    
+  } else { 
+    
+    extrapLaw <- match.arg(extrapLaw, extrapLaws, several.ok = FALSE) # was several.ok = FALSE
+    
+  }
+  
+  Mx_emp <- Deaths/ Exposures
+  
+  # Option one. We can detect return the data similar to the input. LIne if single return single 
+  # Nice but probably not what we want
+  if(is_single(Age)) {
+    
+    data1 <- lt_abridged(Deaths     = abridged_data$Deaths,
+                         Exposures  = abridged_data$Exposures,
+                         Age        = abridged_data$Age,
+                         OAnew      = OAnew,  
+                         extrapFrom = extrapFrom,
+                         extrapFit  = extrapFit,
+                         radix      = radix,
+                         extrapLaw  = extrapLaw,
+                         SRB        = SRB,
+                         a0rule     = a0rule,
+                         axmethod   = axmethod,
+                         Sex        = Sex)
+    
+  } else { 
+    
+    data1 <- lt_abridged2single(Deaths     = abridged_data$Deaths,
+                                Exposures  = abridged_data$Exposures,
+                                Age        = abridged_data$Age,
+                                OAnew      = OAnew,
+                                extrapFrom = extrapFrom,
+                                extrapFit  = extrapFit, # should we change it here too to 1 year intervals?
+                                radix      = radix,
+                                extrapLaw  = extrapLaw,
+                                SRB        = SRB,
+                                a0rule     = a0rule,
+                                axmethod   = axmethod,
+                                Sex        = Sex)
+    
+  }
+  
+  
+  # option 2. We can directly ask user what he wants. Easy and I think this is what we want
+  if(sing_year) {
+    
+    data1 <- lt_abridged2single(Deaths     = abridged_data$Deaths,
+                                Exposures  = abridged_data$Exposures,
+                                Age        = abridged_data$Age,
+                                OAnew      = OAnew,
+                                extrapFrom = extrapFrom,
+                                extrapFit  = extrapFit, # should we change it here too to 1 year intervals?
+                                radix      = radix,
+                                extrapLaw  = extrapLaw,
+                                SRB        = SRB,
+                                a0rule     = a0rule,
+                                axmethod   = axmethod,
+                                Sex        = Sex)
+    
+  } else { 
+    
+    data1 <- lt_abridged(Deaths     = abridged_data$Deaths,
+                         Exposures  = abridged_data$Exposures,
+                         Age        = abridged_data$Age,
+                         OAnew      = OAnew,  
+                         extrapFrom = extrapFrom,
+                         extrapFit  = extrapFit,
+                         radix      = radix,
+                         extrapLaw  = extrapLaw,
+                         SRB        = SRB,
+                         a0rule     = a0rule,
+                         axmethod   = axmethod,
+                         Sex        = Sex)
+    
+  }
+  
+  # plot the results
+  figure <- ggplot() + 
+    geom_line(aes(x = Age, y = Mx_emp), linewidth = 0.8) + 
+    geom_line(data = filter(data1, Age >= extrapFrom), aes(x = Age, y = nMx), lty = 2, col = "red", linewidth = 1) +
+    scale_x_continuous(breaks = pretty_breaks()) +
+    scale_y_log10(labels = label_log(digits = 2)) +
+    theme_light() +
+    geom_vline(xintercept = extrapFrom, lty = 2)+
+    labs(x = "Age",
+         y = "nMx",
+         subtitle = "The difference between the empirical Mx and the extrapolated values for a given age range on a log10 scale.")+
+    theme(axis.text = element_text(color = "black"),
+          plot.subtitle = element_text(size = 12, color = "black"))
+  
+  
+  # return a list with both data and figure
+  return(lst(data   = data1,
+             figure = figure))
+  
+}
+
+# check. Works
+calc_lt()
+
+
