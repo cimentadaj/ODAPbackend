@@ -9,8 +9,8 @@ lt_flexible <- function(Deaths    = Deaths, # replace with NULL. this is for dem
                         age_out = "single", # CHECK! This is for option number 2 
                         etrapFrom = 80,
                         extrapFit = Age[Age >= 60], # maybe somehow modify the argument? Not sure if needed
-                        radix     = 1e+05,
                         extrapLaw = NULL,
+                        radix     = 1e+05,
                         SRB       = 1.05,
                         a0rule    = "ak",
                         axmethod  = "un",

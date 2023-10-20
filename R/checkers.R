@@ -122,7 +122,9 @@ check_lower <- function(data) {
 # TR: check_abridged() only relevant for lt_abridged(), so that can happen elsewhere.
 # not sure it is needed. Maybe better display line by line. This combines them all
 check_data <- function(data) { 
-  
+  # make this return a data.frame with 3 columns
+  # check | pass/fail | message
+  # don't use stop or errors for these
   check_numeric(data)
   check_missing_cols(data)
   check_rows(data)

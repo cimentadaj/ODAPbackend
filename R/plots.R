@@ -1,6 +1,13 @@
 # This can be more modular, as in a separate call, please adjust so that it can just take these two
 # data objects? Or whatever you think makes sense. This won't currently run because I changed the args
 # and scoping, but just so you see this can also be modular
+
+# TODO, return in list, make it a named list, where the names make the widget plot title
+# Make a separate plot function for the input data with 3 plots:
+# pop pyramid
+# deaths pyramid
+# input rates
+
 make_figure <- function(data_out, data_in){
   # plot the results
   figure <- ggplot() + 
