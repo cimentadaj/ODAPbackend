@@ -14,7 +14,7 @@
 #' @param axmethod character. Either `"pas"` or `"un"`.
 #' @param Sex character string. Either `"m"` for males, `"f"` for females (default). 
 #' @return A singkle or abridged life table. with corresponding columns: Lifetable in data.frame with columns
-#' Ageinteger. Lower bound of abridged age class,
+#' Age integer. Lower bound of abridged age class,
 #' AgeIntinteger. Age class widths.
 #' nMxnumeric. Age-specific central death rates.
 #' nAxnumeric. Average time spent in interval by those deceased in interval.
@@ -137,8 +137,8 @@ lt_flexible <- function(Deaths    = Deaths, # replace with NULL. this is for dem
                              OAnew      = OAnew,
                              extrapFrom = extrapFrom,
                              extrapFit  = extrapFit, # should we change it here too to 1 year intervals?
-                             radix      = radix,
                              extrapLaw  = extrapLaw,
+                             radix      = radix,
                              SRB        = SRB,
                              a0rule     = a0rule,
                              axmethod   = axmethod,
@@ -161,19 +161,3 @@ lt_flexible <- function(Deaths    = Deaths, # replace with NULL. this is for dem
   return(data_out)
   
 }
-
-
-data_out <- 
-lt_flexible(Deaths    = Deaths, 
-            Exposures = Exposures,
-            Age       = Age,
-            OAnew     = 100,
-            age_out = "single",  
-            extrapFrom = 80,
-            extrapFit = Age[Age >= 60], 
-            radix     = 1e+05,
-            extrapLaw = NULL,
-            SRB       = 1.05,
-            a0rule    = "ak",
-            axmethod  = "un",
-            Sex       = "m")

@@ -25,8 +25,8 @@
 # -[] automatic integer recoding of character string definitions of Age, 
 #      i.e. "1-4", "1 to 4" etc become 1.
 
-read_data <- function(user_file, skip) {
-
+read_data <- function(user_file, skip = 0) {
+  
   # now we know the extension and we can proceed with reading the file 
   extension <- extension_check(user_file)
   
@@ -40,8 +40,16 @@ read_data <- function(user_file, skip) {
     
     # For read_delim() no need to specify delim, it's apparently detected; I tried
     # , ; \t
-    data_in <- read_delim(file.path("data", user_file), show_col_types = FALSE, skip = skip) %>% 
-      mutate(Age = ifelse(is.character(Age), parse_number(Age), Age)) %>% 
+    data_in <- 
+      read_delim(file.path("data", user_file), show_col_types = FALSE, skip = skip)
+    
+    if(is.character(data_in$Age)) { 
+      
+      data_in$Age <- parse_number(data_in$Age)
+      
+    }
+    
+    data_in <- data_in %>% 
       dplyr::select(matches("Deaths"), matches("Exposures"), matches("Age$"), matches("AgeInt$")) %>% 
       set_names(c("Deaths", "Exposures", "Age", names(.)[-c(1:3)]))
     
@@ -53,8 +61,15 @@ read_data <- function(user_file, skip) {
     # positioning
     # TR: AgeInt can have NA in final value, in which case,
     # we need to make sure it reads in as integer and not character
-    data_in <- read_excel(file.path("data", user_file), sheet = 1, skip = skip) %>% 
-      mutate(Age = ifelse(is.character(Age), parse_number(Age), Age)) %>% 
+    data_in <- read_excel(file.path("data", user_file), sheet = 1, skip = skip)
+    
+    if(is.character(data_in$Age)) { 
+      
+      data_in$Age <- parse_number(data_in$Age)
+      
+    }
+    
+    data_in <- data_in %>%
       dplyr::select(matches("Deaths"), matches("Exposures"), matches("Age$"), matches("AgeInt$")) %>% 
       set_names(c("Deaths", "Exposures", "Age", names(.)[-c(1:3)]))
     
