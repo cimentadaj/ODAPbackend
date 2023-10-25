@@ -174,4 +174,13 @@ initial_plot <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_r
 }
 
 # works
-# initial_plot(data = z, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+initial_plot(data = z, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+# width bar to be equal to the ageInt and length is not the size is the size divided by age int
+# assume there are 2 sexes AND create a bar chart for the case of one sex AND a checker if there is 1 or 2 sex
+
+
+
+# TODO
+
+
+

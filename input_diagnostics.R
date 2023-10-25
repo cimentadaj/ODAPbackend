@@ -8,17 +8,17 @@ check_heapping_general <- function(data) {
   
   if(is_single(data$Age)) { 
 
-bachi <- check_heaping_bachi(data$Exposures,  data$Age,  ageMin = min(data$Age), ageMax = max(data$Age),
-                             method = "orig", OAG = FALSE)
-myers <- check_heaping_myers(data$Exposures,  data$Age,  ageMin = min(data$Age), ageMax = max(data$Age),
-                             method = "orig")
+    # go with 
+bachi <- check_heaping_bachi(data$Exposures,  data$Age, OAG = TRUE)
+myers <- check_heaping_myers(data$Exposures,  data$Age)
+
 res <- data.frame(method = c("bachi", "myers"),
-result = c(bachi, myers))
+                  result = c(bachi, myers))
 
   } else { 
 
-roughness <- check_heaping_roughness(data$Exposures, data$Age, ageMin = min(data$Age), ageMax = max(data$Age))
-sawtooth  <- check_heaping_sawtooth( data$Exposures, data$Age, ageMin = min(data$Age), ageMax = max(data$Age))
+roughness <- check_heaping_roughness(data$Exposures, data$Age, ageMin = 30)
+sawtooth  <- check_heaping_sawtooth( data$Exposures, data$Age, ageMin = 30)
 
 res <- data.frame(method = c("roughness", "sawtooth"),
                   result = c(roughness, sawtooth))
@@ -28,3 +28,7 @@ res <- data.frame(method = c("roughness", "sawtooth"),
   return(res)
 
 }
+
+
+
+# add a user driven one with arguments

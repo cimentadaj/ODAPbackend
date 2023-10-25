@@ -485,3 +485,8 @@ check_data <- function(data) {
   
   return(rbind(ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8))
 }
+
+
+# for all the data check only Deaths, Exposures, Age, and then we need to add Mx and qx
+check_data(data) %>% 
+  view()
