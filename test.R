@@ -61,6 +61,24 @@ check_data(data)
 # think also of what the user should SEE in the menu versus what value we need to 
 # pass to the LT function. they don't need to be the same. First we do abridged.
 
+check_data(data)
+
+
+
+check_data <- function(data) { 
+  
+  check_numeric(data)
+  check_missing_cols(data)
+  check_rows(data)
+  # check_abridged(data) # replace it or remove
+  check_nas(data)
+  check_lower(data)
+  check_coherent(data)
+  check_sequential(data)
+  check_redundant(data)
+}
+
+
 # basic
 basic <- 
 tibble(for_us = c("OAnew",
@@ -108,7 +126,8 @@ tibble(for_us = c("extrapLaw",
                 "two coice buttons"))
 
 
-
+write.csv(basic, file = "basic.csv")
+write.csv(advanced, file = "advanced.csv")
 # Task 4: make a ggplot code snippet showing the incoming rates as a line
 # and the outgoing rates with a dashed line in a different color, potentially
 # only starting at the extrapFrom age. This function anticipates the output
@@ -148,10 +167,34 @@ ggplot() +
         plot.subtitle = element_text(size = 12, color = "black"))
 
 
-#### HEre it is
+#### lt check
+data_out <- 
+  lt_flexible(Deaths    = Deaths, 
+              Exposures = Exposures,
+              Age       = Age,
+              OAnew     = 100,
+              age_out = "single",  
+              extrapFrom = 80,
+              extrapFit = Age[Age >= 60], 
+              radix     = 1e+05,
+              extrapLaw = NULL,
+              SRB       = 1.05,
+              a0rule    = "ak",
+              axmethod  = "un",
+              Sex       = "m")
 
 
+# plot check
+# a little data "simulation"
+data$sex        <- "Male" 
+data1           <- data
+data1$sex       <- "Female"
+data1$Exposures <- -data1$Exposures
+data1$Deaths    <- -data1$Deaths
 
+z <- data %>% 
+  full_join(data1) %>% 
+  mutate(Deaths = ifelse(sex == "Female", Deaths + rpois(22, lambda = 50), Deaths)) # a bit of difference for females
 
-
-
+# works
+initial_plot(data = z, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
