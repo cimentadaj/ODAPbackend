@@ -85,13 +85,13 @@ abs_and_comma <- function (x, ...) {
 pyramid <- function(data, y) {
   
   data %>%
-    ggplot() +
-    geom_bar(aes(x = Age, y = .data[[y]], fill = sex), stat = "identity", width = 1) +
+    ggplot(aes(x = Age, y = (.data[[y]] / AgeInt), fill = sex, width = AgeInt)) +
+    geom_bar(stat = "identity") +
     coord_flip() +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_continuous(
       labels = abs_and_comma,
-      limits = max(pull(data, {{y}})) * c(-1,1)) +
+      limits = max(pull(mutate(z, new := .data[[y]] / AgeInt), new)) * c(-1,1)) +
     theme_light() +
     scale_fill_brewer(palette = "Dark2", guide = guide_legend(title = "Sex")) +
     theme(legend.position = "bottom",
@@ -101,7 +101,8 @@ pyramid <- function(data, y) {
           legend.title  = element_text(color = "black", size = 14),
           plot.subtitle = element_text(color = "black", size = 14)
     ) + 
-    labs(subtitle = str_c("Pyramid of ", y, "."))
+    labs(subtitle = str_c("Pyramid of ", y, "."),
+         y = y)
   }
 
 # rates function
@@ -134,8 +135,42 @@ input_rates <- function(data) {
   
 }
 
+# general hystogramm function. WARNING contains some tidy evaluation
+#' Plots a population or death pyramid
+#' @description 
+#' @param data tibble. Empirical data downloaded  with the `read_data` function 
+#' @param y  character vector of length 1 indicating weather the `Exposures` or `Deaths` should be plotted.
+#' @return A histogramm for either Deaths or Exposures
+#' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend
+#' @importFrom scales label_log pretty_breaks
+#' @examples1
+#' \dontrun{
+#' plot_histogram(data = data, y = "Deaths")
+#' }
+plot_histogram <- function(data, y) { 
+  
+  data %>% 
+    ggplot(aes(x = Age, y = (.data[[y]] / AgeInt), fill = sex, width = AgeInt)) +
+    geom_bar(stat = "identity") +
+    scale_x_continuous(breaks = pretty_breaks()) +
+    scale_y_continuous(
+      labels = abs_and_comma,
+      limits = max(pull(mutate(z, new := .data[[y]] / AgeInt), new)) * c(-1,1)) +
+    theme_light() +
+    scale_fill_brewer(palette = "Dark2", guide = guide_legend(title = "Sex")) +
+    theme(legend.position = "bottom",
+          axis.text     = element_text(color = "black", size = 10),
+          axis.title    = element_text(color = "black", size = 12),
+          legend.text   = element_text(color = "black", size = 12),
+          legend.title  = element_text(color = "black", size = 14),
+          plot.subtitle = element_text(color = "black", size = 14)
+    ) + 
+    labs(subtitle = str_c("Pyramid of ", y, "."),
+         y = y)
+}
+
 # combine
-#' Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population pyramid and death pyramid.
+#' Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population pyramid and death pyramid if the data contains information on two sex.
 #' @description 
 #' @param data tibble. Empirical data downloaded  with the `read_data` function 
 #' @param plot_exposures logical indicates weather the population pyramid should be plotted, defaults to TRUE
@@ -147,7 +182,7 @@ input_rates <- function(data) {
 #' @importFrom dplyr mutate
 #' @examples1
 #' \dontrun{
-#' input_rates(data = data)
+#' initial_plot(data = data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
 #' }
 initial_plot <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE) {
   
@@ -173,14 +208,76 @@ initial_plot <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_r
 
 }
 
-# works
-initial_plot(data = z, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+
+#' Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population histogram and death histogram if the data contains information on only one sex.
+#' @description 
+#' @param data tibble. Empirical data downloaded  with the `read_data` function 
+#' @param plot_exposures logical indicates weather the population pyramid should be plotted, defaults to TRUE
+#' @param plot_deaths logical indicates weather the death pyramid should be plotted, defaults to TRUE
+#' @param plot_rates logical indicates weather the empirical `M(x)` should be plotted, defaults to TRUE
+#' @return A named list with 3 elements: `Exposures` - population pyramid, `Deaths` - death pyramid and `Empirical Mx` - log 10 transformed empirical `M(x)` value
+#' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme theme element_text guide_legend
+#' @importFrom scales label_log pretty_breaks
+#' @importFrom dplyr mutate
+#' @examples1
+#' \dontrun{
+#' initial_plot(data = data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+#' }
+initial_plot_single_sex <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE) {
+  
+  if(plot_exposures) { 
+    
+    Exposures <- plot_histogram(data = data, y = "Exposures")
+    
+  }
+  
+  if(plot_deaths) {
+    
+    Deaths <- plot_histogram(data = data, y = "Deaths")
+    
+  }
+  
+  if(plot_rates) { 
+    
+    `Empirical Mx` <- input_rates(data = data)
+    
+  }
+  
+  return(lst(Exposures, Deaths, `Empirical Mx`))
+  
+}
+
+
+
 # width bar to be equal to the ageInt and length is not the size is the size divided by age int
 # assume there are 2 sexes AND create a bar chart for the case of one sex AND a checker if there is 1 or 2 sex
 
+#' Plots the corresponding 3 graphics for single sex or for both sex depending on data 
+#' @description 
+#' @param data tibble. Empirical data downloaded  with the `read_data` function 
+#' @param y  character vector of length 1 indicating weather the `Exposures` or `Deaths` should be plotted.
+#' @param plot_exposures logical. Weather the exposures should be plotted
+#' @param plot_deaths logical. Weather the Deaths should be plotted#' @param dplot_ratesata logical Empirical data downloaded  with the `read_data` function 
+#' @param plot_rates logical. Weather the rates should be plotted#' @param dplot_ratesata logical Empirical data downloaded  with the `read_data` function 
+#' @return A list with 3 corresponding plots for either one or two sex.
+#' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend
+#' @importFrom scales label_log pretty_breaks
+#' @examples1
+#' \dontrun{
+#' plot_the_initial_data(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+#' }
 
+plot_the_initial_data <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE){
+  
+  if(length(unique(data$sex)) == 2) { 
+  
+  result <- initial_plot(data, plot_exposures = plot_exposures, plot_deaths = plot_deaths, plot_rates = plot_rates)
+  
+  } else { 
+    
+  result <- initial_plot_single_sex(data, plot_exposures = plot_exposures, plot_deaths = plot_deaths, plot_rates = plot_rates)
+} 
 
-# TODO
+  return(result)
 
-
-
+}
