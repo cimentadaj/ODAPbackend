@@ -1,7 +1,7 @@
-#' Read a file into the program. The file should contain 3 columns "Deaths", "Exposures","Age" named this way or positioned in a corresponding order.
+#' Read the with supported file extension into the program. The file should contain at minimum 3 columns "Deaths", "Exposures","Age" named this way or positioned in a corresponding order.
 #' @description 
 #' @param user_file character. File name with corresponding extension e.g. `data.csv`.
-#' @param skip numeric. Number of rows to skip before reading the data.
+#' @param skip numeric. Number of rows to skip before reading the data. Defaults to `0`.
 #' @return A tibble with with 5 numeric columns: Deaths, Exposures, Age, AgeInt, Mx_emp.
 #' @importFrom dplyr mutate select
 #' @importFrom readr read_delim parse_number

@@ -2,8 +2,8 @@ library(DemoTools)
 library(tidyverse)
 library(scales)
 library(readxl)
-source("R/checkers.R")
 source("R/readers.R")
+source("R/checkers.R")
 source("R/lifetables.R")
 source("R/plots.R") # broken function in this one
 
