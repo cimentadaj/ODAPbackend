@@ -1,0 +1,39 @@
+Package: OPAD_backend
+Type: Package
+Title: Standardize, Evaluate, and Adjust Demographic Data
+Version: 00.00.01
+Date: 2023-11-02
+Authors@R: c(
+   person("Tim", "Riffe", role = c("aut", "cre"), 
+          email = "tim.riffe@gmail.com", comment = c(ORCID = "0000-0002-2673-4622")),
+   person("Rustam", "Tursun-zade", role = "aut"))
+Description: .
+License: file LICENSE
+LazyLoad: yes
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Depends:
+    R (>= 4.1),
+    Rcpp (>= 0.12.0),
+    ggplot2
+Suggests:
+    knitr,
+    rmarkdown,
+    markdown,
+    ggplot2
+RdMacros: Rdpack
+Imports:
+    DemoTools,
+    ggplot2,
+    stringr,
+    dplyr,
+    scales,
+    magrittr,
+    readxl,
+    purrr,
+    tidyselect
+BugReports: https://github.com/timriffe/ODAP_Bbackend/issues
+Remotes: 
+    github::timriffe/DemoTools,
+Encoding: UTF-8

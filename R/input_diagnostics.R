@@ -3,13 +3,13 @@
 # it should take data frame in, as well as some default heaping diagnostics,
 # it should return a small data.frame of
 
-# Check the age hipping for 5 or 1 year data.
-#' @description 
+#' check_heapping_general
+#' @description Check the age heaping for 5 or 1 year data.
 #' @param data data.frame. User file from the read_data command with the minimum data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals
-#' @param y chracter.Variable name for which the hipping should be checked `Deaths` or `Exposures`.
+#' @param y character.Variable name for which the hipping should be checked `Deaths` or `Exposures`.
 #' @return A data.frame with 2 columns `method` - the method used for age hipping evaluation and `result` - the resulting hipping measure
 #' @importFrom stringr str_detect 
-#' @examples1
+#' @examples
 #' \dontrun{
 #' check_heapping_general(
 #'     data = data,
@@ -41,16 +41,15 @@ check_heapping_general <- function(data, y) {
   
 }
 
-# add a user driven one with arguments
-# Check the age hipping for 5 or 1 year data, but this time give user control over minimum and maximum evaluation age.
-#' @description 
+#' check_heapping_user
+#' @description Check the age heaping for 5 or 1 year data, but this time give user control over minimum and maximum evaluation age.
 #' @param data data.frame. User file from the read_data command with the minimum data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals
 #' @param y chracter.Variable name for which the hipping should be checked `Deaths` or `Exposures`
 #' @param ageMin numeric.The minimum age from which to do the hipping evaluation 
 #' @param ageMax numeric.The maximum age from which to do the hipping evaluation 
 #' @return A data.frame with 2 columns `method` - the method used for age hipping evaluation and `result` - the resulting hipping measure
 #' @importFrom stringr str_detect 
-#' @examples1
+#' @examples
 #' \dontrun{
 #' check_heapping_general(
 #'     data = data,
