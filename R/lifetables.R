@@ -1,4 +1,4 @@
-#' Estimation of adult mortality using the data from two censuses.
+#' Calculate an abridged-age or a single-age lifetable.
 #' @description 
 #' @param Deaths numeric vector. Death counts in one, five or ten years age groups.
 #' @param Exposures numeric vector. Population counts in one, five or ten years age groups.
@@ -7,24 +7,24 @@
 #' @param age_out character. Indicates weather single of abridged lif table output is desired. takes values `"single"`, `"abridged"`. Defaults to "single"
 #' @param extrapFrom integer. Age from which to impute extrapolated mortality.
 #' @param extrapFit integer vector. Ages to include in model fitting. Defaults to all ages > =60.
-#' @param radix numeric. Lifetable radix, l0. Default 100000.
+#' @param radix numeric. Lifetable radix, `l0`. Default `100000`.
 #' @param extrapLaw character. If extrapolating, which parametric mortality law should be invoked? Options include `"Kannisto"`, `"Kannisto_Makeham"`, `"Makeham"`, `"Gompertz"`, `"GGompertz"`, `"Beard"`, `"Beard_Makeham"`, `"Quadratic"`. Default `"Kannisto"` if the highest age is at least 90, otherwise `"makeham"`.
 #' @param SRB numeric. the sex ratio at birth (boys / girls), default `1.05`
 #' @param a0rule character. Either `"ak"` (default) or `"cd"`.
 #' @param axmethod character. Either `"pas"` or `"un"`.
-#' @param Sex character string. Either `"m"` for males, `"f"` for females (default). 
-#' @return A singkle or abridged life table. with corresponding columns: Lifetable in data.frame with columns
+#' @param Sex character. Either `"m"` for males, `"f"` for females (default). 
+#' @return A single or abridged life table iof data.frame format with corresponding columns:
 #' Age integer. Lower bound of abridged age class,
-#' AgeIntinteger. Age class widths.
-#' nMxnumeric. Age-specific central death rates.
-#' nAxnumeric. Average time spent in interval by those deceased in interval.
-#' nqxnumeric. Age-specific conditional death probabilities.
-#' lxnumeric. Lifetable survivorship
-#' ndxnumeric. Lifetable deaths distribution.
-#' nLxnumeric. Lifetable exposure.
-#' Sxnumeric. Survivor ratios in uniform 5-year age groups.
-#' Txnumeric. Lifetable total years left to live above age x.
-#' exnumeric. Age-specific remaining life expectancy.
+#' AgeInt integer. Age class widths.
+#' nMx numeric. Age-specific central death rates.
+#' nAx numeric. Average time spent in interval by those deceased in interval.
+#' nqx numeric. Age-specific conditional death probabilities.
+#' lx numeric. Lifetable survivorship
+#' ndx numeric. Lifetable deaths distribution.
+#' nLx numeric. Lifetable exposure.
+#' Sx numeric. Survivor ratios in uniform 5-year age groups.
+#' Tx numeric. Lifetable total years left to live above age x.
+#' ex numeric. Age-specific remaining life expectancy.
 #' @importFrom dplyr case_when
 #' @importFrom DemoTools lt_abridged age2int lt_abridged2single lt_single_mx lt_single2abridged
 #' @examples1
@@ -53,21 +53,21 @@
 #'               axmethod  = "un",
 #'               Sex       = "m")
 #' }
-lt_flexible <- function(Deaths    = Deaths, # replace with NULL. this is for demonstration purposes
-                        Exposures = Exposures,
-                        Age       = Age,
+lt_flexible <- function(Deaths     = Deaths, # replace with NULL. this is for demonstration purposes
+                        Exposures  = Exposures,
+                        Age        = Age,
                         # recall all of these are passed in from the app, which will contain
                         # its own default values.
-                        OAnew     = 100,
-                        age_out = "single", # CHECK! This is for option number 2 
+                        OAnew      = 100,
+                        age_out    = "single", # CHECK! This is for option number 2 
                         extrapFrom = 80,
-                        extrapFit = Age[Age >= 60], # maybe somehow modify the argument? Not sure if needed
-                        extrapLaw = NULL,
-                        radix     = 1e+05,
-                        SRB       = 1.05,
-                        a0rule    = "ak",
-                        axmethod  = "un",
-                        Sex       = "m") {
+                        extrapFit  = Age[Age >= 60],
+                        extrapLaw  = NULL,
+                        radix      = 1e+05,
+                        SRB        = 1.05,
+                        a0rule     = "ak",
+                        axmethod   = "un",
+                        Sex        = "m") {
   # TR: no need to determine extrapLaw here, it happens
   # natively in the lt functions.
   

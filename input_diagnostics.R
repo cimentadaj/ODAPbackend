@@ -5,9 +5,9 @@
 
 # Check the age hipping for 5 or 1 year data.
 #' @description 
-#' @param data data.frame. User file with the data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals
-#' @param y chracter.Variable name for which the hipping should be checked `Deaths` or `Exposures`
-#' @return A data.frame with 2 columns `method` - the method used for age hipping evaluation and result - the resulting hiping measure
+#' @param data data.frame. User file from the read_data command with the minimum data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals
+#' @param y chracter.Variable name for which the hipping should be checked `Deaths` or `Exposures`.
+#' @return A data.frame with 2 columns `method` - the method used for age hipping evaluation and `result` - the resulting hipping measure
 #' @importFrom stringr str_detect 
 #' @examples1
 #' \dontrun{
@@ -44,19 +44,17 @@ res <- data.frame(method = c("roughness", "sawtooth"),
 # add a user driven one with arguments
 # Check the age hipping for 5 or 1 year data, but this time give user control over minimum and maximum evaluation age.
 #' @description 
-#' @param data data.frame. User file with the data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals
+#' @param data data.frame. User file from the read_data command with the minimum data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals
 #' @param y chracter.Variable name for which the hipping should be checked `Deaths` or `Exposures`
-#' @param ageMin numeric.The mimimum age from which to do the hipping evaluation 
+#' @param ageMin numeric.The minimum age from which to do the hipping evaluation 
 #' @param ageMax numeric.The maximum age from which to do the hipping evaluation 
-#' @return A data.frame with 2 columns `method` - the method used for age hipping evaluation and result - the resulting hiping measure
+#' @return A data.frame with 2 columns `method` - the method used for age hipping evaluation and `result` - the resulting hipping measure
 #' @importFrom stringr str_detect 
 #' @examples1
 #' \dontrun{
 #' check_heapping_general(
 #'     data = data,
-#'     y = "Exposures",
-#'     ageMin = 30,
-#'     ageMax = 80)
+#'     y = "Exposures")
 #' }
 #' 
 check_heapping_user <- function(data, y, ageMin, ageMax) { 
