@@ -9,6 +9,7 @@
 #' @param y character.Variable name for which the hipping should be checked `Deaths` or `Exposures`.
 #' @return A data.frame with 2 columns `method` - the method used for age hipping evaluation and `result` - the resulting hipping measure
 #' @importFrom stringr str_detect 
+#' @export
 #' @examples
 #' \dontrun{
 #' check_heapping_general(
@@ -49,6 +50,7 @@ check_heapping_general <- function(data, y) {
 #' @param ageMax numeric.The maximum age from which to do the hipping evaluation 
 #' @return A data.frame with 2 columns `method` - the method used for age hipping evaluation and `result` - the resulting hipping measure
 #' @importFrom stringr str_detect 
+#' @export
 #' @examples
 #' \dontrun{
 #' check_heapping_general(

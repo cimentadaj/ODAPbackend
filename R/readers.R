@@ -12,6 +12,7 @@
 #' @importFrom DemoTools is_age_coherent is_age_sequential is_age_redundant
 #' @importFrom purrr map set_names
 #' @importFrom tidyselect matches
+#' @export
 #' @examples
 #' \dontrun{
 #' read_data(

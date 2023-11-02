@@ -28,6 +28,7 @@
 #' ex numeric. Age-specific remaining life expectancy.
 #' @importFrom dplyr case_when
 #' @importFrom DemoTools lt_abridged age2int lt_abridged2single lt_single_mx lt_single2abridged
+#' @export
 #' @examples
 #' \dontrun{
 #' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,

@@ -12,6 +12,7 @@
 #' @importFrom ggplot2 ggplot geom_line scale_x_continuous scale_y_log10 theme_light geom_vline labs theme element_text
 #' @importFrom scales label_log pretty_breaks
 #' @importFrom dplyr filter
+#' @export
 #' @examples
 #' \dontrun{
 #' make_figure(data_in = data_in, data_out = data_out, extrapFrom = 60)
@@ -77,6 +78,7 @@ abs_and_comma <- function (x, ...) {
 #' @return A pyramid for either Deaths or Exposures
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
+#' @export
 #' @examples
 #' \dontrun{
 #' pyramid(data = mutate(data, sex = "Female"), y = "Deaths")
@@ -111,6 +113,7 @@ pyramid <- function(data, y) {
 #' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
 #' @importFrom dplyr mutate
+#' @export
 #' @examples
 #' \dontrun{
 #' plot_input_rates(data = mutate(data, sex = "Female"))
@@ -140,6 +143,7 @@ plot_input_rates <- function(data) {
 #' @return A histogramm for either Deaths or Exposures
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
+#' @export
 #' @examples
 #' \dontrun{
 #' plot_histogram(data = mutate(data, sex = "Female"), y = "Deaths")
@@ -176,6 +180,7 @@ plot_histogram <- function(data, y) {
 #' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
 #' @importFrom dplyr mutate
+#' @export
 #' @examples
 #' \dontrun{
 #' plot_initial(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
@@ -214,6 +219,7 @@ plot_initial <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_r
 #' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
 #' @importFrom dplyr mutate
+#' @export
 #' @examples
 #' \dontrun{
 #' plot_initial_single_sex(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
@@ -256,6 +262,7 @@ plot_initial_single_sex <- function(data, plot_exposures = TRUE, plot_deaths = T
 #' @return A list with 3 corresponding plots for either one or two sex.
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
+#' @export
 #' @examples
 #' \dontrun{
 #' plot_the_initial_data(mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
