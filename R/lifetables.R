@@ -1,5 +1,6 @@
-#' Calculate an abridged-age or a single-age lifetable.
-#' @description 
+
+#' lt_flexible
+#' @description Calculate an abridged-age or a single-age lifetable.
 #' @param Deaths numeric vector. Death counts in one, five or ten years age groups.
 #' @param Exposures numeric vector. Population counts in one, five or ten years age groups.
 #' @param Age numeric vector. Age in integer years at the beginning of the interval. e.g. interval `"5-10"`, should be coded as 5
@@ -27,7 +28,8 @@
 #' ex numeric. Age-specific remaining life expectancy.
 #' @importFrom dplyr case_when
 #' @importFrom DemoTools lt_abridged age2int lt_abridged2single lt_single_mx lt_single2abridged
-#' @examples1
+#' @export
+#' @examples
 #' \dontrun{
 #' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
 #' 247473,223014,172260,149338,127242,105715,79614,53660,

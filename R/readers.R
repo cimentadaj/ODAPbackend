@@ -1,5 +1,6 @@
-#' Read the with supported file extension into the program. The file should contain at minimum 3 columns "Deaths", "Exposures","Age" named this way or positioned in a corresponding order.
-#' @description 
+
+#' read_data
+#' @description Read the with supported file extension into the program. The file should contain at minimum 3 columns "Deaths", "Exposures","Age" named this way or positioned in a corresponding order.
 #' @param user_file character. File name with corresponding extension e.g. `data.csv`.
 #' @param skip numeric. Number of rows to skip before reading the data. Defaults to `0`.
 #' @return A tibble with with 5 numeric columns: Deaths, Exposures, Age, AgeInt, Mx_emp.
@@ -11,7 +12,8 @@
 #' @importFrom DemoTools is_age_coherent is_age_sequential is_age_redundant
 #' @importFrom purrr map set_names
 #' @importFrom tidyselect matches
-#' @examples1
+#' @export
+#' @examples
 #' \dontrun{
 #' read_data(
 #'     user_file = "data.csv",

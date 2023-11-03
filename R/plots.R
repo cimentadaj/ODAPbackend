@@ -3,9 +3,8 @@
 # and scoping, but just so you see this can also be modular
 
 
-
-#' Plots a line graph of the log10 transformed empirical mortality rate (Mx) data and a fitted data from a chosen age.
-#' @description 
+#' make_figure
+#' @description Plots a line graph of the log10 transformed empirical mortality rate (Mx) data and a fitted data from a chosen age. 
 #' @param data_in tibble. Empirical numeric Mx value to be plotted and and numeric Age values to be plotted.
 #' @param data_out tibble. Modelled numeric Mx value to be plotted and and numeric Age values to be plotted.
 #' @param extrapFrom numeric. extrapFrom an age interval from which the lifetable was extrapolated.
@@ -13,7 +12,8 @@
 #' @importFrom ggplot2 ggplot geom_line scale_x_continuous scale_y_log10 theme_light geom_vline labs theme element_text
 #' @importFrom scales label_log pretty_breaks
 #' @importFrom dplyr filter
-#' @examples1
+#' @export
+#' @examples
 #' \dontrun{
 #' make_figure(data_in = data_in, data_out = data_out, extrapFrom = 60)
 #' }
@@ -71,14 +71,15 @@ abs_and_comma <- function (x, ...) {
   
 }
 
-# Generate a population pyramid from the user data. WARNING contains some tidy evaluation
-#' @description 
+#' pyramid
+#' @description Generate a population pyramid from the user data. WARNING contains some tidy evaluation 
 #' @param data tibble. Empirical data downloaded  with the `read_data` function. Should contain the Exposures, Deaths 
 #' @param y  character. This argument indicating weather the `Exposures` or `Deaths` should be plotted.
 #' @return A pyramid for either Deaths or Exposures
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
-#' @examples1
+#' @export
+#' @examples
 #' \dontrun{
 #' pyramid(data = mutate(data, sex = "Female"), y = "Deaths")
 #' }
@@ -105,19 +106,20 @@ pyramid <- function(data, y) {
          y = y)
   }
 
-#' Plots a line graph of the log10 transformed empirical mortality rate (Mx).
-#' @description 
+#' plot_input_rates
+#' @description Plots a line graph of the log10 transformed empirical mortality rate (Mx).
 #' @param data tibble. Empirical data downloaded  with the `read_data` function 
 #' @return A linechart of log 10 scaled empirical `M(x)` values
 #' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
 #' @importFrom dplyr mutate
-#' @examples1
+#' @export
+#' @examples
 #' \dontrun{
-#' input_rates(data = mutate(data, sex = "Female"))
+#' plot_input_rates(data = mutate(data, sex = "Female"))
 #' }
 #' 
-input_rates <- function(data) {
+plot_input_rates <- function(data) {
 
   data %>% 
     mutate(Mx_emp = Deaths / Exposures) %>%
@@ -134,15 +136,15 @@ input_rates <- function(data) {
   
 }
 
-# general histogram function. WARNING contains some tidy evaluation
-#' Plots a histogram of population or death, depending on the user choice.
-#' @description 
+#' plot_histogram
+#' @description Plots a histogram of population or death, depending on the user choice.
 #' @param data tibble. Empirical data downloaded  with the `read_data` function 
 #' @param y character. This argument indicats weather the `Exposures` or `Deaths` should be plotted.
 #' @return A histogramm for either Deaths or Exposures
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
-#' @examples1
+#' @export
+#' @examples
 #' \dontrun{
 #' plot_histogram(data = mutate(data, sex = "Female"), y = "Deaths")
 #' }
@@ -168,9 +170,8 @@ plot_histogram <- function(data, y) {
          y = y)
 }
 
-# combine
-#' Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population pyramid and death pyramid if the data contains information on two sex.
-#' @description 
+#' plot_initial
+#' @description Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population pyramid and death pyramid if the data contains information on two sex.
 #' @param data tibble. Empirical data downloaded  with the `read_data` function 
 #' @param plot_exposures logical indicates weather the population pyramid should be plotted, defaults to TRUE
 #' @param plot_deaths logical indicates weather the death pyramid should be plotted, defaults to TRUE
@@ -179,11 +180,12 @@ plot_histogram <- function(data, y) {
 #' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
 #' @importFrom dplyr mutate
-#' @examples1
+#' @export
+#' @examples
 #' \dontrun{
-#' initial_plot(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+#' plot_initial(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
 #' }
-initial_plot <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE) {
+plot_initial <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE) {
   
   if(plot_exposures) { 
     
@@ -207,8 +209,8 @@ initial_plot <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_r
 
 }
 
-#' Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population histogram and death histogram if the data contains information on only one sex.
-#' @description 
+#' plot_initial_single_sex
+#' @description Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population histogram and death histogram if the data contains information on only one sex.
 #' @param data tibble. Empirical data downloaded  with the `read_data` function 
 #' @param plot_exposures logical indicates weather the population pyramid should be plotted, defaults to TRUE
 #' @param plot_deaths logical indicates weather the death pyramid should be plotted, defaults to TRUE
@@ -217,11 +219,12 @@ initial_plot <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_r
 #' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
 #' @importFrom dplyr mutate
-#' @examples1
+#' @export
+#' @examples
 #' \dontrun{
-#' initial_plot(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+#' plot_initial_single_sex(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
 #' }
-initial_plot_single_sex <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE) {
+plot_initial_single_sex <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE) {
   
   if(plot_exposures) { 
     
@@ -250,8 +253,8 @@ initial_plot_single_sex <- function(data, plot_exposures = TRUE, plot_deaths = T
 # width bar to be equal to the ageInt and length is not the size is the size divided by age int
 # assume there are 2 sexes AND create a bar chart for the case of one sex AND a checker if there is 1 or 2 sex
 
-#' Plots the corresponding 3 graphics for single sex or for both sex depending on data provided by the user.
-#' @description 
+#' plot_the_initial_data
+#' @description Plots the corresponding 3 graphics for single sex or for both sex depending on data provided by the user.
 #' @param data tibble. Empirical data downloaded  with the `read_data` function 
 #' @param plot_exposures logical. Weather the exposures should be plotted
 #' @param plot_deaths logical. Weather the Deaths should be plotted#' @param dplot_ratesata logical Empirical data downloaded  with the `read_data` function 
@@ -259,7 +262,8 @@ initial_plot_single_sex <- function(data, plot_exposures = TRUE, plot_deaths = T
 #' @return A list with 3 corresponding plots for either one or two sex.
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
-#' @examples1
+#' @export
+#' @examples
 #' \dontrun{
 #' plot_the_initial_data(mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
 #' }
