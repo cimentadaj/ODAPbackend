@@ -123,40 +123,24 @@ OAnew      = 100   # TR element of basic, gets passed in
 extrapFrom = 70    # TR element of advanced, gets passed in
 extrapFit  = seq(70, 100, by = 5) # TR element of advanced, gets passed in
 Mx_emp <- abridged_data$Deaths/ abridged_data$Exposures
-# I made it a little fancy. Since the data from the function are expected 
-# to be provided I had coded the values
-# If needed can be turned into a function with compled return()
-ggplot() + 
-  geom_line(data = data, aes(x = Age, y = Mx_emp), linewidth = 0.8) + 
-  geom_line(data = filter(data1, Age >= extrapFrom), aes(x = Age, y = nMx), lty = 2, col = "red", linewidth = 1) +
-  scale_x_continuous(breaks = pretty_breaks()) +
-  scale_y_log10(labels = label_log(digits = 2)) +
-  theme_light() +
-  geom_vline(xintercept = extrapFrom, lty = 2)+
-  labs(x = "Age",
-       y = "nMx",
-       subtitle = "The difference between the empirical Mx and the extrapolated values for a given age range on a log10 scale.")+
-  theme(axis.text = element_text(color = "black"),
-        plot.subtitle = element_text(size = 12, color = "black"))
-
 
 #### lt check
 data_out <- 
-  lt_flexible(Deaths    = Deaths, 
-              Exposures = Exposures,
-              Age       = Age,
+  lt_flexible(Deaths    = data$Deaths, 
+              Exposures = data$Exposures,
+              Age       = data$Age,
               OAnew     = 100,
               age_out = "single",  
-              extrapFrom = 80,
-              extrapFit = Age[Age >= 60], 
+              extrapFrom = 70,
+              extrapFit = data$Age[data$Age >= 60], 
               radix     = 1e+05,
               extrapLaw = NULL,
               SRB       = 1.05,
               a0rule    = "ak",
               axmethod  = "un",
               Sex       = "m")
-
-
+make_figure(data, data_out, 70)
+plot_initial_single_sex(data)
 # plot check
 # a little data "simulation"
 data$sex        <- "Male" 
@@ -170,4 +154,4 @@ z <- data %>%
   mutate(Deaths = ifelse(sex == "Female", Deaths + rpois(22, lambda = 50), Deaths)) # a bit of difference for females
 
 # works
-initial_plot(data = z, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+make_figure(data, data_out)
