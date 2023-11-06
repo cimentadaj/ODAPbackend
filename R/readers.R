@@ -27,6 +27,12 @@
 # -[] automatic integer recoding of character string definitions of Age, 
 #      i.e. "1-4", "1 to 4" etc become 1.
 
+# TODO: the statement data_in$Age <- parse_number(data_in$Age)
+# appears twice, after each way of reading in the data; why not
+# just do it once after reading in?
+# TODO: Can we also check to see if AgeInt is specified? If not, then can we
+# create it? This would be down by where we create Mx_emp.
+
 read_data <- function(user_file, skip = 0) {
   
   # now we know the extension and we can proceed with reading the file 
@@ -36,7 +42,7 @@ read_data <- function(user_file, skip = 0) {
   # stopifnot("File extension not supported at this time. Please provide the data in .csv, .xlsx, or .xls format" = length(extension) == 1 )
   
   # for delimited data
-  if(extension %in% c("csv", "tsv")) {
+  if(extension %in% c("csv", "tsv","txt")) {
     # TR: changed to file.path() because the path separator is then 
     # OS dependent
     
@@ -76,6 +82,7 @@ read_data <- function(user_file, skip = 0) {
       set_names(c("Deaths", "Exposures", "Age", names(.)[-c(1:3)]))
     
   } 
+
   
   # calculate empirical nmx
   data_in <- data_in %>%
