@@ -23,6 +23,8 @@
 #' plot_compare_rates(data_in = data_in, data_out = data_out, extrapFrom = 60)
 #' }
 
+# TODO: here we compare the input and fitted rates. Note, we also have potential abridging or graduation happening. If graduation has happened inside the lifetable, then I suggest showing both complete age schedules. And the title would read
+# "Comparison of empirical nMx and lifetable nmx values", with caption (or annotation) reading "vertical line indicates extrapolation jump-off age"
 plot_compare_rates <- function(
                         data_in, # raw mx to plot
                         data_out, # the data from lt
@@ -50,13 +52,7 @@ plot_compare_rates <- function(
   
 }
 
-# make_figure(data_in = abridged_data, data_out = data_out, extrapFrom = 60)
-
-# TODO, return in list, make it a named list, where the names make the widget plot title
-# Make a separate plot function for the input data with 3 plots:
-# pop pyramid
-# deaths pyramid
-# input rates
+# TODO: create plot_lifetable() which creates a list of plots of lifetable functions# nMx, nqx, lx (indicating .25, .5, .75 quartiles as well as e0 using geom_vline(), dx (indicating .25, .5, .75 quartiles as well as e0 using geom_vline()). Quartiles can come from LifeIneq package in my github. We need to decide whether to represent age patterns as step or line functions. Maybe the user can decide?
 
 # a little data "simulation"
 # data$sex        <- "Male" 
