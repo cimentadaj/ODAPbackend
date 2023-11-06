@@ -1,12 +1,14 @@
-library(DemoTools)
-library(tidyverse)
-library(scales)
-library(readxl)
-source("R/readers.R")
-source("R/checkers.R")
-source("R/lifetables.R")
-source("R/plots.R") # broken function in this one
-
+# library(DemoTools)
+# library(tidyverse)
+# library(scales)
+# library(readxl)
+library(devtools)
+load_all()
+# source("R/readers.R")
+# source("R/checkers.R")
+# source("R/lifetables.R")
+# source("R/plots.R") # broken function in this one
+# 
 
 Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
                247473,223014,172260,149338,127242,105715,79614,53660,
@@ -39,22 +41,8 @@ data <- read_data("abridged_data2.csv")
 data <- read_data("abridged_data1.xlsx")
 data <- read_data("abridged_data2.xls")
 # we expect an error.... but what if it's delimited?? Shall we just allow it?
-data <- read_data("abridged_data2.txt")
-# TR task 2: make checker function
-# is_abridged()
-# check for NAs
-# check for scale (leave note and this code commented out)
-# hackish check for plausible ranges
-# abridged_data |> 
-#   mutate(mx = Deaths / Exposures,
-#          AgeInt = if_else(is.na(AgeInt), 10, AgeInt)) |> 
-#   reframe(e0 = sum(exp(-cumsum(rep(mx, times = AgeInt)))) + .5)
+data <- read_data("abridged_data2.csv")
 
-# Lets break everything in a little check functions
-# alternative. assertive package
-data$AgeInt
-
-check_data(data)
 
 
 # task 3: # We need to make predefined lists of valid values for each argument
@@ -62,22 +50,6 @@ check_data(data)
 # pass to the LT function. they don't need to be the same. First we do abridged.
 
 check_data(data)
-
-
-
-check_data <- function(data) { 
-  
-  check_numeric(data)
-  check_missing_cols(data)
-  check_rows(data)
-  # check_abridged(data) # replace it or remove
-  check_nas(data)
-  check_lower(data)
-  check_coherent(data)
-  check_sequential(data)
-  check_redundant(data)
-}
-
 
 # basic
 basic <- 
@@ -138,52 +110,37 @@ write.csv(advanced, file = "advanced.csv")
 
 # So out wrapper function would be calc_lt(), passing in all arguments.
 # we have lt_single2abridged() and lt_abridged2single(), for instance for
-
-data1 <- lt_abridged(Deaths = abridged_data$Deaths,
-                     Exposures = abridged_data$Exposures,
-                     Age = abridged_data$Age,
-                     OAnew = 100,  
-                     extrapFrom = 70,
-                     extrapFit = seq(70,100,by=5))
+load_all()
+data1 <- lt_flexible(Deaths = data$Deaths,
+                     Exposures = data$Exposures,
+                     Age = data$Age,
+                     OAnew = 110,  
+                     extrapFrom = 80,
+                     extrapFit = seq(70,100,by=5),
+                     age_out = "single")
 
 OAnew      = 100   # TR element of basic, gets passed in
 extrapFrom = 70    # TR element of advanced, gets passed in
 extrapFit  = seq(70, 100, by = 5) # TR element of advanced, gets passed in
 Mx_emp <- abridged_data$Deaths/ abridged_data$Exposures
-# I made it a little fancy. Since the data from the function are expected 
-# to be provided I had coded the values
-# If needed can be turned into a function with compled return()
-ggplot() + 
-  geom_line(data = data, aes(x = Age, y = Mx_emp), linewidth = 0.8) + 
-  geom_line(data = filter(data1, Age >= extrapFrom), aes(x = Age, y = nMx), lty = 2, col = "red", linewidth = 1) +
-  scale_x_continuous(breaks = pretty_breaks()) +
-  scale_y_log10(labels = label_log(digits = 2)) +
-  theme_light() +
-  geom_vline(xintercept = extrapFrom, lty = 2)+
-  labs(x = "Age",
-       y = "nMx",
-       subtitle = "The difference between the empirical Mx and the extrapolated values for a given age range on a log10 scale.")+
-  theme(axis.text = element_text(color = "black"),
-        plot.subtitle = element_text(size = 12, color = "black"))
-
 
 #### lt check
 data_out <- 
-  lt_flexible(Deaths    = Deaths, 
-              Exposures = Exposures,
-              Age       = Age,
+  lt_flexible(Deaths    = data$Deaths, 
+              Exposures = data$Exposures,
+              Age       = data$Age,
               OAnew     = 100,
               age_out = "single",  
-              extrapFrom = 80,
-              extrapFit = Age[Age >= 60], 
+              extrapFrom = 70,
+              extrapFit = data$Age[data$Age >= 60], 
               radix     = 1e+05,
               extrapLaw = NULL,
               SRB       = 1.05,
               a0rule    = "ak",
               axmethod  = "un",
               Sex       = "m")
-
-
+make_figure(data, data_out, 70)
+plot_initial_single_sex(data)
 # plot check
 # a little data "simulation"
 data$sex        <- "Male" 
@@ -197,4 +154,4 @@ z <- data %>%
   mutate(Deaths = ifelse(sex == "Female", Deaths + rpois(22, lambda = 50), Deaths)) # a bit of difference for females
 
 # works
-initial_plot(data = z, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+make_figure(data, data_out)
