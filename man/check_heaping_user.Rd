@@ -9,14 +9,14 @@ check_heaping_user(data, y, ageMin, ageMax)
 \arguments{
 \item{data}{data.frame. User file from the read_data command with the minimum data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals}
 
-\item{y}{chracter.Variable name for which the hipping should be checked \code{Deaths} or \code{Exposures}}
+\item{y}{chracter.Variable name for which the heaping should be checked \code{Deaths} or \code{Exposures}}
 
-\item{ageMin}{numeric.The minimum age from which to do the hipping evaluation}
+\item{ageMin}{numeric.The minimum age from which to do the heaping evaluation}
 
-\item{ageMax}{numeric.The maximum age from which to do the hipping evaluation}
+\item{ageMax}{numeric.The maximum age from which to do the heaping evaluation}
 }
 \value{
-A data.frame with 2 columns \code{method} - the method used for age hipping evaluation and \code{result} - the resulting hipping measure
+A data.frame with 2 columns \code{method} - the method used for age heaping evaluation and \code{result} - the resulting heaping measure
 }
 \description{
 Check the age heaping for 5 or 1 year data, but this time give user control over minimum and maximum evaluation age.

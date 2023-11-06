@@ -9,10 +9,10 @@ check_heaping_general(data, y)
 \arguments{
 \item{data}{data.frame. User file from the read_data command with the minimum data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals}
 
-\item{y}{character.Variable name for which the hipping should be checked \code{Deaths} or \code{Exposures}.}
+\item{y}{character.Variable name for which the heaping should be checked \code{Deaths} or \code{Exposures}.}
 }
 \value{
-A data.frame with 2 columns \code{method} - the method used for age hipping evaluation and \code{result} - the resulting hipping measure
+A data.frame with 2 columns \code{method} - the method used for age heaping evaluation and \code{result} - the resulting heaping measure
 }
 \description{
 Check the age heaping for 5 or 1 year data.
