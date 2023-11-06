@@ -3,7 +3,7 @@
 # it should take data frame in, as well as some default heaping diagnostics,
 # it should return a small data.frame of
 
-#' check_heapping_general
+#' check_heaping_general
 #' @description Check the age heaping for 5 or 1 year data.
 #' @param data data.frame. User file from the read_data command with the minimum data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals
 #' @param y character.Variable name for which the hipping should be checked `Deaths` or `Exposures`.
@@ -12,12 +12,12 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' check_heapping_general(
+#' check_heaping_general(
 #'     data = data,
 #'     y = "Exposures")
 #' }
 #' 
-check_heapping_general <- function(data, y) { 
+check_heaping_general <- function(data, y) { 
   
   if(is_single(data$Age)) { 
     
@@ -42,7 +42,7 @@ check_heapping_general <- function(data, y) {
   
 }
 
-#' check_heapping_user
+#' check_heaping_user
 #' @description Check the age heaping for 5 or 1 year data, but this time give user control over minimum and maximum evaluation age.
 #' @param data data.frame. User file from the read_data command with the minimum data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals
 #' @param y chracter.Variable name for which the hipping should be checked `Deaths` or `Exposures`
@@ -53,12 +53,12 @@ check_heapping_general <- function(data, y) {
 #' @export
 #' @examples
 #' \dontrun{
-#' check_heapping_general(
+#' check_heaping_general(
 #'     data = data,
 #'     y = "Exposures")
 #' }
 #' 
-check_heapping_user <- function(data, y, ageMin, ageMax) { 
+check_heaping_user <- function(data, y, ageMin, ageMax) { 
   
   if(is_single(data$Age)) { 
     
