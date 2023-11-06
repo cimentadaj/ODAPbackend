@@ -27,7 +27,7 @@
 #' Tx numeric. Lifetable total years left to live above age x.
 #' ex numeric. Age-specific remaining life expectancy.
 #' @importFrom dplyr case_when
-#' @importFrom DemoTools lt_abridged age2int lt_abridged2single lt_single_mx lt_single2abridged
+#' @importFrom DemoTools is_single lt_abridged age2int lt_abridged2single lt_single_mx lt_single2abridged is_abridged
 #' @export
 #' @examples
 #' \dontrun{

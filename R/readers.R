@@ -33,7 +33,7 @@ read_data <- function(user_file, skip = 0) {
   extension <- extension_check(user_file)
   
   # if extension is not allowed, throw an error
-  stopifnot("File extension not supported at this time. Please provide the data in .csv, .xlsx, or .xls format" = length(extension) == 1 )
+  # stopifnot("File extension not supported at this time. Please provide the data in .csv, .xlsx, or .xls format" = length(extension) == 1 )
   
   # for delimited data
   if(extension %in% c("csv", "tsv")) {
