@@ -1,3 +1,8 @@
+
+# TODO: 
+
+
+
 # This can be more modular, as in a separate call, please adjust so that it can just take these two
 # data objects? Or whatever you think makes sense. This won't currently run because I changed the args
 # and scoping, but just so you see this can also be modular
@@ -225,22 +230,24 @@ plot_initial <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_r
 #' plot_initial_single_sex(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
 #' }
 plot_initial_single_sex <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE) {
-  
+  # TODO: all histograms and pyramid need precise treatment
+  # of age intervals.
   if(plot_exposures) { 
     
+    # TODO: make title be Histogram of of Exposures
     Exposures <- plot_histogram(data = data, y = "Exposures")
     
   }
   
   if(plot_deaths) {
-    
+    # TODO: make title be Histogram of of Deaths
     Deaths <- plot_histogram(data = data, y = "Deaths")
     
   }
   
   if(plot_rates) { 
     
-    `Empirical Mx` <- input_rates(data = data)
+    `Empirical Mx` <- plot_input_rates(data = data)
     
   }
   

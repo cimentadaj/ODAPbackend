@@ -51,55 +51,10 @@ data <- read_data("abridged_data2.csv")
 
 check_data(data)
 
-# basic
-basic <- 
-tibble(for_us = c("OAnew",
-                  "OAG",
-                  "sex",
-                  "radix"),
-       for_users = c("Desired open age group",
-                     "Whether or not the last element of nMx is an open age group.",
-                     "Sex",
-                     "Radix value"),
-       default_calue = c("100",
-                         "TRUE",
-                         "male",
-                         "100000"),
-       look = c("field with numeric input",
-                "a box to tick",
-                "a box to tick",
-                "field with numeric input"))
+plot_the_initial_data(data)
 
-# advanced
-advanced <- 
-tibble(for_us = c("extrapLaw",
-                  "extrapFrom",
-                  "extrapFit",
-                  "SRB",
-                  "a0rule",
-                  "axmethod"),
-       for_users = c("Parametric mortality law for LT extrapolation",
-                     "Age from which to impute extrapolated mortality",
-                     "Ages to include in model fitting.",
-                     "The sex ratio at birth (boys / girls)",
-                     "The rule for modelling a0 value",
-                     "The method to model ax values"),
-       default_calue = c("Kannisto if < 90, or makeham",
-                         "80",
-                         "60",
-                         "1.05",
-                         "ak",
-                         "un"),
-       look = c("The dropping list with choices",
-                "a field with numeric input",
-                "filed with numeric input",
-                "field with numeric input",
-                "two coice buttons",
-                "two coice buttons"))
+check_heaping_general(data)
 
-
-write.csv(basic, file = "basic.csv")
-write.csv(advanced, file = "advanced.csv")
 # Task 4: make a ggplot code snippet showing the incoming rates as a line
 # and the outgoing rates with a dashed line in a different color, potentially
 # only starting at the extrapFrom age. This function anticipates the output
@@ -155,3 +110,52 @@ z <- data %>%
 
 # works
 make_figure(data, data_out)
+# basic
+basic <- 
+  tibble(for_us = c("OAnew",
+                    "OAG",
+                    "sex",
+                    "radix"),
+         for_users = c("Desired open age group",
+                       "Whether or not the last element of nMx is an open age group.",
+                       "Sex",
+                       "Radix value"),
+         default_calue = c("100",
+                           "TRUE",
+                           "male",
+                           "100000"),
+         look = c("field with numeric input",
+                  "a box to tick",
+                  "a box to tick",
+                  "field with numeric input"))
+
+# advanced
+advanced <- 
+  tibble(for_us = c("extrapLaw",
+                    "extrapFrom",
+                    "extrapFit",
+                    "SRB",
+                    "a0rule",
+                    "axmethod"),
+         for_users = c("Parametric mortality law for LT extrapolation",
+                       "Age from which to impute extrapolated mortality",
+                       "Ages to include in model fitting.",
+                       "The sex ratio at birth (boys / girls)",
+                       "The rule for modelling a0 value",
+                       "The method to model ax values"),
+         default_calue = c("Kannisto if < 90, or makeham",
+                           "80",
+                           "60",
+                           "1.05",
+                           "ak",
+                           "un"),
+         look = c("The dropping list with choices",
+                  "a field with numeric input",
+                  "filed with numeric input",
+                  "field with numeric input",
+                  "two coice buttons",
+                  "two coice buttons"))
+
+
+write.csv(basic, file = "basic.csv")
+write.csv(advanced, file = "advanced.csv")
