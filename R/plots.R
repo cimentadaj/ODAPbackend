@@ -272,11 +272,11 @@ plot_the_initial_data <- function(data, plot_exposures = TRUE, plot_deaths = TRU
   
   if(length(unique(data$sex)) == 2) { 
   
-  result <- initial_plot(data, plot_exposures = plot_exposures, plot_deaths = plot_deaths, plot_rates = plot_rates)
+  result <- plot_initial(data, plot_exposures = plot_exposures, plot_deaths = plot_deaths, plot_rates = plot_rates)
   
   } else { 
     
-  result <- initial_plot_single_sex(data, plot_exposures = plot_exposures, plot_deaths = plot_deaths, plot_rates = plot_rates)
+  result <- plot_initial_single_sex(data, plot_exposures = plot_exposures, plot_deaths = plot_deaths, plot_rates = plot_rates)
 } 
 
   return(result)
