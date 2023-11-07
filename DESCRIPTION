@@ -1,7 +1,7 @@
 Package: OPAD_backend
 Type: Package
 Title: Standardize, Evaluate, and Adjust Demographic Data
-Version: 00.00.011
+Version: 00.00.012
 Date: 2023-11-06
 Authors@R: c(
    person("Tim", "Riffe", role = c("aut", "cre"), 

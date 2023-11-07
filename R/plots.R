@@ -1,3 +1,8 @@
+
+# TODO: 
+
+
+
 # This can be more modular, as in a separate call, please adjust so that it can just take these two
 # data objects? Or whatever you think makes sense. This won't currently run because I changed the args
 # and scoping, but just so you see this can also be modular
@@ -15,10 +20,12 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' make_figure(data_in = data_in, data_out = data_out, extrapFrom = 60)
+#' plot_compare_rates(data_in = data_in, data_out = data_out, extrapFrom = 60)
 #' }
 
-make_figure <- function(
+# TODO: here we compare the input and fitted rates. Note, we also have potential abridging or graduation happening. If graduation has happened inside the lifetable, then I suggest showing both complete age schedules. And the title would read
+# "Comparison of empirical nMx and lifetable nmx values", with caption (or annotation) reading "vertical line indicates extrapolation jump-off age"
+plot_compare_rates <- function(
                         data_in, # raw mx to plot
                         data_out, # the data from lt
                         extrapFrom) {
@@ -45,13 +52,7 @@ make_figure <- function(
   
 }
 
-# make_figure(data_in = abridged_data, data_out = data_out, extrapFrom = 60)
-
-# TODO, return in list, make it a named list, where the names make the widget plot title
-# Make a separate plot function for the input data with 3 plots:
-# pop pyramid
-# deaths pyramid
-# input rates
+# TODO: create plot_lifetable() which creates a list of plots of lifetable functions# nMx, nqx, lx (indicating .25, .5, .75 quartiles as well as e0 using geom_vline(), dx (indicating .25, .5, .75 quartiles as well as e0 using geom_vline()). Quartiles can come from LifeIneq package in my github. We need to decide whether to represent age patterns as step or line functions. Maybe the user can decide?
 
 # a little data "simulation"
 # data$sex        <- "Male" 
@@ -83,6 +84,9 @@ abs_and_comma <- function (x, ...) {
 #' \dontrun{
 #' pyramid(data = mutate(data, sex = "Female"), y = "Deaths")
 #' }
+# TODO: careful with age bins; careful to filter only to sex %in% c("Male","Female"), since the data situation where we might plot a pyramid could also have a Total category.
+# TODO: make an example in roxygen for 2-sex pyramid? 
+# TODO: I didn't test result in roxygen, but I don't see the mechanism that would put Males on the left? Usually we'd make the values negative but then fix the legend to display absolute, which I see with abs_and_comma(), but not in the data itself. As in, before ggplot() is even called.
 pyramid <- function(data, y) {
   
   data %>%
@@ -119,11 +123,21 @@ pyramid <- function(data, y) {
 #' plot_input_rates(data = mutate(data, sex = "Female"))
 #' }
 #' 
+# TODO: color = sex should only be used if there are >1 sex categories.
+# Or at least the fill legend suppressed if there is only one sex. I modified the code for this, can you check it?
 plot_input_rates <- function(data) {
-
-  data %>% 
-    mutate(Mx_emp = Deaths / Exposures) %>%
-    ggplot(aes(x = Age, y = Mx_emp, color = sex), linewidth = 0.8) + 
+ 
+  if (any(colnames(data) == "sex")){
+    p <-  data %>% 
+      mutate(Mx_emp = Deaths / Exposures) %>%
+      ggplot(aes(x = Age, y = Mx_emp, color = sex), linewidth = 0.8) 
+  } else {
+    p <-  data %>% 
+      mutate(Mx_emp = Deaths / Exposures) %>%
+      ggplot(aes(x = Age, y = Mx_emp), linewidth = 0.8) 
+  }
+  
+    p + 
     geom_line() + 
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_log10(labels = label_log(digits = 2)) +
@@ -148,10 +162,12 @@ plot_input_rates <- function(data) {
 #' \dontrun{
 #' plot_histogram(data = mutate(data, sex = "Female"), y = "Deaths")
 #' }
+# TODO: (repeated elsewhere too): age bin categories should be precise and not centered on the midpoints.
+# TODO: no need to map fill to sex for a single-sex plot? Or at least drop the legend? I removed sex mapping, only called for single sex 
 plot_histogram <- function(data, y) { 
   
   data %>% 
-    ggplot(aes(x = Age, y = (.data[[y]] / AgeInt), fill = sex, width = AgeInt)) +
+    ggplot(aes(x = Age, y = (.data[[y]] / AgeInt), width = AgeInt)) +
     geom_bar(stat = "identity") +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_continuous(
@@ -166,11 +182,11 @@ plot_histogram <- function(data, y) {
           legend.title  = element_text(color = "black", size = 14),
           plot.subtitle = element_text(color = "black", size = 14)
     ) + 
-    labs(subtitle = str_c("Pyramid of ", y, "."),
+    labs(subtitle = str_c("Age histogram of ", y, "."),
          y = y)
 }
 
-#' plot_initial
+#' plot_initial_two_sex
 #' @description Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population pyramid and death pyramid if the data contains information on two sex.
 #' @param data tibble. Empirical data downloaded  with the `read_data` function 
 #' @param plot_exposures logical indicates weather the population pyramid should be plotted, defaults to TRUE
@@ -183,9 +199,12 @@ plot_histogram <- function(data, y) {
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_initial(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+#' plot_initial_two_sex(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
 #' }
-plot_initial <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE) {
+# TODO: nice this works also on single-sex data, but can we make a working example for 2-sexes in the roxygen? Ensure it's just Male and Female. Total only allowed if just one sex is present. Right?
+plot_initial_two_sex <- function(data, 
+                                 plot_exposures = TRUE, 
+                                 plot_deaths = TRUE, plot_rates = TRUE) {
   
   if(plot_exposures) { 
     
@@ -201,7 +220,7 @@ plot_initial <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_r
   
   if(plot_rates) { 
     
-    `Empirical Mx` <- input_rates(data = data)
+    `Empirical Mx` <- plot_input_rates(data = data)
     
     }
 
@@ -224,23 +243,23 @@ plot_initial <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_r
 #' \dontrun{
 #' plot_initial_single_sex(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
 #' }
-plot_initial_single_sex <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE) {
+plot_initial_single_sex <- function(data, 
+                                    plot_exposures = TRUE, 
+                                    plot_deaths = TRUE, plot_rates = TRUE) {
   
   if(plot_exposures) { 
-    
     Exposures <- plot_histogram(data = data, y = "Exposures")
     
   }
   
   if(plot_deaths) {
-    
     Deaths <- plot_histogram(data = data, y = "Deaths")
     
   }
   
   if(plot_rates) { 
     
-    `Empirical Mx` <- input_rates(data = data)
+    `Empirical Mx` <- plot_input_rates(data = data)
     
   }
   
@@ -253,7 +272,7 @@ plot_initial_single_sex <- function(data, plot_exposures = TRUE, plot_deaths = T
 # width bar to be equal to the ageInt and length is not the size is the size divided by age int
 # assume there are 2 sexes AND create a bar chart for the case of one sex AND a checker if there is 1 or 2 sex
 
-#' plot_the_initial_data
+#' plot_initial_data
 #' @description Plots the corresponding 3 graphics for single sex or for both sex depending on data provided by the user.
 #' @param data tibble. Empirical data downloaded  with the `read_data` function 
 #' @param plot_exposures logical. Weather the exposures should be plotted
@@ -265,15 +284,26 @@ plot_initial_single_sex <- function(data, plot_exposures = TRUE, plot_deaths = T
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_the_initial_data(mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+#' plot_initial_data(mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
 #' }
-
-plot_the_initial_data <- function(data, plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE){
-  
-  if(length(unique(data$sex)) == 2) { 
-  
-  result <- plot_initial(data, plot_exposures = plot_exposures, plot_deaths = plot_deaths, plot_rates = plot_rates)
-  
+# TODO: here, we check for 2 sex categories. I can imagine a dataset with Male, Female, Total, for which we should discard Total. I like that currently, we are flexible with respect to sex names, so I don't know what's more important. For line plots it's not a problem, but for pyramids it is a problem. I made a modification for this, can you check it?
+plot_initial_data <- function(data, 
+                              plot_exposures = TRUE, 
+                              plot_deaths = TRUE, 
+                              plot_rates = TRUE){
+  if ("sex" %in% colnames(data)){
+   sexes <- data$sex |> unique()
+   if (length(sexes) >= 2){
+    if (length(sexes) > 2){
+      data <- 
+        data |> 
+        filter(sex %in% c("Male","Female"))
+    }
+    result <- plot_initial_two_sex(data, 
+                                   plot_exposures = plot_exposures, 
+                                   plot_deaths = plot_deaths, 
+                                   plot_rates = plot_rates)
+   }
   } else { 
     
   result <- plot_initial_single_sex(data, plot_exposures = plot_exposures, plot_deaths = plot_deaths, plot_rates = plot_rates)

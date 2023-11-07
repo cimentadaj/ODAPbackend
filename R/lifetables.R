@@ -163,3 +163,7 @@ lt_flexible <- function(Deaths     = Deaths, # replace with NULL. this is for de
   return(data_out)
   
 }
+
+# TODO: lt_summary() should create a table of useful summary statistics from the lifetable:
+# e0, e65, 45q15, sd, IQR (from LifeIneq), mode (use Paola Vasquez' shorthand formula rather than spline method)
+
