@@ -21,6 +21,8 @@ Plots a line graph of the log10 transformed empirical mortality rate (Mx) data a
 }
 \examples{
 \dontrun{
-plot_compare_rates(data_in = data_in, data_out = data_out, extrapFrom = 60)
+plot_compare_rates(data_in = data_in, 
+                   data_out = data_out, 
+                   extrapFrom = 60)
 }
 }
