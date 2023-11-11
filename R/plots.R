@@ -300,7 +300,10 @@ plot_initial_single_sex <- function(data,
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_initial_data(mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+#' plot_initial_data(mutate(data, sex = "Female"), 
+#'                   plot_exposures = TRUE, 
+#'                   plot_deaths = TRUE, 
+#'                   plot_rates = TRUE)
 #' }
 # TODO: here, we check for 2 sex categories. I can imagine a dataset with Male, Female, Total, for which we should discard Total. I like that currently, we are flexible with respect to sex names, so I don't know what's more important. For line plots it's not a problem, but for pyramids it is a problem. I made a modification for this, can you check it?
 plot_initial_data <- function(data, 

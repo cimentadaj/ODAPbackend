@@ -91,25 +91,3 @@ read_data <- function(user_file, skip = 0) {
   return(data_in)
 }
 
-# we can manually check for the delimiter if we want in the following manner
-# I think that at this point we should be rigid in terms of what kind of files and delimiters are allowed
-
-# if(str_detect(readLines("data/abridged_data.tsv", n=1), "\t")) { 
-#   
-#   read_delim("data/abridged_data.tsv")
-#   
-# } else if(str_detect(readLines("data/abridged_data.csv", n=1), ",")) { 
-#   
-#   read_csv("data/abridged_data.csv")
-#   
-#   
-#   
-# } else if(str_detect(readLines("data/abridged_data.csv", n=1), ";")) { 
-#   
-#   read_csv1("data/abridged_data.csv")
-#   
-# } else { 
-#   
-#   data_in <- read_excel(file.path("data", user_file), sheet = 1)
-#   
-# }
