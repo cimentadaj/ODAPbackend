@@ -20,7 +20,9 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_compare_rates(data_in = data_in, data_out = data_out, extrapFrom = 60)
+#' plot_compare_rates(data_in = data_in, 
+#'                    data_out = data_out, 
+#'                    extrapFrom = 60)
 #' }
 
 # TODO: here we compare the input and fitted rates. Note, we also have potential abridging or graduation happening. If graduation has happened inside the lifetable, then I suggest showing both complete age schedules. And the title would read
@@ -35,7 +37,13 @@ plot_compare_rates <- function(
   
   figure <- ggplot() + 
     geom_line(aes(x = data_in$Age, y = Mx_emp), linewidth = 0.8) + 
-    geom_line(data = filter(data_out, Age >= extrapFrom), aes(x = Age, y = nMx), lty = 2, col = "red", linewidth = 1) +
+    geom_line(data = filter(data_out, 
+                            Age >= extrapFrom), 
+              aes(x = Age, 
+                  y = nMx), 
+              lty = 2, 
+              col = "red", 
+              linewidth = 1) +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_log10(labels = label_log(digits = 2)) +
     theme_light() +
@@ -199,7 +207,11 @@ plot_histogram <- function(data, y) {
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_initial_two_sex(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+#' plot_initial_two_sex(data = mutate(data, 
+#'                                    sex = "Female"), 
+#'                      plot_exposures = TRUE, 
+#'                      plot_deaths = TRUE, 
+#'                      plot_rates = TRUE)
 #' }
 # TODO: nice this works also on single-sex data, but can we make a working example for 2-sexes in the roxygen? Ensure it's just Male and Female. Total only allowed if just one sex is present. Right?
 plot_initial_two_sex <- function(data, 
@@ -241,7 +253,11 @@ plot_initial_two_sex <- function(data,
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_initial_single_sex(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+#' plot_initial_single_sex(data = mutate(data, 
+#'                                       sex = "Female"), 
+#'                         plot_exposures = TRUE, 
+#'                         plot_deaths = TRUE, 
+#'                         plot_rates = TRUE)
 #' }
 plot_initial_single_sex <- function(data, 
                                     plot_exposures = TRUE, 
@@ -284,7 +300,10 @@ plot_initial_single_sex <- function(data,
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_initial_data(mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+#' plot_initial_data(mutate(data, sex = "Female"), 
+#'                   plot_exposures = TRUE, 
+#'                   plot_deaths = TRUE, 
+#'                   plot_rates = TRUE)
 #' }
 # TODO: here, we check for 2 sex categories. I can imagine a dataset with Male, Female, Total, for which we should discard Total. I like that currently, we are flexible with respect to sex names, so I don't know what's more important. For line plots it's not a problem, but for pyramids it is a problem. I made a modification for this, can you check it?
 plot_initial_data <- function(data, 

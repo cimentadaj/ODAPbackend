@@ -9,6 +9,7 @@
 #' @param y character.Variable name for which the heaping should be checked `Deaths` or `Exposures`.
 #' @return A data.frame with 2 columns `method` - the method used for age heaping evaluation and `result` - the resulting heaping measure
 #' @importFrom stringr str_detect 
+#' @importFrom DemoTools check_heaping_roughness check_heaping_bachi check_heaping_myers check_heaping_sawtooth
 #' @export
 #' @examples
 #' \dontrun{
@@ -50,6 +51,7 @@ check_heaping_general <- function(data, y) {
 #' @param ageMax numeric.The maximum age from which to do the heaping evaluation 
 #' @return A data.frame with 2 columns `method` - the method used for age heaping evaluation and `result` - the resulting heaping measure
 #' @importFrom stringr str_detect 
+#' @importFrom DemoTools check_heaping_roughness check_heaping_bachi check_heaping_myers check_heaping_sawtooth
 #' @export
 #' @examples
 #' \dontrun{

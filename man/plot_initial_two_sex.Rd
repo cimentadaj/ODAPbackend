@@ -28,6 +28,10 @@ Plots a line graph of the log10 transformed empirical mortality rate \code{M(x)}
 }
 \examples{
 \dontrun{
-plot_initial_two_sex(data = mutate(data, sex = "Female"), plot_exposures = TRUE, plot_deaths = TRUE, plot_rates = TRUE)
+plot_initial_two_sex(data = mutate(data, 
+                                   sex = "Female"), 
+                     plot_exposures = TRUE, 
+                     plot_deaths = TRUE, 
+                     plot_rates = TRUE)
 }
 }
