@@ -27,11 +27,11 @@
 # -[] automatic integer recoding of character string definitions of Age, 
 #      i.e. "1-4", "1 to 4" etc become 1.
 
-# TODO: the statement data_in$Age <- parse_number(data_in$Age)
+# TODO: the statement data_in$Age <- parse_number(data_in$Age) Done
 # appears twice, after each way of reading in the data; why not
 # just do it once after reading in?
 # TODO: Can we also check to see if AgeInt is specified? If not, then can we
-# create it? This would be down by where we create Mx_emp.
+# create it? This would be down by where we create Mx_emp. Done
 
 read_data <- function(user_file, skip = 0) {
   
@@ -49,19 +49,10 @@ read_data <- function(user_file, skip = 0) {
     # For read_delim() no need to specify delim, it's apparently detected; I tried
     # , ; \t
     data_in <- 
-      read_delim(file.path("data", user_file), show_col_types = FALSE, skip = skip)
+      read_delim(file.path("inst/extdata", user_file), show_col_types = FALSE, skip = skip)
     
-    if(is.character(data_in$Age)) { 
-      
-      data_in$Age <- parse_number(data_in$Age)
-      
-    }
     
-    data_in <- data_in %>% 
-      dplyr::select(matches("Deaths"), matches("Exposures"), matches("Age$"), matches("AgeInt$")) %>% 
-      set_names(c("Deaths", "Exposures", "Age", names(.)[-c(1:3)]))
-    
-  } else { 
+  } else {
     # can handle both xls and xlsx data. 
     # we can use readxl if we want to hard code format
     # assumes the data is on a first sheet
@@ -69,20 +60,28 @@ read_data <- function(user_file, skip = 0) {
     # positioning
     # TR: AgeInt can have NA in final value, in which case,
     # we need to make sure it reads in as integer and not character
-    data_in <- read_excel(file.path("data", user_file), sheet = 1, skip = skip)
-    
-    if(is.character(data_in$Age)) { 
-      
-      data_in$Age <- parse_number(data_in$Age)
-      
-    }
-    
-    data_in <- data_in %>%
-      dplyr::select(matches("Deaths"), matches("Exposures"), matches("Age$"), matches("AgeInt$")) %>% 
-      set_names(c("Deaths", "Exposures", "Age", names(.)[-c(1:3)]))
-    
-  } 
+    data_in <- read_excel(file.path("inst/extdata", user_file), sheet = 1, skip = skip)
+  
+  }
 
+  # if age is not numeric convert to numeric
+  if(is.character(data_in$Age)) { 
+    
+    data_in$Age <- parse_number(data_in$Age)
+    
+  }
+  
+  # if AgeInt is missing, create AgeInt
+  if(!"AgeInt" %in% names(data_in)) {
+    
+    data_in$AgeInt <- c(diff(data_in$Age), NA)
+    
+  }
+  
+  # here we just guarantee that the 5 columns come in a given order and with a given name
+  data_in <- data_in %>% 
+    dplyr::select(matches("Deaths"), matches("Exposures"), matches("Age$"), matches("AgeInt$"), matches("Sex$")) %>% 
+    set_names(c("Deaths", "Exposures", "Age", "AgeInt", "Sex", names(.)[-c(1:5)]))
   
   # calculate empirical nmx
   data_in <- data_in %>%

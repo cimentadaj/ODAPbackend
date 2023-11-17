@@ -163,7 +163,128 @@ lt_flexible <- function(Deaths     = Deaths, # replace with NULL. this is for de
   return(data_out)
   
 }
+library(LifeIneq)
 
 # TODO: lt_summary() should create a table of useful summary statistics from the lifetable:
 # e0, e65, 45q15, sd, IQR (from LifeIneq), mode (use Paola Vasquez' shorthand formula rather than spline method)
+# DONE We have to think exactly what measures do we want here. The carcass is ready, changing it is a matter of minutes.
+# TODO: TO finish the roxxygen description after we decide which functions we keep and on the output
 
+#' @description Creates a table of useful summary statistics from the lifetable.
+#' @param data_out a data.frame. The data.frame output of the lt_flexible function.
+#' @return A list with 2 data.frames containing the information on the following usefull statistics
+#' e0 - life expectancy at birth
+#' e65 - life expectancy at age 65
+#' `S[1]` - The standard deviation in age at death from birth
+#' `S[11]` - The standard deviation in age at death from age 10
+#' IQR1 - interquartile range survivorship age from a lifetable
+#' IQR2 - interquartile range survivorship age from a lifetable
+#' IQR3 - interquartile range survivorship age from a lifetable
+#' mod_age - modal age at death
+#' q15_45 - probability that the person ages 54 will die at age 60
+#' @importFrom tibble lst tibble
+#' @importFrom LifeIneq ineq_sd ineq_iqr ineq_quantile lt_abridged2single lt_single_mx lt_single2abridged is_abridged
+#' @export
+#' @examples
+#' \dontrun{
+#' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
+#'                247473,223014,172260,149338,127242,105715,79614,53660,
+#'                31021,16805,8000,4000,2000,1000)
+#' 
+#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
+#'             1335,3257,2200,4023,2167,4578,2956,4212,
+#'             2887,2351,1500,900,500,300)
+#'
+#' Age = c(0, 1, seq(5, 100, by = 5))
+#' data_out <- 
+#'   lt_flexible(Deaths    = Deaths,
+#'               Exposures = Exposures,
+#'               Age       = Age,
+#'               OAnew     = 100,
+#'               age_out   = "single",
+#'               extrapFrom = 80,
+#'               extrapFit = Age[Age >= 60],
+#'               radix     = 1e+05,
+#'               extrapLaw = NULL,
+#'               SRB       = 1.05,
+#'               a0rule    = "ak",
+#'               axmethod  = "un",
+#'               Sex       = "m")
+#'               
+#' lt_summary(data_out)
+#' }
+#' 
+#' # NOTE we probably will want to change the output
+lt_summary <- function(data_out) { 
+  
+  e0  <- data_out$ex[data_out$Age == 0]
+  e65 <- data_out$ex[data_out$Age == 65]
+  S <- ineq_sd(age = data_out$Age, 
+               dx = data_out$ndx, 
+               ex = data_out$ex, 
+               ax = data_out$nAx)
+  
+  IQR1     <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.25,  upper = 0.5)
+  IQR2     <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.25,  upper = 0.75)
+  IQR3     <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.5,   upper = 0.75)
+  m_quantl <- ineq_quantile(age = data_out$Age, lx = data_out$ndx, quantile = 0.5)
+  mod_age  <- modal_age(data_out)
+
+  # surviced to age 45 AND died at age 60
+  q15_45 <- (1 - data_out$nqx[data_out$Age == 45]) * data_out$nqx[data_out$Age == 60]
+  one <- tibble(e0, 
+         e65, 
+         S[1], 
+         S[11],
+         IQR1,
+         IQR2,
+         IQR3,
+         mod_age,
+         q15_45)
+  
+  two <- tibble(m_quantl,
+                S)
+  
+  
+  return(lst(one, two))
+  }
+
+
+# helper function that calculates the modal age at death
+#  Formula for mode from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3000019/ Appendix A, A2
+
+modal_age <- function(data_out) { 
+  
+  # we have to remove the data from the first age, since bunch of people die.
+  Age  <- data_out$Age[-1]
+  dx   <- data_out$ndx[-1]
+  mx0  <- dx[which.max(dx)] 
+  mx1  <- dx[which.max(dx) - 1] 
+  mx2  <- dx[which.max(dx) + 1] 
+  agem <- Age[which.max(dx)]
+  
+  agem + ((mx0 - mx1) / (mx0 - mx1 + mx0 - mx2))
+  
+  }
+
+# test modal age at death
+# real data from HMD, Spanish females 2010. Formula for mode from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3000019/ Appendix A, A2
+hmd <- tibble(Age = 0:110,
+              dx = c(303, 27, 17, 14, 10, 11, 8, 4, 4, 7, 6, 8,
+                     10, 8, 7, 7, 13, 13, 20, 13, 19, 13, 16, 19,
+                     17, 15, 15, 19, 20, 24, 22, 24, 25, 30, 33, 37,
+                     40, 47, 47, 56, 68, 69, 74, 91, 107, 106, 121, 135,
+                     135, 156, 157, 191, 196, 208, 235, 245, 262, 293, 293, 327,
+                     336, 329, 370, 400, 432, 447, 519, 568, 633, 673, 777, 883,
+                     950, 1107, 1176, 1383, 1546, 1717, 1968, 2245, 2538, 2814, 3089, 3435,
+                     3750, 4150, 4330, 4637, 4934, 4978, 5025, 4932, 4620, 4306, 4008, 3435,
+                     2946, 2441, 1948, 1495, 1100, 776, 524, 338, 208, 123, 69, 37, 19, 10, 8))
+
+mx0  <- hmd$dx[which.max(hmd$dx)]
+mx1  <- hmd$dx[which.max(hmd$dx) - 1]
+mx2  <- hmd$dx[which.max(hmd$dx) + 1]
+agem <- hmd$Age[which.max(hmd$dx)]
+
+
+# works like charm.
+agem + ((mx0 - mx1) / (mx0 - mx1 + mx0 - mx2))

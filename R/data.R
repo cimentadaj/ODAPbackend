@@ -11,10 +11,12 @@
 # #'   \item Exposures double, population exposed to risk
 # #'   \item Age integer, lower bound of standard abridged ages 0-110+
 # #'   \item AgeInt integer, width of age intervals, where NA is used for the open age interval.
+# #'   \item Sex character, sex of the corresponding population currently coded as "Male"
+
 # #' }.
 # #' @docType data
 # #' @format
-# #'  a data.frame with four columns and 22 rows
+# #'  a data.frame with five columns and 22 rows
 # #' @source
 # #'   Human Mortality Database
 # "abridged_data"

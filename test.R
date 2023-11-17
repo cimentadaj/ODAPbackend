@@ -10,6 +10,7 @@ load_all()
 # source("R/plots.R") # broken function in this one
 # 
 
+
 Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
                247473,223014,172260,149338,127242,105715,79614,53660,
                31021,16805,8000,4000,2000,1000)
@@ -21,12 +22,14 @@ Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 abridged_data <- tibble(Deaths = Deaths, 
                         Exposures = Exposures, 
                         Age = c(0, 1, seq(5, 100, by = 5)),
-                        AgeInt = c(diff(Age), NA))
+                        AgeInt = c(diff(Age), NA),
+                        Sex = "Male")
+
 write_delim(abridged_data,"data/abridged_data2.csv",";")
-write_csv(abridged_data,"data/abridged_data.csv")
+write_csv(abridged_data,"inst/extdata/abridged_data.csv") ### here
 write_tsv(abridged_data,"data/abridged_data.tsv")
 abridged_data
-
+devtools::check()
 # this is fed to us from the user
 user_file <- "abridged_data.csv" ### 1
 user_file <- "abridged_data.tsv" ### 1
@@ -35,7 +38,7 @@ user_file <- "abridged_data1.xlsx"
 user_file <- "abridged_data2.xls"
 user_file <- "abridged_data2.txt" # to check that function in NOT working with this format
 
-data <- read_data("abridged_data.csv")
+data <- read_data("abridged_data.csv") # good
 data <- read_data("abridged_data.tsv") # should we allow it?
 data <- read_data("abridged_data2.csv")
 data <- read_data("abridged_data1.xlsx")
@@ -98,15 +101,13 @@ make_figure(data, data_out, 70)
 plot_initial_single_sex(data)
 # plot check
 # a little data "simulation"
-data$sex        <- "Male" 
 data1           <- data
-data1$sex       <- "Female"
-data1$Exposures <- -data1$Exposures
-data1$Deaths    <- -data1$Deaths
-
-z <- data %>% 
-  full_join(data1) %>% 
-  mutate(Deaths = ifelse(sex == "Female", Deaths + rpois(22, lambda = 50), Deaths)) # a bit of difference for females
+data1$Sex       <- "Female"
+data1$Exposures <- data1$Exposures
+data1$Deaths    <- data1$Deaths
+data <- data %>% 
+  full_join(data1) %>%
+  mutate(Deaths = ifelse(Sex == "Female", Deaths + rpois(22, lambda = 50), Deaths))
 
 # works
 make_figure(data, data_out)
