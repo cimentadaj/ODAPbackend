@@ -98,15 +98,17 @@ check_numeric <- function(data) {
 #'     data = data)
 #' }
 #' 
-# TODO we should add Sex to the checked columns and add it to our example data
+# TODO we should add Sex to the checked columns and add it to our example data 
+# Done. with NB
+# Should we even ask some of these? Like if there is no AgeInt the reader will not work.
 check_missing_cols <- function(data) { 
   # TR: DemoTools has the function age2int() to infer age intervals from an Age vector,
   # to technically we don't need it. We do however need ages specified as lower bounds of
   # abridged age groups (for the abridged lifetable function anyway). Let's not insist on
   # AgeInt being given.
-  data <- subset(data, select = c("Deaths", "Exposures", "Age", "AgeInt"))
+  data <- subset(data, select = c("Deaths", "Exposures", "Age", "AgeInt", "Sex"))
   
-  missing_cols <- setdiff(c("Deaths", "Exposures", "Age"), names(data))
+  missing_cols <- setdiff(c("Deaths", "Exposures", "Age", "AgeInt", "Sex"), names(data)) 
   
   if(length(missing_cols) > 0) { 
     
@@ -470,29 +472,31 @@ check_lower <- function(data) {
 #'     data = data)
 #' }
 #' 
-# TODO: let's change this to check that values are %in% c("Male","Female","Total").
+# TODO: let's change this to check that values are %in% c("Male","Female","Total"). 
+# Done.
 # This column is indeed obligatory
 check_sex <- function(data) {
   
   
-  if(any(str_detect("sex",  names(data)))) { 
+  if(any(str_detect("Sex",  names(data)))) { 
     
-    rest <- length(unique(data$sex))
     
-    if(rest %in% c(1, 2)) { 
+    lvls <- unique(data$Sex)
+    
+    if(lvls %in% c("Male","Female","Total")) { 
       
       message <- NA_character_
       
     } else { 
       
-      message <- "Data should contain variable sex coded with either `Male` or `Female`, or should contain information on both sexes. Data with no sex information or with more than 2 levels is invalid."
+      message <- "Data should contain variable sex coded with either `Male`, `Female`, or `Total` or should contain information on both sexes and/or Total. Data with no sex information or with sex information not in a given  format is invalid."
       
     }
     
-  } else { 
-      
-    message <- "Data should contain variable sex coded with either `Male` or `Female`, or should contain information on both sexes. Data with no sex information or with more than 2 levels is invalid."
-    
+   } else {
+  
+     message <- "Data should contain variable sex coded with either `Male`, `Female`, or `Total` or should contain information on both sexes and/or Total. Data with no sex information or with sex information not in a given  format is invalid."
+     
     }
   
   res <- data.frame(check   = "check sex", 
@@ -502,6 +506,7 @@ check_sex <- function(data) {
   
   return(res)
 }
+
 
 # Currently the lt_abridged function assumes this,
 # although it would be nice to generalize it to allow for truncated age ranges.
