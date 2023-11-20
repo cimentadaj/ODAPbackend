@@ -159,4 +159,36 @@ advanced <-
 
 
 write.csv(basic, file = "basic.csv")
+
+
+
+
+devtools::load_all()
+ Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
+ 247473,223014,172260,149338,127242,105715,79614,53660,
+ 31021,16805,8000,4000,2000,1000)
+ 
+ Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
+             1335,3257,2200,4023,2167,4578,2956,4212,
+             2887,2351,1500,900,500,300)
+
+Age = c(0, 1, seq(5, 100, by = 5))
+ data_out <- 
+   lt_flexible(Deaths    = Deaths, 
+               Exposures = Exposures,
+               Age       = Age,
+               OAnew     = 100,
+               age_out   = "single",  
+               extrapFrom = 80,
+               extrapFit = Age[Age >= 60], 
+               radix     = 1e+05,
+               extrapLaw = NULL,
+               SRB       = 1.05,
+               a0rule    = "ak",
+               axmethod  = "un",
+               Sex       = "m")
+ plot_lifetable(data_out = data_out)
+
+
+
 write.csv(advanced, file = "advanced.csv")

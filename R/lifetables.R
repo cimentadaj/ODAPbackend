@@ -1,3 +1,7 @@
+# TODO: lt_flexible should return 2-element list
+# [[1]] is lifetable 
+# [[2]] is plots (list of 3: nMx, ndx, lx)
+
 
 #' lt_flexible
 #' @description Calculate an abridged-age or a single-age lifetable.
@@ -258,33 +262,36 @@ modal_age <- function(data_out) {
   # we have to remove the data from the first age, since bunch of people die.
   Age  <- data_out$Age[-1]
   dx   <- data_out$ndx[-1]
-  mx0  <- dx[which.max(dx)] 
-  mx1  <- dx[which.max(dx) - 1] 
-  mx2  <- dx[which.max(dx) + 1] 
-  agem <- Age[which.max(dx)]
   
-  agem + ((mx0 - mx1) / (mx0 - mx1 + mx0 - mx2))
+  ind  <- which.max(dx)
+  
+  dx0  <- dx[ind] 
+  dx1  <- dx[ind - 1] 
+  dx2  <- dx[ind + 1] 
+  agem <- Age[ind]
+  
+  agem + ((dx0 - dx1) / (dx0 - dx1 + dx0 - dx2))
   
   }
 
 # test modal age at death
 # real data from HMD, Spanish females 2010. Formula for mode from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3000019/ Appendix A, A2
-hmd <- tibble(Age = 0:110,
-              dx = c(303, 27, 17, 14, 10, 11, 8, 4, 4, 7, 6, 8,
-                     10, 8, 7, 7, 13, 13, 20, 13, 19, 13, 16, 19,
-                     17, 15, 15, 19, 20, 24, 22, 24, 25, 30, 33, 37,
-                     40, 47, 47, 56, 68, 69, 74, 91, 107, 106, 121, 135,
-                     135, 156, 157, 191, 196, 208, 235, 245, 262, 293, 293, 327,
-                     336, 329, 370, 400, 432, 447, 519, 568, 633, 673, 777, 883,
-                     950, 1107, 1176, 1383, 1546, 1717, 1968, 2245, 2538, 2814, 3089, 3435,
-                     3750, 4150, 4330, 4637, 4934, 4978, 5025, 4932, 4620, 4306, 4008, 3435,
-                     2946, 2441, 1948, 1495, 1100, 776, 524, 338, 208, 123, 69, 37, 19, 10, 8))
-
-mx0  <- hmd$dx[which.max(hmd$dx)]
-mx1  <- hmd$dx[which.max(hmd$dx) - 1]
-mx2  <- hmd$dx[which.max(hmd$dx) + 1]
-agem <- hmd$Age[which.max(hmd$dx)]
-
-
-# works like charm.
-agem + ((mx0 - mx1) / (mx0 - mx1 + mx0 - mx2))
+# hmd <- tibble(Age = 0:110,
+#               dx = c(303, 27, 17, 14, 10, 11, 8, 4, 4, 7, 6, 8,
+#                      10, 8, 7, 7, 13, 13, 20, 13, 19, 13, 16, 19,
+#                      17, 15, 15, 19, 20, 24, 22, 24, 25, 30, 33, 37,
+#                      40, 47, 47, 56, 68, 69, 74, 91, 107, 106, 121, 135,
+#                      135, 156, 157, 191, 196, 208, 235, 245, 262, 293, 293, 327,
+#                      336, 329, 370, 400, 432, 447, 519, 568, 633, 673, 777, 883,
+#                      950, 1107, 1176, 1383, 1546, 1717, 1968, 2245, 2538, 2814, 3089, 3435,
+#                      3750, 4150, 4330, 4637, 4934, 4978, 5025, 4932, 4620, 4306, 4008, 3435,
+#                      2946, 2441, 1948, 1495, 1100, 776, 524, 338, 208, 123, 69, 37, 19, 10, 8))
+# 
+# mx0  <- hmd$dx[which.max(hmd$dx)]
+# mx1  <- hmd$dx[which.max(hmd$dx) - 1]
+# mx2  <- hmd$dx[which.max(hmd$dx) + 1]
+# agem <- hmd$Age[which.max(hmd$dx)]
+# 
+# 
+# # works like charm.
+# agem + ((mx0 - mx1) / (mx0 - mx1 + mx0 - mx2))

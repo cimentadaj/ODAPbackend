@@ -98,14 +98,15 @@ check_numeric <- function(data) {
 #'     data = data)
 #' }
 #' 
-# TODO we should add Sex to the checked columns and add it to our example data 
-# Done. with NB
+
 # Should we even ask some of these? Like if there is no AgeInt the reader will not work.
 check_missing_cols <- function(data) { 
   # TR: DemoTools has the function age2int() to infer age intervals from an Age vector,
   # to technically we don't need it. We do however need ages specified as lower bounds of
   # abridged age groups (for the abridged lifetable function anyway). Let's not insist on
   # AgeInt being given.
+  
+  # TODO: Sex should not be insisted upon, but if it's there we should validate values
   data <- subset(data, select = c("Deaths", "Exposures", "Age", "AgeInt", "Sex"))
   
   missing_cols <- setdiff(c("Deaths", "Exposures", "Age", "AgeInt", "Sex"), names(data)) 
@@ -474,7 +475,6 @@ check_lower <- function(data) {
 #' 
 # TODO: let's change this to check that values are %in% c("Male","Female","Total"). 
 # Done.
-# This column is indeed obligatory
 check_sex <- function(data) {
   
   
@@ -552,6 +552,7 @@ check_data <- function(data) {
   ch6 <- check_coherent(data)
   ch7 <- check_sequential(data)
   ch8 <- check_redundant(data)
+  # TODO: only check if present in data
   ch9 <- check_sex(data)
   # return(rbind(ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9))
   return(rbind(ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8))

@@ -19,6 +19,6 @@ Plots a histogram of population or death, depending on the user choice.
 }
 \examples{
 \dontrun{
-plot_histogram(data = mutate(data, sex = "Female"), y = "Deaths")
+plot_histogram(data = mutate(data, Sex = "Female"), y = "Deaths")
 }
 }
