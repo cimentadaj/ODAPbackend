@@ -163,17 +163,20 @@ lt_flexible <- function(Deaths     = Deaths, # replace with NULL. this is for de
     
   }
   
+  
+  plots <- plot_lifetable(data_out)
   # now all cases handled
-  return(data_out)
+  return(list(lt = data_out, plots = plots))
   
 }
-library(LifeIneq)
+
 
 # TODO: lt_summary() should create a table of useful summary statistics from the lifetable:
 # e0, e65, 45q15, sd, IQR (from LifeIneq), mode (use Paola Vasquez' shorthand formula rather than spline method)
 # DONE We have to think exactly what measures do we want here. The carcass is ready, changing it is a matter of minutes.
 # TODO: TO finish the roxxygen description after we decide which functions we keep and on the output
 
+#' lt_summary
 #' @description Creates a table of useful summary statistics from the lifetable.
 #' @param data_out a data.frame. The data.frame output of the lt_flexible function.
 #' @return A list with 2 data.frames containing the information on the following usefull statistics
@@ -228,29 +231,37 @@ lt_summary <- function(data_out) {
                ex = data_out$ex, 
                ax = data_out$nAx)
   
-  IQR1     <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.25,  upper = 0.5)
-  IQR2     <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.25,  upper = 0.75)
-  IQR3     <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.5,   upper = 0.75)
-  m_quantl <- ineq_quantile(age = data_out$Age, lx = data_out$ndx, quantile = 0.5)
-  mod_age  <- modal_age(data_out)
 
-  # surviced to age 45 AND died at age 60
-  q15_45 <- (1 - data_out$nqx[data_out$Age == 45]) * data_out$nqx[data_out$Age == 60]
-  one <- tibble(e0, 
-         e65, 
-         S[1], 
-         S[11],
-         IQR1,
-         IQR2,
-         IQR3,
-         mod_age,
-         q15_45)
+  IQR        <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.25,  upper = 0.75)
+
+  # TR: corrected this; you were using ndx before, we only need for age 0...
+  median_age <- ineq_quantile(age = data_out$Age, lx = data_out$lx, quantile = 0.5)[1]
+  mod_age    <- modal_age(data_out)
+
+  # survived to age 45 AND died at age 60
+  # q15_45 <- (1 - data_out$nqx[data_out$Age == 45]) * data_out$nqx[data_out$Age == 60]
+  # TR: nope 45q15 means probability of dying before age 60, conditional
+  # on survival to age 15, often denoted as
+  # ${}_{45}q_{15}$, i.e. where 45 is N = interval width
+  # I switched it to 20 - 65 so 45q20
+
+  l20     <- data_out$lx[data_out$Age == 20]
+  l65     <- data_out$lx[data_out$Age == 65]
+  p_20_65 <- l65 / l20
+  q_20_65 <- 1 - p_20_65
   
-  two <- tibble(m_quantl,
-                S)
+  out <- tibble(e0, 
+                Median = median_age,
+                Mode = mod_age,
+                e65, 
+                sd0 = S[1], 
+                sd10 = S[11],
+                IQR,
+                q_20_65)
   
   
-  return(lst(one, two))
+  
+  return(out)
   }
 
 
