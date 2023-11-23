@@ -190,7 +190,7 @@ lt_flexible <- function(Deaths     = Deaths, # replace with NULL. this is for de
 #' mod_age - modal age at death
 #' q15_45 - probability that the person ages 54 will die at age 60
 #' @importFrom tibble lst tibble
-#' @importFrom LifeIneq ineq_sd ineq_iqr ineq_quantile lt_abridged2single lt_single_mx lt_single2abridged is_abridged
+#' @importFrom LifeIneq ineq_sd ineq_iqr ineq_quantile 
 #' @export
 #' @examples
 #' \dontrun{
