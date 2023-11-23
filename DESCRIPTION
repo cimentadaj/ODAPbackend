@@ -1,8 +1,8 @@
 Package: ODAPbackend
 Type: Package
 Title: Standardize, Evaluate, and Adjust Demographic Data
-Version: 00.00.015
-Date: 2023-11-22
+Version: 00.00.016
+Date: 2023-11-23
 Authors@R: c(
    person("Tim", "Riffe", role = c("aut", "cre"), 
           email = "tim.riffe@gmail.com", comment = c(ORCID = "0000-0002-2673-4622")),
@@ -29,8 +29,13 @@ Imports:
     readxl,
     purrr,
     tidyselect,
-    readr
+    readr,
+    LifeIneq,
+    rlang,
+    tibble,
+    tidyr
 BugReports: https://github.com/timriffe/ODAP_Bbackend/issues
 Remotes: 
     github::timriffe/DemoTools,
+    github::timriffe/LifeIneq
 Encoding: UTF-8

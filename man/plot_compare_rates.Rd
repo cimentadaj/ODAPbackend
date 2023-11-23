@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{plot_compare_rates}
 \alias{plot_compare_rates}
-\title{make_figure}
+\title{plot_compare_rates}
 \usage{
 plot_compare_rates(data_in, data_out, extrapFrom)
 }
