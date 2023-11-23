@@ -80,8 +80,8 @@ plot_compare_rates(data_in,
 
 
 # NEW: This produces selected lifetable summary statistics that can be displayed
-# in a table. Do you want it transposed with columns measure and value?
-# is it possible for some measures to actually use demographic notation in LaTeX?
+# in a table.
+# Q: is it possible for some measures to actually use demographic notation in LaTeX?
 lt_summary(data_out)
 
 
