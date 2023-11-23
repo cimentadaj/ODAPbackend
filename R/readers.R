@@ -20,19 +20,6 @@
 #'     skip = 2)
 #' }
 
-# TR: add some roxygen-style documentation to these
-# TR: future modifications:
-# -[] allow line skips; allow for footnotes in cells below main table
-# -[] allow non-standard column names
-# -[] automatic integer recoding of character string definitions of Age, 
-#      i.e. "1-4", "1 to 4" etc become 1.
-
-# TODO: the statement data_in$Age <- parse_number(data_in$Age) Done
-# appears twice, after each way of reading in the data; why not
-# just do it once after reading in?
-# TODO: Can we also check to see if AgeInt is specified? If not, then can we
-# create it? This would be down by where we create Mx_emp. Done
-
 read_data <- function(user_file, skip = 0) {
   
   # now we know the extension and we can proceed with reading the file 

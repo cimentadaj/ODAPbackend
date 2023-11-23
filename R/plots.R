@@ -58,7 +58,7 @@ plot_compare_rates <- function(
 #' @importFrom scales pretty_breaks
 #' @importFrom tidyr pivot_longer
 #' @importFrom LifeIneq ineq_quantile_lower
-#' @export A 
+#' @export
 #' @examples
 #' \dontrun{
 #' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
@@ -148,18 +148,8 @@ plot_lifetable <- function(data_out) {
   
 }
 
-# a little data "simulation"
-# data$sex        <- "Male" 
-# data1           <- data
-# data1$sex       <- "Female"
-# data1$Exposures <- -data1$Exposures
-# data1$Deaths    <- -data1$Deaths
-# 
-# z <- data %>% 
-#   full_join(data1) %>% 
-#   mutate(Deaths = ifelse(sex == "Female", Deaths + rpois(22, lambda = 50), Deaths)) # a bit of difference for females
 
-# Just a helper function for using both comma and abs for the axis labels, No need for roxygen for this. Uses functions from base package only
+
 abs_and_comma <- function (x, ...) {
   
   format(abs(x), ..., big.mark = ",", scientific = FALSE, trim = TRUE)
@@ -173,7 +163,7 @@ abs_and_comma <- function (x, ...) {
 #' @return A pyramid for either Deaths or Exposures
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
-#' @importFrom dplyr filter mutate
+#' @importFrom dplyr filter mutate pull
 #' @importFrom rlang sym
 #' @export
 #' @examples

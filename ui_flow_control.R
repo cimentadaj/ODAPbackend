@@ -10,11 +10,13 @@ devtools::load_all()
 # some shiny tools. In this case, let's expect
 # a data.frame called data_in, like the one we see here;
 
-user_file <- "abridged_data.csv"
 
+data_in <- readr::read_csv(system.file("extdata",
+                                       "abridged_data.csv",
+                                       package="ODAPbackend"))
 # character string of file name, presumed in data/ folder
 # returns data.frame
-data_in <- read_data(user_file)
+# data_in <- read_data(user_file)
 
 # Note, column AgeInt is actually optional
 # Note, column Mx_emp is currently created by
