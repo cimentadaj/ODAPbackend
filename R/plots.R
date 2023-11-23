@@ -129,7 +129,7 @@ plot_lifetable <- function(data_out) {
   
   
   
-  dx_plot <-
+  ndx_plot <-
     dt |> 
     filter(lt_function == "ndx") |> 
     ggplot(aes(x = Age, y = val), col = "black") +

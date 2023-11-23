@@ -191,6 +191,8 @@ lt_flexible <- function(Deaths     = Deaths, # replace with NULL. this is for de
 #' q15_45 - probability that the person ages 54 will die at age 60
 #' @importFrom tibble lst tibble
 #' @importFrom LifeIneq ineq_sd ineq_iqr ineq_quantile 
+#' @importFrom tidyr pivot_longer
+#' @importFrom dplyr everything
 #' @export
 #' @examples
 #' \dontrun{
@@ -257,7 +259,8 @@ lt_summary <- function(data_out) {
                 sd0 = S[1], 
                 sd10 = S[11],
                 IQR,
-                q_20_65)
+                q_20_65) |> 
+    pivot_longer(everything(),names_to = "measure", values_to = "value")
   
   
   
@@ -285,24 +288,3 @@ modal_age <- function(data_out) {
   
   }
 
-# test modal age at death
-# real data from HMD, Spanish females 2010. Formula for mode from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3000019/ Appendix A, A2
-# hmd <- tibble(Age = 0:110,
-#               dx = c(303, 27, 17, 14, 10, 11, 8, 4, 4, 7, 6, 8,
-#                      10, 8, 7, 7, 13, 13, 20, 13, 19, 13, 16, 19,
-#                      17, 15, 15, 19, 20, 24, 22, 24, 25, 30, 33, 37,
-#                      40, 47, 47, 56, 68, 69, 74, 91, 107, 106, 121, 135,
-#                      135, 156, 157, 191, 196, 208, 235, 245, 262, 293, 293, 327,
-#                      336, 329, 370, 400, 432, 447, 519, 568, 633, 673, 777, 883,
-#                      950, 1107, 1176, 1383, 1546, 1717, 1968, 2245, 2538, 2814, 3089, 3435,
-#                      3750, 4150, 4330, 4637, 4934, 4978, 5025, 4932, 4620, 4306, 4008, 3435,
-#                      2946, 2441, 1948, 1495, 1100, 776, 524, 338, 208, 123, 69, 37, 19, 10, 8))
-# 
-# mx0  <- hmd$dx[which.max(hmd$dx)]
-# mx1  <- hmd$dx[which.max(hmd$dx) - 1]
-# mx2  <- hmd$dx[which.max(hmd$dx) + 1]
-# agem <- hmd$Age[which.max(hmd$dx)]
-# 
-# 
-# # works like charm.
-# agem + ((mx0 - mx1) / (mx0 - mx1 + mx0 - mx2))
