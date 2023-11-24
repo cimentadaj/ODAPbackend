@@ -163,17 +163,20 @@ lt_flexible <- function(Deaths     = Deaths, # replace with NULL. this is for de
     
   }
   
+  
+  plots <- plot_lifetable(data_out)
   # now all cases handled
-  return(data_out)
+  return(list(lt = data_out, plots = plots))
   
 }
-library(LifeIneq)
+
 
 # TODO: lt_summary() should create a table of useful summary statistics from the lifetable:
 # e0, e65, 45q15, sd, IQR (from LifeIneq), mode (use Paola Vasquez' shorthand formula rather than spline method)
 # DONE We have to think exactly what measures do we want here. The carcass is ready, changing it is a matter of minutes.
 # TODO: TO finish the roxxygen description after we decide which functions we keep and on the output
 
+#' lt_summary
 #' @description Creates a table of useful summary statistics from the lifetable.
 #' @param data_out a data.frame. The data.frame output of the lt_flexible function.
 #' @return A list with 2 data.frames containing the information on the following usefull statistics
@@ -187,7 +190,9 @@ library(LifeIneq)
 #' mod_age - modal age at death
 #' q15_45 - probability that the person ages 54 will die at age 60
 #' @importFrom tibble lst tibble
-#' @importFrom LifeIneq ineq_sd ineq_iqr ineq_quantile lt_abridged2single lt_single_mx lt_single2abridged is_abridged
+#' @importFrom LifeIneq ineq_sd ineq_iqr ineq_quantile 
+#' @importFrom tidyr pivot_longer
+#' @importFrom dplyr everything
 #' @export
 #' @examples
 #' \dontrun{
@@ -228,29 +233,38 @@ lt_summary <- function(data_out) {
                ex = data_out$ex, 
                ax = data_out$nAx)
   
-  IQR1     <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.25,  upper = 0.5)
-  IQR2     <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.25,  upper = 0.75)
-  IQR3     <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.5,   upper = 0.75)
-  m_quantl <- ineq_quantile(age = data_out$Age, lx = data_out$ndx, quantile = 0.5)
-  mod_age  <- modal_age(data_out)
 
-  # surviced to age 45 AND died at age 60
-  q15_45 <- (1 - data_out$nqx[data_out$Age == 45]) * data_out$nqx[data_out$Age == 60]
-  one <- tibble(e0, 
-         e65, 
-         S[1], 
-         S[11],
-         IQR1,
-         IQR2,
-         IQR3,
-         mod_age,
-         q15_45)
+  IQR        <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.25,  upper = 0.75)
+
+  # TR: corrected this; you were using ndx before, we only need for age 0...
+  median_age <- ineq_quantile(age = data_out$Age, lx = data_out$lx, quantile = 0.5)[1]
+  mod_age    <- modal_age(data_out)
+
+  # survived to age 45 AND died at age 60
+  # q15_45 <- (1 - data_out$nqx[data_out$Age == 45]) * data_out$nqx[data_out$Age == 60]
+  # TR: nope 45q15 means probability of dying before age 60, conditional
+  # on survival to age 15, often denoted as
+  # ${}_{45}q_{15}$, i.e. where 45 is N = interval width
+  # I switched it to 20 - 65 so 45q20
+
+  l20     <- data_out$lx[data_out$Age == 20]
+  l65     <- data_out$lx[data_out$Age == 65]
+  p_20_65 <- l65 / l20
+  q_20_65 <- 1 - p_20_65
   
-  two <- tibble(m_quantl,
-                S)
+  out <- tibble(e0, 
+                Median = median_age,
+                Mode = mod_age,
+                e65, 
+                sd0 = S[1], 
+                sd10 = S[11],
+                IQR,
+                q_20_65) |> 
+    pivot_longer(everything(),names_to = "measure", values_to = "value")
   
   
-  return(lst(one, two))
+  
+  return(out)
   }
 
 
@@ -274,24 +288,3 @@ modal_age <- function(data_out) {
   
   }
 
-# test modal age at death
-# real data from HMD, Spanish females 2010. Formula for mode from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3000019/ Appendix A, A2
-# hmd <- tibble(Age = 0:110,
-#               dx = c(303, 27, 17, 14, 10, 11, 8, 4, 4, 7, 6, 8,
-#                      10, 8, 7, 7, 13, 13, 20, 13, 19, 13, 16, 19,
-#                      17, 15, 15, 19, 20, 24, 22, 24, 25, 30, 33, 37,
-#                      40, 47, 47, 56, 68, 69, 74, 91, 107, 106, 121, 135,
-#                      135, 156, 157, 191, 196, 208, 235, 245, 262, 293, 293, 327,
-#                      336, 329, 370, 400, 432, 447, 519, 568, 633, 673, 777, 883,
-#                      950, 1107, 1176, 1383, 1546, 1717, 1968, 2245, 2538, 2814, 3089, 3435,
-#                      3750, 4150, 4330, 4637, 4934, 4978, 5025, 4932, 4620, 4306, 4008, 3435,
-#                      2946, 2441, 1948, 1495, 1100, 776, 524, 338, 208, 123, 69, 37, 19, 10, 8))
-# 
-# mx0  <- hmd$dx[which.max(hmd$dx)]
-# mx1  <- hmd$dx[which.max(hmd$dx) - 1]
-# mx2  <- hmd$dx[which.max(hmd$dx) + 1]
-# agem <- hmd$Age[which.max(hmd$dx)]
-# 
-# 
-# # works like charm.
-# agem + ((mx0 - mx1) / (mx0 - mx1 + mx0 - mx2))
