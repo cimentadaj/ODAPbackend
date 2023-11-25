@@ -86,6 +86,7 @@ plot_compare_rates <- function(
 #'               Sex       = "m")
 #' plot_lifetable(data_out = data_out)
 #' }
+# TODO: add plot titles
 plot_lifetable <- function(data_out) {
   
   lx25 <- ineq_quantile_lower(age = data_out$Age, lx = data_out$lx,  quantile = 0.25)

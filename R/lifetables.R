@@ -165,6 +165,10 @@ lt_flexible <- function(Deaths     = Deaths, # replace with NULL. this is for de
   
   
   plots <- plot_lifetable(data_out)
+  
+  plots$nMx <- plot_compare_rates(data_in, 
+                                  data_out, 
+                                  extrapFrom = extrapFrom)
   # now all cases handled
   return(list(lt = data_out, plots = plots))
   
@@ -223,7 +227,8 @@ lt_flexible <- function(Deaths     = Deaths, # replace with NULL. this is for de
 #' lt_summary(data_out)
 #' }
 #' 
-#' # NOTE we probably will want to change the output
+
+# TODO: add column called 'label'
 lt_summary <- function(data_out) { 
   
   e0  <- data_out$ex[data_out$Age == 0]
@@ -260,7 +265,16 @@ lt_summary <- function(data_out) {
                 sd10 = S[11],
                 IQR,
                 q_20_65) |> 
-    pivot_longer(everything(),names_to = "measure", values_to = "value")
+    pivot_longer(everything(),names_to = "measure", values_to = "value") |> 
+    mutate(label = c("e_0","Median","Mode","e_65","\\sigma_0","\\sigma_{10}","IQR","{}_{45}q_{20}"),
+           message = c("life expectancy at birth",
+                       "median age at death",
+                       "modal age at death",
+                       "remaining life expectancy at age 65",
+                       "lifespan variation calculated as standard deviation of age at death",
+                       "standard deviation of remaining lifespan conditional on survival to age 10",
+                       "interquartile range of age at death distribution",
+                       "conditional probability of death between ages 20 and 65"))
   
   
   
