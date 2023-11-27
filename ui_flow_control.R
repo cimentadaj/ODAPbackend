@@ -28,7 +28,7 @@ data_in <- readr::read_csv(system.file("extdata",
 # the created data.frame is a table of checks, pass status, and messages for any failures. The failure messages should be displayed usefully somewhere. Checks that 
 # don't pass should necessitate action by users.
 initial_data_checks <- check_data(data_in)
-
+initial_data_checks
 # data.frame in, list of three ggplot objects out.
 # We can toggle which plots are created with arguments,
 # but I suppose we can just produce all 3. Not sure whether
@@ -55,7 +55,7 @@ heaping_deaths   <- check_heaping_general(data_in, "Deaths")
 
 # when data are prepped we can do the lifetable. In future, if data have subsets, we wrap this do work on a chunk rather than siphoning columns, and we do it inside group_by() |> reframe() to scale up. We'd need to be thoughtful about how to pass chunk-specific arguments, like Sex (presumably a column). I think that's just a tradeoff, for maximal control, just do one subset at a time. Note also in future, we might not want to insist on Deaths and Exposures as the inputs. In future, we'll want to allow nMx, nqx, lx, or ex as possibilities, but not needed for the proof of concept version. Anyway, to run, we need a data.frame to pull the columns from, and we need a bunch of user-specified parameters coming from the UI, as discussed. I've annotated below as well to give hints.
 lt_output <- 
-lt_flexible(Deaths     = data_in$Deaths,    # required
+  lt_flexible(Deaths     = data_in$Deaths,    # required
             Exposures  = data_in$Exposures, # required
             Age        = data_in$Age,       # required
             # recall all of these are passed in from the app, which will contain
@@ -71,13 +71,8 @@ lt_flexible(Deaths     = data_in$Deaths,    # required
             axmethod   = "un",              # advanced
             Sex        = "m")               # basic
 data_out <- lt_output$lt
+str(data_out)
 lt_plot <- lt_output$plots
-
-# This plots the rates, for sake of comparison, currently just one plot, not a list of plots. You can assign the output rather than doing the immediate print, if that's better for you. In this case, data_in could also be a different subset later on when we allow for smoothing and graduation.
-plot_compare_rates(data_in, 
-                   data_out, 
-                   extrapFrom = 80)
-
 
 # NEW: This produces selected lifetable summary statistics that can be displayed
 # in a table.
