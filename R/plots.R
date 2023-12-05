@@ -84,7 +84,10 @@ plot_compare_rates <- function(
 #'               a0rule    = "ak",
 #'               axmethod  = "un",
 #'               Sex       = "m")
-#' plot_lifetable(data_out = data_out)
+#' plots <- plot_lifetable(data_out = data_out)
+#' print(plots$nMx)
+#' print(plots$lx)
+#' print(plots$ndx)
 #' }
 # TODO: add plot titles
 plot_lifetable <- function(data_out) {
@@ -126,8 +129,11 @@ plot_lifetable <- function(data_out) {
     geom_vline(xintercept = data_out$ex[1],color="red") +
     annotate("segment",x=lx75-2,xend=lx75+2,y=.75*radix,yend=.75*radix, color = gray(.5)) +
     annotate("segment",x=lx50-2,xend=lx50+2,y=.50*radix,yend=.50*radix, color = gray(.5)) +
-    annotate("segment",x=lx25-2,xend=lx25+2,y=.25*radix,yend=.25*radix, color = gray(.5))
-  
+    annotate("segment",x=lx25-2,xend=lx25+2,y=.25*radix,yend=.25*radix, color = gray(.5)) +
+    labs(x = "Age",
+       y = "lx",
+       title = "Survival curve (lx) generated from lifetable nmx values",
+       subtitle = "Marked locations on the curve indicate survival quartiles")
   
   
   ndx_plot <-
@@ -141,8 +147,12 @@ plot_lifetable <- function(data_out) {
           axis.title.y  = element_blank()) +
     geom_vline(xintercept = c(lx25,lx50,lx75),
                linewidth  = .5, color = gray(.5)) +
-    geom_vline(xintercept = data_out$ex[1],color="red") 
-
+    geom_vline(xintercept = data_out$ex[1],color="red") +
+    labs(x = "Age",
+         y = "lx",
+         title = "Death distribution (dx) generated from lifetable nmx values",
+         subtitle = "Marked locations on the distribution indicate age-at-death quartiles (grey)\nand life expectancy (red)")
+  
   return(lst(nMx = nMx_plot, 
              lx = lx_plot,
              ndx = ndx_plot))
