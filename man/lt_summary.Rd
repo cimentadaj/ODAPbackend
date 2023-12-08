@@ -53,5 +53,4 @@ data_out <-
 lt_summary(data_out)
 }
 
-# NOTE we probably will want to change the output
 }
