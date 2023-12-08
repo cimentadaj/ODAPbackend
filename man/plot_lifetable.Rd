@@ -40,6 +40,9 @@ data_out <-
               a0rule    = "ak",
               axmethod  = "un",
               Sex       = "m")
-plot_lifetable(data_out = data_out)
+plots <- plot_lifetable(data_out = data_out)
+print(plots$nMx)
+print(plots$lx)
+print(plots$ndx)
 }
 }
