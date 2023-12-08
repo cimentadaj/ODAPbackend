@@ -10,12 +10,11 @@ dat <- tibble(Pop = pop1m_ind,
 # dat <- tibble(Pop = groupAges(dat$Pop, N = 5),
 #               Age = seq(0, 100, by = 5))
 
-
 #' gradute_data
 #' @description Smoothes the population counts using the moving averages. The methods are adoзted from the "Method protocol for the evaluation of census population data by age and sex"
 #' @param dat tibble. A tibble with two columns - `Pop` - population counts and `Age` provided in single age intervals, 5 year age intervals or abridged format e.g. with ages 0, 1-4, 5-9 etc
 #' @return A named vector with graduated and smoothed population counts
-#' @importFrom dplyr case_when mutate group_by filter pull between
+#' @importFrom dplyr case_when mutate group_by filter pull
 #' @importFrom tibble tibble
 #' @importFrom DemoTools is_single check_heaping_bachi groupAges ageRatioScore mav graduate_mono
 #' @export
@@ -64,7 +63,6 @@ mxprop2 <- (sum(sort(pct, decreasing = TRUE)[c(1, 2)]) - 20 ) / index
 # here is case 1 - ages is single and bachi >= 30
 if(sngl & index >= 30) {
 
-  # check condition for case 1 if TRUE group ages
   # group data in 5 years
     cmbn_5_yrs <- groupAges(dat$Pop, N = 5)
     
@@ -86,15 +84,16 @@ if(sngl & index < 30) {
               index,
               mxprop2) %>% 
     mutate(n = case_when(
-      between(index,    4, 7.99999) & prp0and5 > 0.65 ~ 10,
-      between(index,    4, 7.99999) & prp0and5 < 0.65 ~ 6,
-      between(index,    2, 3.99999) & prp0and5 > 0.60 ~ 6,
-      between(index,    2, 3.99999) & prp0and5 < 0.60 ~ 4,
-      between(index, 0.75, 1.99999) & mxprop2  > 0.70 ~ 4,
-      between(index, 0.75, 1.99999) & mxprop2  < 0.70 ~ 2,
-      between(index, 0,  0.7499999) & mxprop2  < 0.55 ~ 2,
-      between(index, 0,  0.7499999) & mxprop2  > 0.55 ~ 1,
-      between(index, 8,  29.99999)                    ~ 10 
+      index >= 4    & index < 8    & prp0and5 >  0.65 ~ 10,
+      index >= 4    & index < 8    & prp0and5 <= 0.65 ~ 6,
+      index >= 2    & index < 4    & prp0and5 >  0.60 ~ 6,
+      index >= 2    & index < 4    & prp0and5 <= 0.60 ~ 4,
+      index >= 0.75 & index < 2    & mxprop2  >  0.70 ~ 4,
+      index >= 0.75 & index < 2    & mxprop2  <= 0.70 ~ 2,
+      index >= 0    & index < 0.75 & mxprop2  >  0.55 ~ 2,
+      index >= 0    & index < 0.75 & mxprop2  <= 0.55 ~ 1,
+      index >= 8    & index < 30                      ~ 10,
+      TRUE                                            ~ NA
     )) %>% 
     pull(n)
   
@@ -118,14 +117,14 @@ if(!sngl) {
 # Maybe better ways of checking this? Save for simply checking if ages are given as 0, 1-4 or not?
 
   check_abridged <- (dat$Pop[1] / dat$Pop[2]) > 2.6
-  
+
   if(check_abridged) {
-    
-    dat <- dat %>% 
-      mutate(Age = c(0, 0, (.$Age)[-c(1:2)])) %>% 
-      group_by(Age) %>% 
+
+    dat <- dat %>%
+      mutate(Age = c(0, 0, (.$Age)[-c(1:2)])) %>%
+      group_by(Age) %>%
       summarise(Pop = sum(Pop), .groups = "drop")
-    
+
   }
   
   # If the data is already grouped and not abridged, then apply the 5 year method directly
@@ -250,18 +249,14 @@ return(final)
 # We see the artificial bulge due to under counting of children pop
 # we might want to adjust it with the basepop_five function in future
 # NOTE graph is per million
-# tibble(old = pop1m_ind,
-#        Age = 0:100,
-#        new = gradute_data(dat)) %>%
-#   ggplot(aes(x = Age, y = old / 1000000)) +
-#   geom_line(linewidth = 0.6) +
-#   geom_point(size = 2) +
-#   geom_line(aes(x = Age, y = new / 1000000),col = "red", linewidth = 0.8) +
-#   theme_light() +
-#   theme(legend.position = "none",
-#         axis.title = element_blank(),
-#         axis.text = element_text(color = "black", size = 12))
-
-
-
-devtools::check()
+tibble(old = pop1m_ind,
+       Age = 0:100,
+       new = gradute_data(dat)) %>%
+  ggplot(aes(x = Age, y = old / 1000000)) +
+  geom_line(linewidth = 0.6) +
+  geom_point(size = 2) +
+  geom_line(aes(x = Age, y = new / 1000000),col = "red", linewidth = 0.8) +
+  theme_light() +
+  theme(legend.position = "none",
+        axis.title = element_blank(),
+        axis.text = element_text(color = "black", size = 12))
