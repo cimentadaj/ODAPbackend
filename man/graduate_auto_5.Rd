@@ -4,13 +4,17 @@
 \alias{graduate_auto_5}
 \title{graduate_auto_5}
 \usage{
-graduate_auto_5(dat_5)
+graduate_auto_5(dat_5, variable)
 }
 \arguments{
 \item{dat_5}{tibble. A tibble with two columns - \code{Pop} - population counts in 5-year age groups and corresponding \code{Age} column (lower bound of age group)}
+
+\item{variable}{character. A scalar with the variable name which is to be graduated. For example \code{Pop} or \code{Death}}
 }
 \value{
 A named vector with graduated and smoothed population counts
+
+data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and \code{Age} - chosen age grouping
 }
 \description{
 Implements the method protocol procedure for data with 5-year age groups
