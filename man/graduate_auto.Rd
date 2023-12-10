@@ -4,24 +4,32 @@
 \alias{graduate_auto}
 \title{graduate_auto}
 \usage{
-graduate_auto(dat)
+graduate_auto(data_in, age_out = "single", variable)
 }
 \arguments{
-\item{dat}{tibble. A tibble with two columns - \code{Pop} - population counts and \code{Age} provided in single age intervals, 5 year age intervals or abridged format e.g. with ages 0, 1-4, 5-9 etc}
+\item{data_in}{tibble. A tibble with two columns - \code{Pop} - population counts and \code{Age} provided in single age intervals, 5 year age intervals or abridged format e.g. with ages 0, 1-4, 5-9 etc}
+
+\item{age_out}{character. A scalar with the desired age grouping output. 3 possible options - \code{single} for single ages, \code{5-year} - for 5-year age groups, and \code{abridged} - for abridged data. NOTE, \code{abridged} will not work if the data_in is in 5-year groups, since we do not know the initial distributions in the abridged ages.}
+
+\item{variable}{character. A scalar with the variable name which is to be graduated. For example \code{Pop} or \code{Death}}
 }
 \value{
 A named vector with graduated and smoothed population counts
+
+data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and \code{Age} - chosen age grouping
 }
 \description{
 Smooths the counts using the moving averages. The methods are adoзted from the "Method protocol for the evaluation of census population data by age and sex"
 }
 \examples{
-\dontrun{
-dat <- tibble(Pop = pop1m_ind,
-Age = 0:100)
+\dontrun{ 
+data_in <- data.frame(Pop = pop1m_ind,
+Age = 0:100,
+Pop = pop1m_ind)
 
-graduate_auto(dat = dat)
+graduate_auto(data_in = data_in,
+age_out = "single", 
+variable = "Pop"
+)
 }
-
-
 }
