@@ -10,6 +10,7 @@
 #' @return data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping
 #' @export 
 #' @examples
+# TR: why \dontrun{}?
 #' \dontrun{ 
 #' data_in <- data.frame(Pop = pop1m_ind,
 #' Age = 0:100,
@@ -43,6 +44,13 @@
 # Just apply the same algorithm but for recalculated indicators like bachi and proportions?
 # NOTE this will make function exponentially more complex
 
+# TR: You'll need to explain this. Note, DemoTools has lt_rule_4m0_D0(), which seems doable
+# in our case, with just one more function arg. That would handle deaths, whereas 
+# use together with lt_rule_4m0_m0() could help back out Population for infants. This would
+# require deaths and exposures being mutually aware when handled, but this should
+# be OK if both are available in data_in, which we currently guarantee. So... We
+# have all info required to split 0-4 into infants and 1-4.
+
 # tests
 # graduate_auto(data_in,
 #               age_out = "abridged", 
@@ -54,9 +62,6 @@
 #               age_out = "single",
 #               variable = "Pop")
 
-# TR: this needs an age_out argument.
-# incoming data can be called data_in
-# outgoing data can be called data_out
 graduate_auto <- function(data_in, 
                           age_out = "single", 
                           variable) {
@@ -111,9 +116,16 @@ graduate_auto <- function(data_in,
   }
   
   # if data is not in single ages, gradute_mono to single ages for bachi calculation
+  # TR: is this needed? Do we calculate bachi for 5-year data? If bachi is 
+  # being calculated on smooth-graduated data does it have meaning?
   if(!sngl) {
     
-    ungrpd_data <- graduate_mono(varb, Age, OAG = TRUE) # graduate(varb, Age, method = "pclm") ???
+    # RTZ: graduate(varb, Age, method = "pclm") ???
+    # TR: I like pclm more, but only when using offsets. Ideally,
+    # we'd have an option to graduate death counts using population offsets,
+    # thereby generating smooth mortality rates. But we can leave it for next
+    # steps
+    ungrpd_data <- graduate_mono(varb, Age, OAG = TRUE) 
     
     data_in_orig <- data_in
     
