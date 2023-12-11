@@ -178,7 +178,7 @@ graduate_auto <- function(data_in,
   prp0and5kids <- (sum(pct_kids[c(1, 6)]) - 20) / index_kids
   
   # Max2prop
-  # Proportion of heaping concentrated in the most prefered 2 digits adults and kids
+  # Proportion of heaping concentrated in the most preferred 2 digits adults and kids
   mxprop2      <- (sum(sort(pct, decreasing = TRUE)[c(1, 2)]) - 20)      / index
   mxprop2_kids <- (sum(sort(pct_kids, decreasing = TRUE)[c(1, 2)]) - 20) / index_kids
   
@@ -195,15 +195,10 @@ graduate_auto <- function(data_in,
     if(index >= 30) { 
       
       # group data in 5 years
-      # TR: this could be Pop OR Deaths, and note elsewhere in package
-      # we have Exposures (or something like that) rather than Pop. So maybe
-      # the clean option is to let the user specify which column we operate on?
-      # Done. Great comment. Thank you. 
+      cmbn_5_yrs <- groupAges(Value = varb, 
+                              Age = Age, 
+                              N = 5)
       
-      cmbn_5_yrs <- groupAges(varb, N = 5)
-      
-      # TR: can we please use base R pipes unless otherwise necessary?
-      # Done.
       dat_5 <- tibble(!!variable := cmbn_5_yrs,
                       Age = as.numeric(names(cmbn_5_yrs)))
       
@@ -212,36 +207,9 @@ graduate_auto <- function(data_in,
       
     } else { 
       
-      # We don't have years of education. So I always choose the maximum mav of the two available
-      
-      # calculate n
-      # n <- tibble(prp0and5,
-      #             index,
-      #             mxprop2) |>
-      # TR: Why did you not use the table we had?
-      # I would like this info as a table, for maintenance reasons.
-      # easier to intervene on a table than tinker with this statement,
-      # make sense? I don't care if the table is defined in situ, or whether
-      # it's a csv in inst/extdata or an .rda in /data and documented in data.R
-      # but please make this decision tree a tabular object rather than hard
-      # coded as here.
-      # Done. Replaced with the table you have previously approved.
-      #   mutate(
-      #     n = case_when(
-      #       index >= 4    & index < 8    & prp0and5 >  0.65 ~ 10,
-      #       index >= 4    & index < 8    & prp0and5 <= 0.65 ~ 6,
-      #       index >= 2    & index < 4    & prp0and5 >  0.60 ~ 6,
-      #       index >= 2    & index < 4    & prp0and5 <= 0.60 ~ 4,
-      #       index >= 0.75 & index < 2    & mxprop2  >  0.70 ~ 4,
-      #       index >= 0.75 & index < 2    & mxprop2  <= 0.70 ~ 2,
-      #       index >= 0    & index < 0.75 & mxprop2  >  0.55 ~ 2,
-      #       index >= 0    & index < 0.75 & mxprop2  <= 0.55 ~ 1,
-      #       index >= 8    & index < 30                      ~ 10,
-      #       TRUE                                            ~ NA
-      #     )
-      #   ) |>
-      #   pull(n)
-      
+      # We don't have years of education. 
+      # We choose the maximum mav of the two available
+
       n <- tibble(
         min_bachi    = c(4, 2, 0.75, 0,    8),
         max_bachi    = c(8, 4, 2,    0.75, 30),
@@ -270,26 +238,7 @@ graduate_auto <- function(data_in,
   } else { 
     
     # case 3, if the data is in 5 year age groups
-    # NOTE: maybe remove this part
-    # This is my attempt to catch the abridged data e.g ages 0 and 1-4 and separate it from 0-4
-    # I assume that the ratio of population at first and second age will exceed 2.6 only if the first age is 0 and second age is grouped 1-4.
-    # Otherwise if we have ages grouped as 0-4 and 5-9 it should not exceed 2.6.
-    # Maybe better ways of checking this? Save for simply checking if ages are given as 0, 1-4 or not?
-    
-    # TR: you just want is_abridged()? This you judge from Age column rather
-    # than a value column. The ratio relationship would be different 
-    # anyway depending which value is checked...
-    # check_abridged <- (dat$Pop[1] / dat$Pop[2]) > 2.6
-    # 
-    # if (check_abridged) {
-    #   dat <- dat |>
-    #     mutate(Age = c(0, 0, (.$Age)[-c(1:2)])) |>
-    #     group_by(Age) |>
-    #     summarise(Pop = sum(Pop), .groups = "drop")
-    #   
-    # }
-    # DONE, fixed and moved upward.
-    
+
     # If the data is already grouped and not abridged, then apply the 5 year method directly
     data_out <- graduate_auto_5(dat_5 = data_in_orig, variable)
     
@@ -299,6 +248,7 @@ graduate_auto <- function(data_in,
   # "abridged", "single", "5-year". graduate_auto_5() will spit back 5-year ages.
   # Done. This is actually complex task. Because our data can be in 2 types and the uput iis 3 types 
   # so it is 6 combinations 
+  # TR: Actually it's easy: step 1: move to single, no matter what. step 2: group to desired output.
   final_data_single <- is_single(data_out$Age)
   
   if(age_out == "single" & final_data_single) { 
@@ -365,12 +315,7 @@ graduate_auto <- function(data_in,
 #' @return data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping
 #' @export 
 #' 
-# TR: add a logical argument called constrain_infant_proportion
-# if constrain_infant_proportion TRUE then if abridged data are incoming,
-# we apply the procedure below, then split 0-4 into 0, 1-4 using the original
-# proportion, i.e. abridged data outgoing. This can happen either in this
-# function or outside of it in the above function.
-# Done. This issue is being addressed in the upper level function, so no need to add arg. here.
+
 # or we can use smooth_age_5 ??? page 31 par. 1
 # maximum of two sexes is used
 # first graduate data by 5-year of age, and then check for bachi and combine them again?
@@ -469,35 +414,9 @@ graduate_auto_5 <- function(dat_5, variable) {
   
   # combine NOTE redistribute with linear weight assumption
   # NOTE: for 5 year ages there is only 1 age group that blends 15-19
-  # Values are exactly the same, I do not understand why I need to blend them
-  # So I just pick up one
+  # Age ___ values are exactly the same, so we just keep one
   data_full <- c(data_kids[-length(data_kids)], data_adults)
   
-  # dt_fn <- structure(data_full,
-  #                    .Names = names(data_full))
-  # 
-  # TR: this graduation shouldn't happen in here? Just spit back 5-year ages?
-  # Done. Sure, as you say. From the report I had an impression that they ALWAYS want single data back
-  # graduate to single ages
-  # data_out <- graduate_mono(dt_fn, OAG = TRUE)
-  
-  # if we want transform back to ages 0, 1-4, we proportionally scale the age 0-5
-  # DONE This will happen in upper function
-  # if(constrain_infant_proportion) { 
-  #   
-  #   data_full <- c(data_full[1] * pct_fst_ages, data_full[-1])
-  #   
-  #   data_out <- tibble(!!variable := data_full,
-  #                      Age = c(1, 4, as.numeric(names(data_full)[-1])))
-  # 
-  #   
-  # } else { # otherwise return as is
-  #   
-  #   data_out <- tibble(!!variable := data_full,
-  #                      Age = as.numeric(names(data_full)))
-  #   
-  #   }
-
   data_out <- tibble(!!variable := data_full,
                      Age = as.numeric(names(data_full)))
   
