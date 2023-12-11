@@ -10,8 +10,8 @@
 #' @return data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping
 #' @export 
 #' @examples
-# TR: why \dontrun{}?
 #' \dontrun{ 
+#' data(pop1m_ind, package = "DemoTools")
 #' data_in <- data.frame(Pop = pop1m_ind,
 #' Age = 0:100,
 #' Pop = pop1m_ind)
