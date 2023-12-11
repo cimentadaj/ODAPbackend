@@ -64,7 +64,8 @@
 
 graduate_auto <- function(data_in, 
                           age_out = "single", 
-                          variable) {
+                          variable,
+                          constrain_infants = TRUE) {
 
   # data and Age as vectors
   varb <- data_in[, variable, drop = TRUE]
@@ -76,11 +77,6 @@ graduate_auto <- function(data_in,
   # check if data is abridged
   abrgd <- is_abridged(data_in$Age)
   
-  # TR: maybe we just make a 3-category checker for this task? Because
-  # we need "single", "5-year", and "abridged" incoming options AND
-  # outgoing options. would check_heaping_bachi() do the right thing 
-  # for incoming abridged data? Maybe it needs to be 5-year grouped first?
-  # Done. Just in case I will first transform abridged data and then calculate bachi
   # Bachi works for single years of age, so we need to graduate 5-year counts before calculating bachi
   
   # if data is abridged group first two ages. Next we can just use 5-year data protocol
@@ -105,8 +101,8 @@ graduate_auto <- function(data_in,
   if(sngl) { 
     
     # data and Age as vectors
-    varb <- data_in[, variable, drop = TRUE]
-    Age  <- data_in$Age
+    varb         <- data_in[, variable, drop = TRUE]
+    Age          <- data_in$Age
     
     # calculate the distribution of first two ages for data_out if needed in future
     fst_ages     <- varb[1:5]
@@ -117,7 +113,8 @@ graduate_auto <- function(data_in,
   
   # if data is not in single ages, gradute_mono to single ages for bachi calculation
   # TR: is this needed? Do we calculate bachi for 5-year data? If bachi is 
-  # being calculated on smooth-graduated data does it have meaning?
+  # being calculated on smooth-graduated data does it have meaning? Remove this step,
+  # jump to 5-year protocol if data are abridged or in 5-year age groups
   if(!sngl) {
     
     # RTZ: graduate(varb, Age, method = "pclm") ???
@@ -137,6 +134,7 @@ graduate_auto <- function(data_in,
     Age  <- data_in$Age
     
   } else { 
+    # TR: this else covers the case of ____
     
     # data and Age as vectors
     varb <- data_in[, variable, drop = TRUE]
@@ -248,59 +246,96 @@ graduate_auto <- function(data_in,
   # "abridged", "single", "5-year". graduate_auto_5() will spit back 5-year ages.
   # Done. This is actually complex task. Because our data can be in 2 types and the uput iis 3 types 
   # so it is 6 combinations 
-  # TR: Actually it's easy: step 1: move to single, no matter what. step 2: group to desired output.
+  # TR: Actually it's easy: 
+  # step 1: move to single, no matter what. 
+  # step 2: group to desired output.
   final_data_single <- is_single(data_out$Age)
   
-  if(age_out == "single" & final_data_single) { 
-    
-    data_out <- data_out
-    
+  # (1) graduate_mono
+  varb <- data_out[,variable, drop = TRUE]
+  v2 <- graduate_mono(Value = varb, Age = data_out$Age, OAG = TRUE)
+  age <- as.integer(names(v2))
+  
+  # (2) regroup
+  if (age_out == "abridged") {
+    ageN <-  calcAgeAbr(age)
   }
-  
-  if(age_out == "single" & !final_data_single) { 
-  
-    data_var <- graduate_mono(data_out[ , variable, drop = TRUE], data_out$Age, OAG = TRUE)
-  
-    data_out <- tibble(!!variable := data_var,
-                       Age = names(data_var))    
-    
+  if (age_out == "5-year") {
+    ageN <- age - age %% 5
   }
-  
-  if(age_out == "5-year" & !final_data_single) { 
-    
-    data_out <- data_out
-    
+  if (age_out == "single") {
+    ageN <- age
   }
+  v3 <- groupAges(Value = v2, Age = age, AgeN = ageN)
   
-  if(age_out == "5-year" & final_data_single) { 
-    
-    
-    data_var <- groupAges(data_out[, variable, drop = TRUE], N = 5)
-    
-    data_out <- tibble(!!variable := data_var,
-                       Age = names(data_var))    
-    
+  data_out <- tibble(!!variable := v3, 
+                     Age = as.integer(names(v3)))
+  
+  # (3) possibly constrain infants
+  if (age_out %in% c("abridged","single") & 
+      (sngl | abrdgd) & 
+      constrain_infants){
+
+    v_child      <- data_out[Age < 5, variable, drop = TRUE]
+    vN           <- sum(v_child)
+    v_child[1]   <- pct_fst_ages[1] * vN
+    v_child[-1]  <- (1 - pct_fst_ages[1]) * vN * v_child[-1] / sum(v_child[-1])
+    data_out[Age < 5, variable] <- v_child
   }
+  # pct_fst_ages <- fst_ages / sum(fst_ages)
   
-  if(age_out == "abridged" & !final_data_single) {
-    
-    data_var <- c(data_out[1, variable, drop = TRUE] * pct_fst_ages, data_out[-1, variable, drop = TRUE])
-    
-    data_out <- tibble(!!variable := data_var,
-                       Age = c(0, 1, as.numeric(names(data_var)[-c(1, 2)])))
-    
-    }
+  # possibly constrain infants if needed.
   
-  if(age_out == "abridged" & final_data_single) { 
-    
-    data_var <- groupAges(data_out[, variable, drop = TRUE], N = 5)
-    
-    data_var <- c(data_out[1, variable, drop = TRUE] * pct_fst_ages, data_out[-1, variable, drop = TRUE])
-    
-    data_out <- tibble(!!variable := data_var,
-                       Age = c(0, 1, as.numeric(names(data_var)[-c(1, 2)])))
-    }
-  
+  # if(age_out == "single" & final_data_single) { 
+  #   
+  #   data_out <- data_out
+  #   
+  # }
+  # 
+  # if(age_out == "single" & !final_data_single) { 
+  # 
+  #   data_var <- graduate_mono(data_out[ , variable, drop = TRUE], data_out$Age, OAG = TRUE)
+  # 
+  #   data_out <- tibble(!!variable := data_var,
+  #                      Age = names(data_var))    
+  #   
+  # }
+  # 
+  # if(age_out == "5-year" & !final_data_single) { 
+  #   
+  #   data_out <- data_out
+  #   
+  # }
+  # 
+  # if(age_out == "5-year" & final_data_single) { 
+  #   
+  #   
+  #   data_var <- groupAges(data_out[, variable, drop = TRUE], N = 5)
+  #   
+  #   data_out <- tibble(!!variable := data_var,
+  #                      Age = names(data_var))    
+  #   
+  # }
+  # 
+  # if(age_out == "abridged" & !final_data_single) {
+  #   
+  #   data_var <- c(data_out[1, variable, drop = TRUE] * pct_fst_ages, data_out[-1, variable, drop = TRUE])
+  #   
+  #   data_out <- tibble(!!variable := data_var,
+  #                      Age = c(0, 1, as.numeric(names(data_var)[-c(1, 2)])))
+  #   
+  #   }
+  # 
+  # if(age_out == "abridged" & final_data_single) { 
+  #   
+  #   data_var <- groupAges(data_out[, variable, drop = TRUE], N = 5)
+  #   
+  #   data_var <- c(data_out[1, variable, drop = TRUE] * pct_fst_ages, data_out[-1, variable, drop = TRUE])
+  #   
+  #   data_out <- tibble(!!variable := data_var,
+  #                      Age = c(0, 1, as.numeric(names(data_var)[-c(1, 2)])))
+  #   }
+  # 
   return(data_out)
   
 }
