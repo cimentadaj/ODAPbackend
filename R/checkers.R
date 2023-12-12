@@ -20,11 +20,11 @@
 # TODO: PG wants nqx plot for probabilities
 # TODO: label the quantile lines as such
 
-# TODO: nMx comparison isn't showing single ages for lifetable values.
 # TODO: extrapfit ages should follow from OAG
 # TODO: add reset button
 # TODO: in data_out from lifetable, include grouping information. 
-#       For now look for "Sex""Time""Location""Group"
+#       For now look for "Sex","Time","Year","Period","Location","Group" 
+#       (either missing or same everywhere)
 # Check why OAG can't be low: extrap age and OAnew can't conflict
 
 #' extension_check

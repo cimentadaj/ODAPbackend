@@ -22,14 +22,33 @@ plot_compare_rates <- function(
                         extrapFrom) {
   # plot the results
   
-  Mx_emp <- data_in$Deaths/ data_in$Exposures
+  input_single <- is_single(data_in$Age)
+  
+  data_in_plot <-
+    data_in |> 
+    mutate(Mx_emp = Deaths / Exposures,
+           AgeInt = age2int(Age, OAG = FALSE),
+           single = is_single(Age),
+           age_mid = if_else(single, Age, Age + (AgeInt / 2)),
+           age_label = if_else(Age == max(Age) ~ paste0(max(Age),"+"),
+                                 TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")"))
+           )
+  data_out_plot <-
+    data_out |> 
+    mutate(Mx_emp = Deaths / Exposures,
+           AgeInt = age2int(Age, OAG = FALSE),
+           single = is_single(Age),
+           age_mid = if_else(single, Age, Age + (AgeInt / 2)),
+           age_label = if_else(Age == max(Age) ~ paste0(max(Age),"+"),
+                               TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")"))
+    )
   
   figure <- ggplot() + 
-    geom_line(aes(x = data_in$Age, y = Mx_emp), linewidth = 0.8) + 
-    geom_line(data = filter(data_out, 
+    geom_line(aes(x = data_out_plot$age_plot, y = data_out_plot$nMx), linewidth = 0.8) + 
+    geom_line(data = filter(data_in_plot, 
                             Age >= extrapFrom), 
-              aes(x = Age, 
-                  y = nMx), 
+              aes(x = age_plot, 
+                  y = Mx_emp), 
               lty = 2, 
               col = "red", 
               linewidth = 1) +
@@ -40,7 +59,7 @@ plot_compare_rates <- function(
     labs(x = "Age",
          y = "nMx",
          title = "Comparison of empirical nMx and lifetable nmx values",
-         subtitle = "Vertical line indicates extrapolation jump-off age")+
+         subtitle = "Vertical line indicates extrapolation jump-off age\n")+
     theme(axis.text = element_text(color = "black"),
           plot.subtitle = element_text(size = 12, color = "black"))
   
