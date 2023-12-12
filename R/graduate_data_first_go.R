@@ -5,11 +5,12 @@
 #' @param age_out character. A scalar with the desired age grouping output. Includes 3 possible options - `single` for single ages, `5-year` - for 5-year age groups, and `abridged` - for abridged data. NOTE, `abridged` will not work if the data_in is in 5-year groups, since we do not know the initial distributions in the abridged ages. This behaviour will be adjusted in future versions.
 #' @param constrain_infants logical. A scalar indicating weather the infant proportions should be constrained or left as is.
 #' @return A tibble with 2 columns - your chosen `variable` with graduated and smoothed counts and `Age`
-#' @importFrom dplyr case_when mutate group_by filter pull select
+#' @importFrom dplyr mutate group_by filter pull select summarise
 #' @importFrom tibble tibble
-#' @importFrom DemoTools is_single check_heaping_bachi groupAges ageRatioScore mav graduate_mono graduate_auto_5
+#' @importFrom rlang := !!
+#' @importFrom DemoTools is_single check_heaping_bachi groupAges ageRatioScore mav graduate_mono calcAgeAbr
 #' @return data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping
-#' @export 
+#' @export
 #' @examples
 #' data(pop1m_ind, package = "DemoTools")
 #' data_in <- data.frame(Pop = pop1m_ind,
@@ -320,6 +321,7 @@ graduate_auto <- function(data_in,
   
   # (1) graduate_mono
   varb <- data_out[,variable, drop = TRUE]
+  
   v2   <- graduate_mono(Value = varb, 
                         Age   = data_out$Age, 
                         OAG   = TRUE)
@@ -424,13 +426,13 @@ graduate_auto <- function(data_in,
 #' @description Implements the method protocol procedure for data with 5-year age groups
 #' @param dat_5 tibble. A tibble with two columns - `Pop` - population counts in 5-year age groups and corresponding `Age` column (lower bound of age group)
 #' @param variable character. A scalar with the variable name which is to be graduated. For example `Pop` or `Death`
-#' @return A tibble with 2 columns - ypur chosen `variable` with graduated and smoothed counts and `Age`
-#' @importFrom dplyr mutate filter pull case_when
+#' @return A tibble with 2 columns - your chosen `variable` with graduated and smoothed counts and `Age`
+#' @importFrom dplyr filter
 #' @importFrom tibble tibble
+#' @importFrom rlang := !!
 #' @importFrom DemoTools mav graduate_mono ageRatioScore
 #' @return data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping
-#' @export 
-
+#' @export
 graduate_auto_5 <- function(dat_5, variable) {
   
   # separate data into kids and adults
