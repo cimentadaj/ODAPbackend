@@ -10,7 +10,7 @@
 #' @importFrom DemoTools is_single check_heaping_bachi groupAges ageRatioScore mav graduate_mono graduate_auto_5
 #' @return data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping
 #' @export 
-#' @examples1
+#' @examples
 #' data(pop1m_ind, package = "DemoTools")
 #' data_in <- data.frame(Pop = pop1m_ind,
 #' Age = 0:100,
@@ -47,7 +47,7 @@
 #                   Age = 0:100,
 #                   Death = pop1m_ind,
 #                   Exposures = pop1m_ind)
-# 
+
 # # 5-years
 # data_in <- tibble(Pop = groupAges(pop1m_ind, N = 5),
 #                   Age = seq(0, 100, 5))
@@ -131,7 +131,7 @@ graduate_auto <- function(data_in,
     data_in <- data_in |>
       mutate(Age = c(0, 0, Age[-c(1:2)])) |>
       group_by(Age) |>
-      summarise(!!variable := sum(!!sym(variable)), .groups = "drop") %>% 
+      summarise(!!variable := sum(!!sym(variable)), .groups = "drop") |>
       select(!!variable, Age)
     
   }
@@ -430,7 +430,6 @@ graduate_auto <- function(data_in,
 #' @importFrom DemoTools mav graduate_mono ageRatioScore
 #' @return data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping
 #' @export 
-#' 
 
 graduate_auto_5 <- function(dat_5, variable) {
   
