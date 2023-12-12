@@ -12,7 +12,7 @@ graduate_auto_5(dat_5, variable)
 \item{variable}{character. A scalar with the variable name which is to be graduated. For example \code{Pop} or \code{Death}}
 }
 \value{
-A named vector with graduated and smoothed population counts
+A tibble with 2 columns - your chosen \code{variable} with graduated and smoothed counts and \code{Age}
 
 data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and \code{Age} - chosen age grouping
 }
