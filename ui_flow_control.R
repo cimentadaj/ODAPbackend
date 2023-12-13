@@ -55,7 +55,7 @@ heaping_deaths   <- check_heaping_general(data_in, "Deaths")
 
 # when data are prepped we can do the lifetable. In future, if data have subsets, we wrap this do work on a chunk rather than siphoning columns, and we do it inside group_by() |> reframe() to scale up. We'd need to be thoughtful about how to pass chunk-specific arguments, like Sex (presumably a column). I think that's just a tradeoff, for maximal control, just do one subset at a time. Note also in future, we might not want to insist on Deaths and Exposures as the inputs. In future, we'll want to allow nMx, nqx, lx, or ex as possibilities, but not needed for the proof of concept version. Anyway, to run, we need a data.frame to pull the columns from, and we need a bunch of user-specified parameters coming from the UI, as discussed. I've annotated below as well to give hints.
 lt_output <- 
-  lt_flexible(data_in # required to have Age, Deaths, Exposures
+  lt_flexible(data_in, # required to have Age, Deaths, Exposures
             # recall all of these are passed in from the app, which will contain
             # its own default values.
             OAnew      = 100,               # basic
