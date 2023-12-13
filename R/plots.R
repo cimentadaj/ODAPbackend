@@ -11,6 +11,9 @@
 #' @export
 #' @examples
 #' \dontrun{
+#' library(readr)
+#' fpath <- system.file("extdata", "abridged_data.csv", package="ODAPbackend")
+#' data_in <- read_csv(fpath)
 #' plot_compare_rates(data_in = data_in, 
 #'                    data_out = data_out, 
 #'                    extrapFrom = 60)
@@ -80,6 +83,7 @@ plot_compare_rates <- function(
 #' @export
 #' @examples
 #' \dontrun{
+#' library(tibble)
 #' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
 #' 247473,223014,172260,149338,127242,105715,79614,53660,
 #' 31021,16805,8000,4000,2000,1000)
@@ -89,10 +93,9 @@ plot_compare_rates <- function(
 #'             2887,2351,1500,900,500,300)
 #'
 #'Age = c(0, 1, seq(5, 100, by = 5))
+#'data_in <- tibble(Age,Deaths,Exposures)
 #' data_out <- 
-#'   lt_flexible(Deaths    = Deaths, 
-#'               Exposures = Exposures,
-#'               Age       = Age,
+#'   lt_flexible(data_in,
 #'               OAnew     = 100,
 #'               age_out   = "single",  
 #'               extrapFrom = 80,

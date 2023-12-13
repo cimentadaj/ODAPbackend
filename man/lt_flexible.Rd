@@ -5,9 +5,7 @@
 \title{lt_flexible}
 \usage{
 lt_flexible(
-  Deaths = Deaths,
-  Exposures = Exposures,
-  Age = Age,
+  data_in,
   OAnew = 100,
   age_out = "single",
   extrapFrom = 80,
@@ -21,15 +19,11 @@ lt_flexible(
 )
 }
 \arguments{
-\item{Deaths}{numeric vector. Death counts in one, five or ten years age groups.}
-
-\item{Exposures}{numeric vector. Population counts in one, five or ten years age groups.}
-
-\item{Age}{numeric vector. Age in integer years at the beginning of the interval. e.g. interval \code{"5-10"}, should be coded as 5}
+\item{data_in}{a \code{data.frame} or \code{tibble} with columns \verb{Age``, }Deaths\verb{, and `Exposures}}
 
 \item{OAnew}{integer. Desired open age group (5-year ages only). Default \code{100}. If higher then rates are extrapolated.}
 
-\item{age_out}{character. Indicates weather single of abridged lif table output is desired. takes values \code{"single"}, \code{"abridged"}. Defaults to "single"}
+\item{age_out}{character. Indicates weather single or abridged lifetable output is desired. takes values \code{"single"}, \code{"abridged"}. Defaults to "single"}
 
 \item{extrapFrom}{integer. Age from which to impute extrapolated mortality.}
 
@@ -66,6 +60,7 @@ Calculate an abridged-age or a single-age lifetable.
 }
 \examples{
 \dontrun{
+library(tibble)
 Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
 247473,223014,172260,149338,127242,105715,79614,53660,
 31021,16805,8000,4000,2000,1000)
@@ -75,10 +70,9 @@ Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
             2887,2351,1500,900,500,300)
 
 Age = c(0, 1, seq(5, 100, by = 5))
+data_in <- tibble(Age,Deaths,Exposures)
 data_out <- 
-  lt_flexible(Deaths    = Deaths, 
-              Exposures = Exposures,
-              Age       = Age,
+  lt_flexible(data_in,
               OAnew     = 100,
               age_out   = "single",  
               extrapFrom = 80,
