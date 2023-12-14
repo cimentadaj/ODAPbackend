@@ -8,7 +8,9 @@ graduate_auto(
   data_in,
   age_out = NULL,
   variable = NULL,
-  constrain_infants = TRUE
+  constrain_infants = TRUE,
+  u5M = NULL,
+  Sex = "t"
 )
 }
 \arguments{
@@ -19,6 +21,10 @@ graduate_auto(
 \item{variable}{character. A scalar with the variable name which is to be graduated. For example \code{Pop} or \code{Death}, or \code{Exposures}}
 
 \item{constrain_infants}{logical. A scalar indicating weather the infant proportions should be constrained or left as is.}
+
+\item{Sex}{character. Either \code{"m"} for males, \code{"f"} for females, or \code{"t"} for total (defualt).}
+
+\item{u5m}{numeric, under five mortality rate.}
 }
 \value{
 A tibble with 2 columns - your chosen \code{variable} with graduated and smoothed counts and \code{Age}
