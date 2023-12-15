@@ -11,6 +11,9 @@
 #' @export
 #' @examples
 #' \dontrun{
+#' library(readr)
+#' fpath <- system.file("extdata", "abridged_data.csv", package="ODAPbackend")
+#' data_in <- read_csv(fpath)
 #' plot_compare_rates(data_in = data_in, 
 #'                    data_out = data_out, 
 #'                    extrapFrom = 60)
@@ -22,14 +25,33 @@ plot_compare_rates <- function(
                         extrapFrom) {
   # plot the results
   
-  Mx_emp <- data_in$Deaths/ data_in$Exposures
+  input_single <- is_single(data_in$Age)
+  
+  data_in_plot <-
+    data_in |> 
+    mutate(Mx_emp = Deaths / Exposures,
+           AgeInt = age2int(Age, OAG = FALSE),
+           single = is_single(Age),
+           age_mid = if_else(single, Age, Age + (AgeInt / 2)),
+           age_label = if_else(Age == max(Age) ~ paste0(max(Age),"+"),
+                                 TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")"))
+           )
+  data_out_plot <-
+    data_out |> 
+    mutate(Mx_emp = Deaths / Exposures,
+           AgeInt = age2int(Age, OAG = FALSE),
+           single = is_single(Age),
+           age_mid = if_else(single, Age, Age + (AgeInt / 2)),
+           age_label = if_else(Age == max(Age) ~ paste0(max(Age),"+"),
+                               TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")"))
+    )
   
   figure <- ggplot() + 
-    geom_line(aes(x = data_in$Age, y = Mx_emp), linewidth = 0.8) + 
-    geom_line(data = filter(data_out, 
+    geom_line(aes(x = data_out_plot$age_plot, y = data_out_plot$nMx), linewidth = 0.8) + 
+    geom_line(data = filter(data_in_plot, 
                             Age >= extrapFrom), 
-              aes(x = Age, 
-                  y = nMx), 
+              aes(x = age_plot, 
+                  y = Mx_emp), 
               lty = 2, 
               col = "red", 
               linewidth = 1) +
@@ -40,7 +62,7 @@ plot_compare_rates <- function(
     labs(x = "Age",
          y = "nMx",
          title = "Comparison of empirical nMx and lifetable nmx values",
-         subtitle = "Vertical line indicates extrapolation jump-off age")+
+         subtitle = "Vertical line indicates extrapolation jump-off age\n")+
     theme(axis.text = element_text(color = "black"),
           plot.subtitle = element_text(size = 12, color = "black"))
   
@@ -61,6 +83,7 @@ plot_compare_rates <- function(
 #' @export
 #' @examples
 #' \dontrun{
+#' library(tibble)
 #' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
 #' 247473,223014,172260,149338,127242,105715,79614,53660,
 #' 31021,16805,8000,4000,2000,1000)
@@ -70,10 +93,9 @@ plot_compare_rates <- function(
 #'             2887,2351,1500,900,500,300)
 #'
 #'Age = c(0, 1, seq(5, 100, by = 5))
+#'data_in <- tibble(Age,Deaths,Exposures)
 #' data_out <- 
-#'   lt_flexible(Deaths    = Deaths, 
-#'               Exposures = Exposures,
-#'               Age       = Age,
+#'   lt_flexible(data_in,
 #'               OAnew     = 100,
 #'               age_out   = "single",  
 #'               extrapFrom = 80,

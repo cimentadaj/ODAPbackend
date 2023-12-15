@@ -1,3 +1,32 @@
+# TODO: AgeInt should be optional. If not given, it can be calculated from Age.
+# Therefore minimal columns are Age, Deaths, Exposures; example data should look 
+# this way
+
+# TODO: in Age heaping diagnostics specify which ages are checked.
+# give high medium low.
+
+# TODO: check plotly scale translation (scale_y_log10)
+
+# TODO: plot lines in middle of age group, i.e. 42.5, but show age interval (40-44)
+# on hover tip. create age_label variable. This is only for abridged data.
+
+# TODO: bar plots should properly cover age intervals
+
+# TODO: give JC a text blob for "Ages to include in model fit",
+# also annotate extrapolation jump off line
+
+# TODO: in results plots make use of columns like Sex to include in plot titles
+
+# TODO: PG wants nqx plot for probabilities
+# TODO: label the quantile lines as such
+
+# TODO: extrapfit ages should follow from OAG
+# TODO: add reset button
+# TODO: in data_out from lifetable, include grouping information. 
+#       For now look for "Sex","Time","Year","Period","Location","Group" 
+#       (either missing or same everywhere)
+# Check why OAG can't be low: extrap age and OAnew can't conflict
+
 #' extension_check
 #' @description  Check the provided files extension.
 #' @param user_file character. File name with corresponding extension e.g. Should be one of ".csv",".xlsx",".xls",".tsv"

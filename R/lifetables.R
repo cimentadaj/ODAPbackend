@@ -1,15 +1,9 @@
-# TODO: lt_flexible should return 2-element list
-# [[1]] is lifetable 
-# [[2]] is plots (list of 3: nMx, ndx, lx)
-
 
 #' lt_flexible
 #' @description Calculate an abridged-age or a single-age lifetable.
-#' @param Deaths numeric vector. Death counts in one, five or ten years age groups.
-#' @param Exposures numeric vector. Population counts in one, five or ten years age groups.
-#' @param Age numeric vector. Age in integer years at the beginning of the interval. e.g. interval `"5-10"`, should be coded as 5
+#' @param data_in a `data.frame` or `tibble` with columns `Age``, `Deaths``, and `Exposures``
 #' @param OAnew integer. Desired open age group (5-year ages only). Default `100`. If higher then rates are extrapolated.
-#' @param age_out character. Indicates weather single of abridged lif table output is desired. takes values `"single"`, `"abridged"`. Defaults to "single"
+#' @param age_out character. Indicates weather single or abridged lifetable output is desired. takes values `"single"`, `"abridged"`. Defaults to "single"
 #' @param extrapFrom integer. Age from which to impute extrapolated mortality.
 #' @param extrapFit integer vector. Ages to include in model fitting. Defaults to all ages > =60.
 #' @param radix numeric. Lifetable radix, `l0`. Default `100000`.
@@ -35,6 +29,7 @@
 #' @export
 #' @examples
 #' \dontrun{
+#' library(tibble)
 #' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
 #' 247473,223014,172260,149338,127242,105715,79614,53660,
 #' 31021,16805,8000,4000,2000,1000)
@@ -44,10 +39,9 @@
 #'             2887,2351,1500,900,500,300)
 #'
 #'Age = c(0, 1, seq(5, 100, by = 5))
+#'data_in <- tibble(Age,Deaths,Exposures)
 #' data_out <- 
-#'   lt_flexible(Deaths    = Deaths, 
-#'               Exposures = Exposures,
-#'               Age       = Age,
+#'   lt_flexible(data_in,
 #'               OAnew     = 100,
 #'               age_out   = "single",  
 #'               extrapFrom = 80,
@@ -59,9 +53,7 @@
 #'               axmethod  = "un",
 #'               Sex       = "m")
 #' }
-lt_flexible <- function(Deaths     = Deaths, # replace with NULL. this is for demonstration purposes
-                        Exposures  = Exposures,
-                        Age        = Age,
+lt_flexible <- function(data_in,
                         # recall all of these are passed in from the app, which will contain
                         # its own default values.
                         OAnew      = 100,
@@ -74,11 +66,12 @@ lt_flexible <- function(Deaths     = Deaths, # replace with NULL. this is for de
                         a0rule     = "ak",
                         axmethod   = "un",
                         Sex        = "m") {
+  
+  Deaths <- data_in$Deaths
+  Exposures <- data_in$Exposures
+  Age <- data_in$Age
   # TR: no need to determine extrapLaw here, it happens
   # natively in the lt functions.
-  
-  
-  
   age_in <- case_when(is_single(Age)  ~ "single",
                       is_abridged(Age) ~ "abridged",
                       TRUE ~ "problem")
