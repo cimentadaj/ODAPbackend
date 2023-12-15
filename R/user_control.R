@@ -4,27 +4,36 @@
 #' @param data_in a data.frame with columns Value and Age
 #' @param fine_method the `method` argument of `graduate()`
 #' @param rough_method the `method` argument of `smooth_age_5()`
+#' @param constrain_infants logical, if age 0 is a separate age class, shall we constrain its proportion within the age group 0-5 in the output? Default `TRUE`.
 #' @importFrom dplyr case_when
 smooth_flexible <- function(data_in,
                             variable = "Deaths",
                             age_out = c("single","abridged","5-year"),
-                            fine_method = c("auto","none","sprague", "beers(ord)", 
-                                            "beers(mod)", "grabill", "pclm", "mono", "MAV",                              "uniform"),
-                            rough_method = c("auto","none","Carrier-Farrag", "KKN", "Arriaga", 
-                                         "United Nations", "Strong", "Zigzag", 
-                                         "MAV","pclm"),
-                            constraint_infant = TRUE){
+                            fine_method = c("auto","none","sprague", 
+                                            "beers(ord)", "beers(mod)", 
+                                            "grabill", "pclm", "mono", 
+                                            "MAV", "uniform"),
+                            rough_method = c("auto","none","Carrier-Farrag", 
+                                             "KKN", "Arriaga", 
+                                              "United Nations", "Strong", 
+                                             "Zigzag", "MAV","pclm"),
+                            constrain_infants = TRUE){
   
-  # ensure just one of each method is chosen. rough auto is compatible with a non-auto fine,
-  # since we can always regroup to 5s. Likewise pclm rough is compatible with pclm fine; 
+  # ensure just one of each method is chosen. 
+  # rough auto is compatible with a non-auto fine,
+  # since we can always regroup to 5s. 
+  # Likewise pclm rough is compatible with pclm fine; 
   # no pclm offsets in this implementation, and no explicit tail control.
+  
   rough_method <- match.arg(rough_method, c("auto","none","Carrier-Farrag", "KKN", "Arriaga", 
                                 "United Nations", "Strong", "Zigzag", "MAV","pclm"))
   fine_method <- match.arg(rough_method, c("auto","none","sprague", "beers(ord)", 
                                            "beers(mod)", "grabill", "pclm", 
                                            "mono", "MAV", "uniform"))
+  age_out <- match.arg(age_out, c("single","abridged","5-year"))
   
-  # simplest case
+  
+  # simplest case, gotta cover the bases
   if (rough_method == "none" & fine_method == "none"){
     return(data_in)
   }
@@ -32,6 +41,8 @@ smooth_flexible <- function(data_in,
   # get variables
   value  <- data_in[, variable, drop = TRUE]
   age    <- data_in$Age
+  
+  # detect incoming age categorization
   age_in <- case_when(is_single(age) ~ "single",
                       is_abridged(age) ~ "abridged",
                       all((age %% 5) == 0) ~ "5-year",
@@ -42,8 +53,7 @@ smooth_flexible <- function(data_in,
   ageN   <- switch(age_out,
                    "single" = age1,
                    "5-year" = age1 - age1 %% 5,
-                   "abridged" = calcAgeAbr(age1)
-                   )
+                   "abridged" = calcAgeAbr(age1))
   # ------------------------#
   # I: Handle rough methods #
   # ------------------------#
@@ -53,7 +63,7 @@ smooth_flexible <- function(data_in,
       data1 <- graduate_auto(data_in, 
                                 age_out = "single", 
                                 variable = variable,
-                                constraint_infant = constrain_infant)
+                             constrain_infants = constrain_infants)
       data_out[, variable, drop = TRUE]
       if (fine_method == "auto"){
         
