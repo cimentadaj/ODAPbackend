@@ -7,7 +7,7 @@
 graduate_auto_5(dat_5, variable)
 }
 \arguments{
-\item{dat_5}{tibble. A tibble with two columns - \code{Pop} - population counts in 5-year age groups and corresponding \code{Age} column (lower bound of age group)}
+\item{dat_5}{tibble. A tibble with two columns - \code{Pop} - or any other chosen variable in 5-year age groups with counts to be graduated and corresponding \code{Age} column (lower bound of age group).}
 
 \item{variable}{character. A scalar with the variable name which is to be graduated. For example \code{Pop} or \code{Death}}
 }
@@ -17,5 +17,5 @@ A tibble with 2 columns - your chosen \code{variable} with graduated and smoothe
 data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and \code{Age} - chosen age grouping
 }
 \description{
-Implements the method protocol procedure for data with 5-year age groups
+Implements the method protocol procedure for data with 5-year age groups.
 }

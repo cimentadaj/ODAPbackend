@@ -1,48 +1,49 @@
 #' @title graduate_auto
-#' @description Smooth population of death counts with moving averages. The method was adopted from the "Method protocol for the evaluation of census population data by age and sex" paragraph 5.
-#' @param data_in tibble. A tibble with two columns - `Pop` or any other column with population or death counts and corresponding `Age` -  provided in single age intervals, 5 year age intervals or abridged format e.g. with ages 0, 1-4, 5-9 etc.
-#' @param variable character. A scalar with the variable name which is to be graduated. For example `Pop` or `Death`, or `Exposures`
-#' @param age_out character. A scalar with the desired age grouping output. Includes 3 possible options - `single` for single ages, `5-year` - for 5-year age groups, and `abridged` - for abridged data. NOTE, `abridged` will not work if the data_in is in 5-year groups, since we do not know the initial distributions in the abridged ages. This behaviour will be adjusted in future versions.
+#' @description Smooth population or death counts with moving averages. The method was adopted from the "Method protocol for the evaluation of census population data by age and sex" paragraph 5.
+#' @param data_in tibble. A tibble with two numeric columns - population or death counts with supported names: `Pop`, `Population`, `Exp`, `Exposures` or `Deaths`, and corresponding `Age` - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1-4, 5-9 etc.
+#' @param variable character. A scalar with the variable name which is to be graduated. The list of possible options include `Pop`, `Population`, `Exp`, `Exposures` or `Deaths`.
+#' @param age_out character. A scalar with the desired age grouping output. Includes 3 possible options - `"single"` for single ages, `"5-year"` - for 5-year age groups, and `"abridged"` - for abridged data.
 #' @param constrain_infants logical. A scalar indicating weather the infant proportions should be constrained or left as is.
-#' @param u5m numeric, under five mortality rate. 
-#' @param Sex character. Either `"m"` for males, `"f"` for females, or `"t"` for total (defualt). 
-#' @return A tibble with 2 columns - your chosen `variable` with graduated and smoothed counts and `Age`
+#' @param u5m numeric. Under five mortality rate.
+#' @param Sex character. Either `"m"` for males, `"f"` for females, or `"t"` for total (defualt).
 #' @importFrom dplyr mutate group_by filter pull select summarise
 #' @importFrom tibble tibble
 #' @importFrom rlang := !!
-#' @importFrom DemoTools is_single check_heaping_bachi groupAges ageRatioScore mav graduate_mono calcAgeAbr
+#' @importFrom DemoTools is_single is_abridged check_heaping_bachi groupAges ageRatioScore mav graduate_mono calcAgeAbr age2int graduate_uniform names2age lt_rule_4m0_D0 lt_rule_4m0_m0
 #' @return data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping
 #' @export
 #' @examples
-#' data(pop1m_ind, package = "DemoTools")
-#' data_in <- data.frame(Pop = pop1m_ind,
-#' Age = 0:100,
-#' Pop = pop1m_ind)
+#' fpath <- system.file("extdata",
+#' "dat_heap_smooth.csv",
+#' package = "ODAPbackend")
+#' 
+#' data_in <- read.csv(fpath)
 #' 
 #' ex1 <- graduate_auto(
-#' data_in  = data_in,
-#' age_out  = "single", 
-#' variable = "Pop",
-#' constrain_infants = TRUE)
+#'data_in,
+#'age_out  = "5-year",
+#'variable = "Deaths",
+#'u5m      = NULL,
+#'Sex      = "t",
+#'constrain_infants = FALSE)
 #'
 #' ex2 <- graduate_auto(
-#' data_in  = data_in,
-#' age_out  = "single", 
-#' variable = "Pop",
-#' constrain_infants = FALSE)
+#'data_in,
+#'age_out  = "abridged",
+#'variable = "Exposures",
+#'u5m      = NULL,
+#'Sex      = "t",
+#'constrain_infants = FALSE
+#')
 #'
 #' ex3 <- graduate_auto(
-#' data_in = data_in,
-#' age_out = "5-year", 
-#' variable = "Pop",
-#' constrain_infants = TRUE)
-#'
-#' ex4 <- graduate_auto(
-#' data_in  = data_in,
-#' age_out  = "abridged", 
-#' variable = "Pop",
-#' constrain_infants = FALSE)
-
+#'data_in,
+#'age_out  = "single",
+#'variable = "Population",
+#'u5m      = NULL,
+#'Sex      = "t",
+#'constrain_infants = TRUE
+#')
 # ---------------------------------------------------------------------- #
 # 3 types of test data
 # single years 
@@ -95,56 +96,50 @@
 #               variable = "Exposures",
 #               constrain_infants = FALSE)
 
-# Note: abridged age_out not working with 5-year data, since the proportions are unknown
-# what to do with single ages kids? I do not see clear instructions
-# Just apply the same algorithm but for recalculated indicators like bachi and proportions?
-# NOTE this will make function exponentially more complex
-
-# TR: You'll need to explain this. Note, DemoTools has lt_rule_4m0_D0(), which seems doable
-# in our case, with just one more function arg. That would handle deaths, whereas 
-# use together with lt_rule_4m0_m0() could help back out Population for infants. This would
-# require deaths and exposures being mutually aware when handled, but this should
-# be OK if both are available in data_in, which we currently guarantee. So... We
-# have all info required to split 0-4 into infants and 1-4.
-# RT: Got it. As was discused currently is left as is, and we will adjust it in future versions.
-graduate_auto <- function(data_in, 
-                          age_out  = NULL, 
+graduate_auto <- function(data_in,
+                          age_out  = NULL,
                           variable = NULL,
-                          constrain_infants = TRUE,
-                          u5M = NULL,
-                          Sex = "t") {
+                          u5m      = NULL,
+                          Sex      = "t",
+                          constrain_infants = TRUE) {
 
   # check if data comes in single ages
-  Age <- data_in$Age
-  age_in <- case_when(is_single(Age)~ "single",
-                       is_abridged(Age) ~ "abridged",
-                       all(Age %% 5 == 0) ~ "5-year",
-                       TRUE ~ "other")
+  Age    <- data_in$Age
+  age_in <- case_when(is_single(Age)      ~ "single",
+                      is_abridged(Age)    ~ "abridged",
+                      all(Age %% 5 == 0)  ~ "5-year",
+                      TRUE                ~ "other")
   
   # if not single or abridged, then force either abridged or 5-year,
   # depending on whether infants given.
-  if (age_in == "other"){
+  if(age_in == "other") {
+    
     has_infants <- age2int(Age)[1] == 1
     varb        <- data_in[, variable, drop = TRUE]
     varb1       <- graduate_uniform(varb, Age)
     age1        <- names2age(varb1)
-    if (has_infants){
+    
+    if(has_infants) {
       ageN   <- calcAgeAbr(age1)
-      varb   <- groupAges(varb1, age1, ageN = ageN)
+      varb   <- groupAges(varb1, age1, AgeN = ageN)
       Age    <- names2age(varb)
       age_in <- "abridged"
+      
     } else {
+      
       varb   <- groupAges(varb1, age1, N = 5)
       age_in <- "5-year"
       Age    <- names2age(varb)
+      
     }
+    
     data_in <- tibble(Age = Age,
                       !!variable := varb)
   }
   
   # if data is abridged, then group first two ages. Next we can just use 5-year data protocol.
   # Also calculate the proportion in first ages in case we want to retutn the abridged data.
-  if (age_in == "abridged") { 
+  if(age_in == "abridged") { 
     
     # data and Age as vectors
     varb <- data_in[, variable, drop = TRUE]
@@ -164,7 +159,7 @@ graduate_auto <- function(data_in,
   }
   
   # if single, then save variables and calculate the proportion in first ages in case age_out is abridged
-  if (age_in == "single") { 
+  if(age_in == "single") {
 
     # data and Age as vectors
     varb         <- data_in[, variable, drop = TRUE]
@@ -206,63 +201,108 @@ graduate_auto <- function(data_in,
   # if infants are not separated, we can try to do a better job
   # by
   if(age_in == "5-year") { 
-    if (age_out != "5-year"){
+    
+    varb <- data_in[, variable, drop = TRUE]
+    Age  <- data_in$Age
+    
+    if(age_out != "5-year"){
       
-      if (!is.null(u5M)){
+      if(!is.null(u5m)) {
+        
         # in odd case that child mortality is given, but Sex is not specified:
-        if (is.null(Sex)){
+        if(is.null(Sex)) {
+          
           Sex <- "t"
           warning("Sex argument not given. We assumed total (Sex = 't'). We use this variable to inform splitting the infant age group.")
+          
         }
-        # we need this variable for indirect method applied
-        stopifnot(Sex %in% c("f","m","t")) 
         
-        if (variable == "Deaths"){
+        # we need this variable for indirect method applied
+        stopifnot(Sex %in% c("f", "m", "t")) 
+        
+        if(variable == "Deaths") {
+          
           D5 <- varb[1]
-          P5 <- D5 / u5M
+          P5 <- D5 / u5m
+          
         }
-        if (variable == "Exposures"){
+        
+        if(variable %in% c("Exp", "Exposures", "Pop", "Population")) {
+          
           P5 <- varb[1]
-          D5 <- P5 * u5M
+          D5 <- P5 * u5m
+          
         }
       
-        if (Sex %in% c("f","m")){
-          D0   <- lt_rule_4m0_D0(D04 = D5, M04 = u5m, Sex = Sex)
-          M0   <- lt_rule_4m0_m0(D04 = D5, M04 = u5m, Sex = Sex)
+        if(Sex %in% c("f", "m")) {
+          
+          D0   <- lt_rule_4m0_D0(D04 = D5, 
+                                 M04 = u5m, 
+                                 Sex = Sex)
+          
+          M0   <- lt_rule_4m0_m0(D04 = D5, 
+                                 M04 = u5m, 
+                                 Sex = Sex)
+          
           P0   <- D0 / M0
+          
         } else {
-          D0m  <- lt_rule_4m0_D0(D04 = D5, M04 = u5m, Sex = "m")
-          D0f  <- lt_rule_4m0_D0(D04 = D5, M04 = u5m, Sex = "f")
+          
+          D0m  <- lt_rule_4m0_D0(D04 = D5, 
+                                 M04 = u5m, 
+                                 Sex = "m")
+          
+          D0f  <- lt_rule_4m0_D0(D04 = D5, 
+                                 M04 = u5m, 
+                                 Sex = "f")
+          
           D0   <- (D0m + D0f) / 2
           
-          M0m  <- lt_rule_4m0_m0(D04 = D5, M04 = u5m, Sex = "m")
-          M0f  <- lt_rule_4m0_m0(D04 = D5, M04 = u5m, Sex = "f")
-          M0   <- (M0m + M0f) / 2
+          M0m  <- lt_rule_4m0_m0(D04 = D5, 
+                                 M04 = u5m, 
+                                 Sex = "m")
           
+          M0f  <- lt_rule_4m0_m0(D04 = D5, 
+                                 M04 = u5m, 
+                                 Sex = "f")
+          
+          M0   <- (M0m + M0f) / 2
           P0   <- D0 / M0
-        } 
-        if (variable == "Deaths"){
-          D1_4 <- D5 - D0
-          varb <- c(D0, D1_4,varb[-1])
-          Age  <- c(Age[1],1,Age[-1])
+          
         }
-        if (variable == "Exposures"){
-          P1_4 <- P5 - P0
-          varb <- c(P0, P1_4,varb[-1])
-          Age  <- c(Age[1],1,Age[-1])
-        }
-        # For purposes of continued decision-making
-        age_in <- "abridged"
         
+        if(variable == "Deaths") {
+        
+          D1_4 <- D5 - D0
+          varb <- c(D0, D1_4, varb[-1])
+          Age  <- c(Age[1], 1, Age[-1])
+          
+        }
+        
+        if(variable %in% c("Exp", "Exposures", "Pop", "Population")) {
+          P1_4 <- P5 - P0
+          varb <- c(P0, P1_4, varb[-1])
+          Age  <- c(Age[1], 1, Age[-1])
+          
+        }
+        
+        # For purposes of continued decision-making
+        age_in       <- "abridged"
         fst_ages     <- varb[1:2]
         pct_fst_ages <- fst_ages / sum(fst_ages)
         
       } else {
+        
+        if(constrain_infants) { 
+        
         warning("Be mindful of results for the infant age group. Your output has a separate infant age group, but this was split from the input data without taking demographic knowledge into account. If you specify an under-5 mortality rate, u5m, we can do a better job.")
+          
+        }
+        
       }
   
     }
-
+    
     }
   
   # 3 different conditions are considered
@@ -288,7 +328,7 @@ graduate_auto <- function(data_in,
       # apply protocol for 5 year data
       data_out <- graduate_auto_5(dat_5, variable = variable)
       
-    } else { 
+    } else {
       # Single year protocol is implemented if bachi is less than 30
       # NOTE: we separate kids and adults for now. We follow the protocol in case of adults adults
       # For kids, I save them separately, and since it is currently unclear what to do, I do the following:
@@ -302,9 +342,9 @@ graduate_auto <- function(data_in,
       # We don't have years of education. 
       # So I choose the maximum n for mav from the two available in the table.
       n <- tibble(
-        min_bachi    = c(4, 2, 0.75, 0,    8),
-        max_bachi    = c(8, 4, 2,    0.75, 30),
-        second_index = c(0.65, 0.6, 0.7, 0.55,101),
+        min_bachi    = c(4,    2,   0.75, 0,    8),
+        max_bachi    = c(8,    4,   2,    0.75, 30),
+        second_index = c(0.65, 0.6, 0.7,  0.55, 101),
         ind          = c(rep(prp0and5, 2), rep(mxprop2, 2), Inf),
         mav_val_y    = c(10, 6, 4, 2, 10),
         mav_val_n    = c(6,  4, 2, 1, 10)) |>
@@ -361,7 +401,7 @@ graduate_auto <- function(data_in,
   final_data_single <- is_single(data_out$Age)
   
   # (1) graduate_mono
-  varb <- data_out[,variable, drop = TRUE]
+  varb <- data_out[, variable, drop = TRUE]
   
   v2   <- graduate_mono(Value = varb, 
                         Age   = data_out$Age, 
@@ -372,8 +412,8 @@ graduate_auto <- function(data_in,
   # (2) regroup
   ageN <- switch(age_out,
                  "abridged" = calcAgeAbr(age),
-                 "5-year" = age - age %% 5,
-                 "single" = age)
+                 "5-year"   = age - age %% 5,
+                 "single"   = age)
   
   v3 <- groupAges(Value = v2, 
                   Age   = age, 
@@ -383,13 +423,14 @@ graduate_auto <- function(data_in,
                      Age = as.integer(names(v3)))
   
   # (3) possibly constrain infants
-  if (age_out %in% c("abridged", "single") & (sngl | abrgd) & constrain_infants) {
+  if(age_out %in% c("abridged", "single") & age_in %in% c("abridged", "single") & constrain_infants) {
 
     v_child      <- data_out[data_out$Age < 5, variable, drop = TRUE]
     vN           <- sum(v_child)
     v_child[1]   <- pct_fst_ages[1] * vN
     v_child[-1]  <- (1 - pct_fst_ages[1]) * vN * v_child[-1] / sum(v_child[-1])
     data_out[data_out$Age < 5, variable] <- v_child
+    
   }
   
   return(data_out)
@@ -397,9 +438,9 @@ graduate_auto <- function(data_in,
   }
 
 #' @title graduate_auto_5
-#' @description Implements the method protocol procedure for data with 5-year age groups
-#' @param dat_5 tibble. A tibble with two columns - `Pop` - population counts in 5-year age groups and corresponding `Age` column (lower bound of age group)
-#' @param variable character. A scalar with the variable name which is to be graduated. For example `Pop` or `Death`
+#' @description Implements the method protocol procedure for data with 5-year age groups.
+#' @param dat_5 tibble. A tibble with two columns - `Pop` - or any other chosen variable in 5-year age groups with counts to be graduated and corresponding `Age` column (lower bound of age group).
+#' @param variable character. A scalar with the variable name which is to be graduated. Supported variable names are `Pop`, `Population`, `Exposures`, `Exp`, or `Death`
 #' @return A tibble with 2 columns - your chosen `variable` with graduated and smoothed counts and `Age`
 #' @importFrom dplyr filter
 #' @importFrom tibble tibble
