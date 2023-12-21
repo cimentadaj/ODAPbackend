@@ -20,6 +20,8 @@
 #' @param constrain_infants logical, if age 0 is a separate age class, shall we constrain its proportion within the age group 0-5 in the output? Default `TRUE`.
 #' @importFrom dplyr case_when
 #' @examples
+#' 
+## This is just test settings used for light live coding.
 # data(pop1m_ind, package = "DemoTools")
 # data_in <- data.frame(Exposures = pop1m_ind,
 #                       Age = 0:100)
@@ -48,6 +50,7 @@ smooth_flexible <- function(data_in,
   # since we can always regroup to 5s. 
   # Likewise pclm rough is compatible with pclm fine; 
   # no pclm offsets in this implementation, and no explicit tail control.
+  # we exclude MAV to avoid passing in special parameters.
   
   rough_method <- match.arg(rough_method, c("auto","none","Carrier-Farrag", 
                                             "KKN", "Arriaga", 
@@ -144,7 +147,7 @@ smooth_flexible <- function(data_in,
   # if the rough method was a specific one, we overwrite the value data5
   if (rough_method %in% c("Carrier-Farrag", "KKN", "Arriaga", 
                           "United Nations", "Strong", "Zigzag", "pclm")){
-
+    # ensure pclm actually gives back 5-year data!
     data5 <-
       data5 |> 
       mutate(!!variable := smooth_age_5(Value = !!sym(variable),
