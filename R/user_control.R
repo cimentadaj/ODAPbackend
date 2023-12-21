@@ -1,6 +1,19 @@
 
-# This script should contain the wrappers for graduate(), and smooth_age_5(), potentially blending them into a single wrapper with and age_out argument with possibilities "single", "abridged", and "five"
+# TODO:
+# (1) add in code to account for constrain_infants if output is 
+# in single or abridged ages. Use same tricks as graduate_auto() 
+# to ensure it's done, even when input aren't delivered with an infant 
+# age group.
+# (2) test the logical flow to make sure that all combinations of age_in
+# and age_out are properly handled, and under all possible combinations of 
+# fine_method and rough_method. i.e. with an imported u5m where required.
+# this will require nested loops. We are in this testing that (i) there are
+# no holes. If there are, then patch them as needed.
+# (3) when working, then complete the roxygen to add all params, and a few
+# working examples.
+# (4) then craft a plot_smooth_compare() 
 
+#' @title smooth_flexible rough and fine smoothing and graduation of count data
 #' @param data_in a data.frame with columns Value and Age
 #' @param fine_method the `method` argument of `graduate()`
 #' @param rough_method the `method` argument of `smooth_age_5()`
