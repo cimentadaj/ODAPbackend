@@ -8,59 +8,60 @@ graduate_auto(
   data_in,
   age_out = NULL,
   variable = NULL,
-  constrain_infants = TRUE,
-  u5M = NULL,
-  Sex = "t"
+  u5m = NULL,
+  Sex = "t",
+  constrain_infants = TRUE
 )
 }
 \arguments{
-\item{data_in}{tibble. A tibble with two columns - \code{Pop} or any other column with population or death counts and corresponding \code{Age} -  provided in single age intervals, 5 year age intervals or abridged format e.g. with ages 0, 1-4, 5-9 etc.}
+\item{data_in}{tibble. A tibble with two numeric columns - \code{Pop} or any other column with population or death counts and corresponding \code{Age} - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1-4, 5-9 etc.}
 
-\item{age_out}{character. A scalar with the desired age grouping output. Includes 3 possible options - \code{single} for single ages, \code{5-year} - for 5-year age groups, and \code{abridged} - for abridged data. NOTE, \code{abridged} will not work if the data_in is in 5-year groups, since we do not know the initial distributions in the abridged ages. This behaviour will be adjusted in future versions.}
+\item{age_out}{character. A scalar with the desired age grouping output. Includes 3 possible options - \code{"single"} for single ages, \code{"5-year"} - for 5-year age groups, and \code{"abridged"} - for abridged data.}
 
-\item{variable}{character. A scalar with the variable name which is to be graduated. For example \code{Pop} or \code{Death}, or \code{Exposures}}
+\item{variable}{character. A scalar with the variable name which is to be graduated. For example \code{"Pop"} or \code{"Death"}, or \code{"Exposures"}.}
 
-\item{constrain_infants}{logical. A scalar indicating weather the infant proportions should be constrained or left as is.}
+\item{u5m}{numeric. Under five mortality rate.}
 
 \item{Sex}{character. Either \code{"m"} for males, \code{"f"} for females, or \code{"t"} for total (defualt).}
 
-\item{u5m}{numeric, under five mortality rate.}
+\item{constrain_infants}{logical. A scalar indicating weather the infant proportions should be constrained or left as is.}
 }
 \value{
-A tibble with 2 columns - your chosen \code{variable} with graduated and smoothed counts and \code{Age}
-
 data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and \code{Age} - chosen age grouping
 }
 \description{
-Smooth population of death counts with moving averages. The method was adopted from the "Method protocol for the evaluation of census population data by age and sex" paragraph 5.
+Smooth population or death counts with moving averages. The method was adopted from the "Method protocol for the evaluation of census population data by age and sex" paragraph 5.
 }
 \examples{
-data(pop1m_ind, package = "DemoTools")
-data_in <- data.frame(Pop = pop1m_ind,
-Age = 0:100,
-Pop = pop1m_ind)
+fpath <- system.file("extdata",
+"dat_heap_smooth.csv",
+package = "ODAPbackend")
+
+data_in <- read.csv(fpath)
 
 ex1 <- graduate_auto(
-data_in  = data_in,
-age_out  = "single", 
-variable = "Pop",
-constrain_infants = TRUE)
+data_in,
+age_out  = "5-year",
+variable = "Deaths",
+u5m      = NULL,
+Sex      = "t",
+constrain_infants = FALSE)
 
 ex2 <- graduate_auto(
-data_in  = data_in,
-age_out  = "single", 
-variable = "Pop",
-constrain_infants = FALSE)
+data_in,
+age_out  = "abridged",
+variable = "Exposures",
+u5m      = NULL,
+Sex      = "t",
+constrain_infants = FALSE
+)
 
 ex3 <- graduate_auto(
-data_in = data_in,
-age_out = "5-year", 
-variable = "Pop",
-constrain_infants = TRUE)
-
-ex4 <- graduate_auto(
-data_in  = data_in,
-age_out  = "abridged", 
-variable = "Pop",
-constrain_infants = FALSE)
+data_in,
+age_out  = "single",
+variable = "Population",
+u5m      = NULL,
+Sex      = "t",
+constrain_infants = TRUE
+)
 }
