@@ -1,3 +1,7 @@
+# this is a full-service age smoothing / graduation / regrouping function.
+# Maybe aspects of it should be modular, at least the age regrouping part could be.
+# but at the user side we'd just need this one top-level interface.
+
 
 # TODO:
 # (1) add in code to account for constrain_infants if output is 
