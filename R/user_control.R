@@ -31,7 +31,8 @@
 # rough_method = "KKN"
 # constrain_infants = TRUE
 # 
-# smooth_flexible(data_in, variable = "Exposures", rough_method = "Zigzag",fine_method="beers(mod)", constrain_infants = TRUE, age_out = "single")
+
+# smooth_flexible(data_in, variable = "Exposures", rough_method = "Arriaga",fine_method="auto", constrain_infants = TRUE, age_out = "abridged", u5m=.1)
 smooth_flexible <- function(data_in,
                             variable = "Deaths",
                             age_out = c("single","abridged","5-year"),
@@ -217,12 +218,23 @@ smooth_flexible <- function(data_in,
     # meaning this was so in data_in or as the result of another 
     # rough_method having been applied. Otherwise, this will get picked
     # up in the auto method and taken care of with its MAV logic.
-    data1 <- graduate_auto(data5,
+    data1 <- graduate_auto(data_in,
                            age_out = "single",
                            variable = variable,
                            constrain_infants = constrain_infants,
                            u5m = u5m,
                            Sex = Sex)
+    data5 <- data5 |> 
+      rename(age5 = Age,
+             value5 = !!sym(variable) )
+    
+    data1 <-
+      data1 |> 
+      mutate(age5 = Age - Age %% 5) |> 
+      mutate(prop = !!sym(variable) / sum(!!sym(variable)), .by = age5) |> 
+      left_join(data5, by = join_by(age5)) |> 
+      mutate(!!variable := !!sym(variable) * prop) |> 
+      select(Age, !!sym(variable))
   }
   if (fine_method %in% c("sprague", "beers(ord)", 
                          "beers(mod)", "grabill", "pclm", 
