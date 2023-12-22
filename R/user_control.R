@@ -30,6 +30,8 @@
 # fine_method = "sprague"
 # rough_method = "KKN"
 # constrain_infants = TRUE
+# 
+# smooth_flexible(data_in, variable = "Exposures", rough_method = "Zigzag",fine_method="beers(mod)", constrain_infants = TRUE, age_out = "single")
 smooth_flexible <- function(data_in,
                             variable = "Deaths",
                             age_out = c("single","abridged","5-year"),
@@ -91,7 +93,7 @@ smooth_flexible <- function(data_in,
       ageN       <- calcAgeAbr(age1)
       value      <- groupAges(Value = value1, 
                               Age = age1, 
-                              ageN = ageN)
+                              AgeN = ageN)
       age        <- names2age(value)
       age_in     <- "abridged"
     } else {
@@ -218,8 +220,8 @@ smooth_flexible <- function(data_in,
     data1 <- graduate_auto(data5,
                            age_out = "single",
                            variable = variable,
-                           constrain_infants = contrain_infants,
-                           u5m = ufm,
+                           constrain_infants = constrain_infants,
+                           u5m = u5m,
                            Sex = Sex)
   }
   if (fine_method %in% c("sprague", "beers(ord)", 
@@ -245,17 +247,16 @@ smooth_flexible <- function(data_in,
   # III group to desired output #
   #-----------------------------#
   
-  # no matter what, we have a 
   value    <- data1 |> 
                 pull(!!sym(variable))
-    age    <- data1 |> 
+  age      <- data1 |> 
                 pull(Age)
   value_out <- groupAges(Value = value,
                          Age = age,
-                         ageN = ageN)
+                         AgeN = ageN)
   age      <- names2age(value_out)
   data_out <- tibble(Age = age,
-                     !!variable = value_out)
+                     !!variable := value_out)
   
   
   return(data_out)
