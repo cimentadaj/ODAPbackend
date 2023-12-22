@@ -2,6 +2,10 @@
 # Maybe aspects of it should be modular, at least the age regrouping part could be.
 # but at the user side we'd just need this one top-level interface.
 
+# note, when this thing is humming, we can call it inside lt_flexible to regularize
+# age groups when they come in irregular? In the lifetable context, maybe pclm is 
+# the smartest choice for regularizing ages?? i.e. with offsets included and 
+# jumping straight to nMx?
 
 # TODO:
 # (1) add in code to account for constrain_infants if output is 
