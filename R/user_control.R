@@ -32,7 +32,14 @@
 # constrain_infants = TRUE
 # 
 
-# smooth_flexible(data_in, variable = "Exposures", rough_method = "Arriaga",fine_method="auto", constrain_infants = TRUE, age_out = "abridged", u5m=.1)
+# smooth_flexible(data_in, variable = "Exposures", rough_method = "Arriaga",fine_method="none", constrain_infants = TRUE, age_out = "abridged", u5m=.1)
+# 
+# 
+# smooth_flexible
+# age_out <- c("single","abridged","5-year")
+
+
+
 smooth_flexible <- function(data_in,
                             variable = "Deaths",
                             age_out = c("single","abridged","5-year"),
@@ -54,25 +61,25 @@ smooth_flexible <- function(data_in,
   # Likewise pclm rough is compatible with pclm fine; 
   # no pclm offsets in this implementation, and no explicit tail control.
   # we exclude MAV to avoid passing in special parameters.
-  
-  rough_method <- match.arg(rough_method, c("auto","none","Carrier-Farrag", 
+  # coerce to lower case for friendlier arg passing
+  rough_method <- tolower(rough_method)
+  rough_method <- match.arg(rough_method, tolower(c("auto","none","Carrier-Farrag", 
                                             "KKN", "Arriaga", 
                                             "United Nations", "Strong", 
-                                            "Zigzag", "pclm"))
-  fine_method <- match.arg(fine_method, c("auto","none","sprague", "beers(ord)", 
+                                            "Zigzag", "pclm")))
+  
+  fine_method <- tolower(fine_method)
+  fine_method <- if_else(fine_method == "beers", "beers(ord)", fine_method)
+  fine_method <- match.arg(fine_method, tolower(c("auto","none","sprague", "beers(ord)", 
                                            "beers(mod)", "grabill", "pclm", 
-                                           "mono",  "uniform"))
+                                           "mono",  "uniform")))
   age_out <- match.arg(age_out, c("single","abridged","5-year"))
   
-  # Handles e.g. Total, total, t
+  # Handles e.g. Total, total, t, etc
   Sex     <- substr(Sex,1,1) |> tolower()
   Sex     <- match.arg(Sex, c("t","f","m"))
   
-  # simplest case, gotta cover the bases, haha
-  if (rough_method == "none" & fine_method == "none"){
-    return(data_in)
-  }
-  
+
   # get variables
   value          <- data_in[, variable, drop = TRUE]
   age            <- data_in$Age
@@ -83,8 +90,9 @@ smooth_flexible <- function(data_in,
                               is_abridged(age) ~ "abridged",
                               all((age %% 5) == 0) ~ "5-year",
                               TRUE ~ "other")
-  
-  # regularize undetermined ages 
+  #--------------------------------#
+  # regularize no-standard ages    #
+  #--------------------------------# 
   if (age_in == "other"){
     value1       <- graduate_uniform(Value = value, 
                                      Age = age)
@@ -116,6 +124,35 @@ smooth_flexible <- function(data_in,
                    "5-year" = age1 - age1 %% 5,
                    "abridged" = calcAgeAbr(age1))
   
+  # -------------------------------------------------------#
+  # simplest case, we do nothing to the age distribution,  #
+  # but we *might* group data still...                     #
+  # -------------------------------------------------------#
+  if (rough_method == "none" & fine_method == "none"){
+    
+    if (age_out == age_in){
+      return(data_in)
+    } 
+    if (age_out == "single"){
+      warning("You requested no fine or rough methods,\nbut you want single age output. We assumed a uniform distribution over single ages within the age groups given.")
+    }
+    value          <- data_in[, variable, drop = TRUE]
+    age            <- data_in$Age
+    value1         <- graduate_uniform(Value = value, 
+                                       Age = age)
+    age1           <- names2age(value1)
+    ageN           <- switch(age_out,
+                        "single" = age1,
+                        "5-year" = age1 - age1 %% 5,
+                        "abridged" = calcAgeAbr(age1))
+    value_out      <- groupAges(Value = value1,
+                                Age = age1,
+                                AgeN = ageN)
+    data_out       <- tibble(Age = names2age(value_out),
+                             !!variable := value_out) 
+    return(data_out)
+  }
+    
   
   # ------------------------#
   # I: Handle rough methods #
@@ -148,8 +185,8 @@ smooth_flexible <- function(data_in,
       
   }
   # if the rough method was a specific one, we overwrite the value data5
-  if (rough_method %in% c("Carrier-Farrag", "KKN", "Arriaga", 
-                          "United Nations", "Strong", "Zigzag", "pclm")){
+  if (rough_method %in% tolower(c("Carrier-Farrag", "KKN", "Arriaga", 
+                          "United Nations", "Strong", "Zigzag", "pclm"))){
     # ensure pclm actually gives back 5-year data!
     data5 <-
       data5 |> 
