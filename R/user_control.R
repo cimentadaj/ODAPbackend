@@ -5,7 +5,7 @@
 # note, when this thing is humming, we can call it inside lt_flexible to regularize
 # age groups when they come in irregular? In the lifetable context, maybe pclm is 
 # the smartest choice for regularizing ages?? i.e. with offsets included and 
-# jumping straight to nMx?
+# jumping straight to nMx? in that case, a separate mini help function could do the trick.
 
 # TODO:
 # (1) add in code to account for constrain_infants if output is 
@@ -19,7 +19,8 @@
 # no holes. If there are, then patch them as needed.
 # (3) when working, then complete the roxygen to add all params, and a few
 # working examples.
-# (4) then craft a plot_smooth_compare() 
+# (4) then craft a plot_smooth_compare() to compare the age pattern of data_in and data_out,
+# to be returned in a 2-element list as elsewhere.
 
 #' @title smooth_flexible rough and fine smoothing and graduation of count data
 #' @param data_in a data.frame with columns Value and Age
