@@ -97,18 +97,21 @@
 #               constrain_infants = FALSE)
 
 graduate_auto <- function(data_in,
-                          age_out  = NULL,
+                          age_out  = c("single", "abridged", "5-year"),
                           variable = NULL,
                           u5m      = NULL,
-                          Sex      = "t",
+                          Sex      = c("t", "f", "m"),
                           constrain_infants = TRUE) {
+  
+  age_out <- match.arg(age_out, c("single", "abridged", "5-year"))
+  Sex     <- match.arg(Sex,     c("t", "f", "m"))
 
   # check if data comes in single ages
-  Age    <- data_in$Age
-  age_in <- case_when(is_single(Age)      ~ "single",
-                      is_abridged(Age)    ~ "abridged",
-                      all(Age %% 5 == 0)  ~ "5-year",
-                      TRUE                ~ "other")
+  Age     <- data_in$Age
+  age_in  <- case_when(is_single(Age)      ~ "single",
+                       is_abridged(Age)    ~ "abridged",
+                       all(Age %% 5 == 0)  ~ "5-year",
+                       TRUE                ~ "other")
   
   # if not single or abridged, then force either abridged or 5-year,
   # depending on whether infants given.
