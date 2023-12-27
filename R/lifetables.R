@@ -69,6 +69,7 @@ lt_flexible <- function(data_in,
   
   Deaths <- data_in$Deaths
   Exposures <- data_in$Exposures
+  Mx_emp <- Deaths / Exposures
   Age <- data_in$Age
   # TR: no need to determine extrapLaw here, it happens
   # natively in the lt functions.

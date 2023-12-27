@@ -52,12 +52,59 @@ heaping_deaths   <- check_heaping_general(data_in, "Deaths")
 
 # placeholder 1. We also may want to let users dig deeper into heaping options, using the function check_heaping_user(), but this is not yet general enough to be worth it. So just leave a marker here.
 
-# placeholder 2 leave space here for graduation or smoothing steps. These are not yet implemented, but this would be the place in the sequence for it. In the event of modifying data like this, we'd want to bind_rows() the new data version, with a new column indicating variant, with "original" for data_in, and "smoothed" or "graduated" for modifications. Then following methods would require specifying with variant to work with. 
+# placeholder 2 leave space here for graduation or smoothing steps. 
 
+# Can you use this snippet, or you want a helper for this?
+u5m <-
+  data_in |> 
+  filter(Age < 5) |> 
+  summarize(Deaths = sum(Deaths),
+            Exposures = sum(Exposures),
+            u5m = Deaths / Exposures) |> 
+  pull(u5m)
 
+data_exposures <- smooth_flexible(data_in, 
+                            variable = "Exposures", # either Deaths or Exposures
+                            age_out = "single",     # single, or abridged for now
+                            # rough method:
+                            # one of: c("auto", "none", "Carrier-Farrag", "KKN", 
+                            #           "Arriaga", "United Nations","Strong", "Zigzag")
+                            rough_method = "auto", 
+                            
+                            # fine method: one of
+                            # c("auto", "none", "sprague", "beers(ord)", "beers(mod)", 
+                            # "grabill", "pclm", "mono", "uniform")
+                            fine_method = "beers(ord)",
+                            u5m = u5m, # need to calc ahead of time
+                            Sex = "m", # user-given, default "t"
+                            constrain_infants = FALSE) # default true
+data_deaths <- smooth_flexible(data_in, 
+                                  variable = "Deaths", # either Deaths or Exposures
+                                  age_out = "single",     # "single", "abridged", or "5-year".
+                                                          # default single.
+                                                          # 5-year cannot go on to lifetables
+                                  # rough method:
+                                  # one of: c("auto", "none", "Carrier-Farrag", "KKN", 
+                                  #           "Arriaga", "United Nations","Strong", "Zigzag")
+                                  rough_method = "auto", 
+                                  
+                                  # fine method: one of
+                                  # c("auto", "none", "sprague", "beers(ord)", "beers(mod)", 
+                                  # "grabill", "pclm", "mono", "uniform")
+                                  fine_method = "beers(ord)",
+                                  u5m = u5m, # need to calc ahead of time
+                                  Sex = "m", # user-given, default "t"
+                                  constrain_infants = FALSE) # default true
+data_new <- left_join(data_deaths, 
+                      data_exposures, by = join_by(Age)) |> 
+  relocate(Age, .before = 1) |> 
+  mutate(Mx_emp = Deaths / Exposures)
+# Offer download option here.
+new_plots <- plot_initial_data(data_new)
+new_plots$`Empirical Mx`
 # when data are prepped we can do the lifetable. In future, if data have subsets, we wrap this do work on a chunk rather than siphoning columns, and we do it inside group_by() |> reframe() to scale up. We'd need to be thoughtful about how to pass chunk-specific arguments, like Sex (presumably a column). I think that's just a tradeoff, for maximal control, just do one subset at a time. Note also in future, we might not want to insist on Deaths and Exposures as the inputs. In future, we'll want to allow nMx, nqx, lx, or ex as possibilities, but not needed for the proof of concept version. Anyway, to run, we need a data.frame to pull the columns from, and we need a bunch of user-specified parameters coming from the UI, as discussed. I've annotated below as well to give hints.
 lt_output <- 
-  lt_flexible(data_in, # required to have Age, Deaths, Exposures
+  lt_flexible(data_new, # required to have Age, Deaths, Exposures
             # recall all of these are passed in from the app, which will contain
             # its own default values.
             OAnew      = 100,               # basic

@@ -193,7 +193,7 @@ Age = c(0, 1, seq(5, 100, by = 5))
 
 write.csv(advanced, file = "advanced.csv")
 
-<<<<<<< HEAD
+
 Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
                               247473,223014,172260,149338,127242,105715,79614,53660,
                               31021,16805,8000,4000,2000,1000)
@@ -205,7 +205,7 @@ Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 data <- tibble(Deaths = Deaths, 
                                        Exposures = Exposures, 
                                        Age = c(0, 1, seq(5, 100, by = 5)))
-=======
+
 
 
 
@@ -287,5 +287,3 @@ dfind <- lapply(beefy_output, is.data.frame) |> unlist()
 
 
 
-
->>>>>>> usercontrol

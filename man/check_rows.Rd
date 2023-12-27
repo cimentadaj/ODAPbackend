@@ -27,8 +27,7 @@ Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 
 data <- tibble(Deaths = Deaths, 
                        Exposures = Exposures, 
-                       Age = c(0, 1, seq(5, 100, by = 5)),
-                       AgeInt = c(diff(Age), NA))
+                       Age = c(0, 1, seq(5, 100, by = 5)))
 
 check_rows(
     data = data)

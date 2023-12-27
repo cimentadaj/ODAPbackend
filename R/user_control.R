@@ -1,30 +1,4 @@
-# this is a full-service age smoothing / graduation / regrouping function.
-# Maybe aspects of it should be modular, at least the age regrouping part could be.
-# but at the user side we'd just need this one top-level interface.
 
-# note, when this thing is humming, we can call it inside lt_flexible to regularize
-# age groups when they come in irregular? In the lifetable context, maybe pclm is 
-# the smartest choice for regularizing ages?? i.e. with offsets included and 
-# jumping straight to nMx? in that case, a separate mini help function could do the trick.
-
-# TODO:
-# (1) add in code to account for constrain_infants if output is 
-# in single or abridged ages. Use same tricks as graduate_auto() 
-# to ensure it's done, even when input aren't delivered with an infant 
-# age group.
-# Done
-# (2) test the logical flow to make sure that all combinations of age_in
-# and age_out are properly handled, and under all possible combinations of 
-# fine_method and rough_method. i.e. with an imported u5m where required.
-# this will require nested loops. We are in this testing that (i) there are
-# no holes. If there are, then patch them as needed.
-# Done.
-# (3) when working, then complete the roxygen to add all params, and a few
-# working examples.
-# Done
-# (4) then craft a plot_smooth_compare() to compare the age pattern of data_in and data_out,
-# to be returned in a 2-element list as elsewhere.
-# Done
 
 #' @title smooth_flexible rough and fine smoothing and graduation of count data
 #' @description Smoothes population or death counts using the variaety of methods from DemoTools packgae and "Method protocol for the evaluation of census population data by age and sex" paragraph 5.

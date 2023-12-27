@@ -21,7 +21,7 @@ data(pop1m_ind, package = "DemoTools")
 data_in <- data.frame(Exposures = pop1m_ind,
 Age = 0:100)
 
-data_put <- smooth_flexible(
+data_out <- smooth_flexible(
 data_in,
 variable     = "Exposures",
 rough_method = "auto",
