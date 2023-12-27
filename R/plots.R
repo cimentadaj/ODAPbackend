@@ -67,7 +67,8 @@ plot_compare_rates <- function(
   
   
   # return a list with both data and figure
-  return(figure)
+  return(lst(nMx = figure,
+             nMx_plot_data = data_out_plot))
   
 }
 
@@ -119,20 +120,15 @@ plot_lifetable <- function(data_out) {
   e0   <- data_out$ex[data_out$Age == 0]
   
   dt <- data_out %>%
-    pivot_longer(-c(Age, AgeInt),
-                 names_to  = "lt_function",
-                 values_to = "val") |> 
-    filter(lt_function %in% c("nMx","ndx","lx")) |> 
-   mutate(AgeInt = age2int(Age, OAG = FALSE),
-          single = is_single(Age),
-          age_mid = if_else(single, Age, Age + (AgeInt / 2)),
-          age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
+          mutate(AgeInt = age2int(Age, OAG = FALSE),
+                 single = is_single(Age),
+                 age_plot = if_else(single, Age, Age + (AgeInt / 2)),
+                 age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
                                 TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")")))
   
   nMx_plot <- 
   dt |> 
-    filter(lt_function == "nMx") |> 
-    ggplot(aes(x = age_mid, y = val), col = "black") +
+    ggplot(aes(x = age_plot, y = nMx), col = "black") +
     geom_line() + # or geom_step()
     scale_y_log10() +
     theme_light() + 
@@ -143,8 +139,7 @@ plot_lifetable <- function(data_out) {
   
   lx_plot <-
     dt |> 
-    filter(lt_function == "lx") |> 
-    ggplot(aes(x = age_mid, y = val), col = "black") +
+    ggplot(aes(x = age_plot, y = lx), col = "black") +
     geom_line() + # or geom_step()
     theme_light() + 
     theme(axis.text = element_text(color = "black"),
@@ -153,6 +148,8 @@ plot_lifetable <- function(data_out) {
     geom_vline(xintercept = c(lx25,lx50,lx75),
                linewidth  = .5, color = gray(.5)) +
     geom_vline(xintercept = data_out$ex[1],color="red") +
+    annotate("text",x=data_out$ex[1]+2,y=.25*radix, 
+             label = "life expectancy",color = "red",angle=-90) +
     annotate("segment",x=lx75-2,xend=lx75+2,y=.75*radix,yend=.75*radix, color = gray(.5)) +
     annotate("segment",x=lx50-2,xend=lx50+2,y=.50*radix,yend=.50*radix, color = gray(.5)) +
     annotate("segment",x=lx25-2,xend=lx25+2,y=.25*radix,yend=.25*radix, color = gray(.5)) +
@@ -164,8 +161,7 @@ plot_lifetable <- function(data_out) {
   
   ndx_plot <-
     dt |> 
-    filter(lt_function == "ndx") |> 
-    ggplot(aes(x = age_mid, y = val), col = "black") +
+    ggplot(aes(x = age_plot, y = ndx), col = "black") +
     geom_line() + # or geom_step()
     theme_light() + 
     theme(axis.text = element_text(color = "black"),
@@ -175,14 +171,13 @@ plot_lifetable <- function(data_out) {
                linewidth  = .5, color = gray(.5)) +
     geom_vline(xintercept = data_out$ex[1],color="red") +
     labs(x = "Age",
-         y = "lx",
+         y = "dx",
          title = "Death distribution (dx) generated from lifetable nmx values",
          subtitle = "Marked locations on the distribution indicate age-at-death quartiles (grey)\nand life expectancy (red)")
-  
-  return(lst(plot_data = dt,
-             nMx = nMx_plot, 
-             lx = lx_plot,
-             ndx = ndx_plot))
+
+  return(lst(nMx = lst(nMx_plot, nMx_plot_data = dt |> select(Age,age_plot, age_label, nMx)), 
+             lx = lst(lx_plot, lx_plot_data = dt |> select(Age,age_plot, age_label, lx)),
+             ndx = lst(ndx_plot, ndx_plot_data = dt |> select(Age,age_plot, age_label, ndx))))
   
 }
 
