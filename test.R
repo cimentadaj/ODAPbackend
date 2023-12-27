@@ -268,7 +268,7 @@ for (ai in age_ins ){
 }
 length(beefy_output)
 ind <- lapply(beefy_output, class) |> unlist() %>% '=='("try-error")
-
+sum(ind)
 dfind <- lapply(beefy_output, is.data.frame) |> unlist()
  beefy_output[!dfind] |> names()
 
