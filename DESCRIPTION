@@ -21,7 +21,7 @@ Suggests:
     rmarkdown,
     markdown,
 Imports:
-    DemoTools,
+    DemoTools (>= 01.13.79),
     stringr,
     dplyr,
     scales,

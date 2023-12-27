@@ -193,6 +193,7 @@ Age = c(0, 1, seq(5, 100, by = 5))
 
 write.csv(advanced, file = "advanced.csv")
 
+<<<<<<< HEAD
 Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
                               247473,223014,172260,149338,127242,105715,79614,53660,
                               31021,16805,8000,4000,2000,1000)
@@ -204,3 +205,87 @@ Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 data <- tibble(Deaths = Deaths, 
                                        Exposures = Exposures, 
                                        Age = c(0, 1, seq(5, 100, by = 5)))
+=======
+
+
+
+load_all()
+library(tidyverse)
+library(devtools)
+library(DemoTools)
+data(pop1m_ind, package = "DemoTools")
+Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
+               247473,223014,172260,149338,127242,105715,79614,53660,
+               31021,16805,8000,4000,2000,1000)
+
+Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
+            1335,3257,2200,4023,2167,4578,2956,4212,
+            2887,2351,1500,900,500,300)
+
+data_abr_in <- tibble(Deaths = Deaths, 
+                        Exposures = Exposures, 
+                        Age = c(0, 1, seq(5, 100, by = 5)),
+                        AgeInt = c(diff(Age), NA),
+                        Sex = "Male")
+
+data1_in <- data.frame(Exposures = pop1m_ind,
+                     Age = 0:100)
+data5_in <- data.frame(Exposures = groupAges(pop1m_ind, N = 5),
+                      Age = seq(0, 100, 5))
+data_other1 <- data5_in |> 
+  mutate(Age = ifelse(Age > 50, Age - Age %% 10, Age)) |> 
+  summarize(Exposures = sum(Exposures), .by = Age)
+
+data_other1 <- data5_in |> 
+  mutate(Age = ifelse(Age > 50, Age - Age %% 10, Age)) |> 
+  summarize(Exposures = sum(Exposures), .by = Age)
+
+# big tests
+
+fine_methods <-   c("auto", "none", "sprague",
+                                  "beers(ord)", "beers(mod)",
+                                  "grabill", "pclm", "mono",
+                                  "uniform")
+rough_methods = c("auto", "none", "Carrier-Farrag",
+                 "KKN", "Arriaga", "United Nations",
+                 "Strong", "Zigzag")
+age_ins <- c("single","5-year","abridged","other")
+age_outs <- c("single","5-year","abridged")
+
+
+beefy_output <- list()
+for (ai in age_ins ){
+   
+  data_in <- switch(ai,
+                    "single" = data1_in,
+                    "5-year" = data5_in,
+                    "abridged" = data_abr_in,
+                    "other" = data_other1)
+  for (ao in age_outs){
+    for (fm in fine_methods){
+      for (rm in rough_methods){
+        data_out <- try(smooth_flexible(data_in,
+                                    variable = "Exposures", 
+                                    rough_method = rm,
+                                    fine_method = fm, 
+                                    constrain_infants = TRUE, 
+                                    age_out = ao, 
+                                    u5m = .1,
+                                    Sex = "t"))
+        labeli <- paste(ai, ao, fm, rm, sep = "-")
+        beefy_output[[labeli]] <- data_out
+        
+      }
+    }
+  }
+}
+length(beefy_output)
+ind <- lapply(beefy_output, class) |> unlist() %>% '=='("try-error")
+sum(ind)
+dfind <- lapply(beefy_output, is.data.frame) |> unlist()
+ beefy_output[!dfind] |> names()
+
+
+
+
+>>>>>>> usercontrol
