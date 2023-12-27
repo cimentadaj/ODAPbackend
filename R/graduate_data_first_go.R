@@ -110,7 +110,8 @@ graduate_auto <- function(data_in,
   Age     <- data_in$Age
   age_in  <- case_when(is_single(Age)       ~ "single",
                        is_abridged(Age)     ~ "abridged",
-                       all(age2int(Age) == 5,na.rm=TRUE) ~ "5-year",   
+                       all(age2int(Age) == 5,
+                           na.rm = TRUE)    ~ "5-year",   
                        TRUE                 ~ "other")
   
   # if not single or abridged, then force either abridged or 5-year,
@@ -208,7 +209,7 @@ graduate_auto <- function(data_in,
     varb <- data_in[, variable, drop = TRUE]
     Age  <- data_in$Age
     
-    if(age_out != "5-year"){
+    if(age_out != "5-year") {
       
       if(!is.null(u5m)) {
         
@@ -508,7 +509,7 @@ graduate_auto_5 <- function(dat_5, variable) {
   # calculate the smoothing n for adults, new way
   n_choice_ad <- c(age_rat_score_adults < 4, age_rat_score_adults_2 < 4, age_rat_score_adults_2 >= 4)
   n           <- c(1, 2, 4)
-  adult_n     <- max(n[n_choice_ad])
+  adult_n     <- max(n[n_choice_ad]) # we kkep the maximum of two
 
   # old way
   # adult_n <- tibble(unsm = age_rat_score_adults,

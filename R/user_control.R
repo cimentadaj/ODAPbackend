@@ -12,12 +12,13 @@
 # in single or abridged ages. Use same tricks as graduate_auto() 
 # to ensure it's done, even when input aren't delivered with an infant 
 # age group.
+# Done
 # (2) test the logical flow to make sure that all combinations of age_in
 # and age_out are properly handled, and under all possible combinations of 
 # fine_method and rough_method. i.e. with an imported u5m where required.
 # this will require nested loops. We are in this testing that (i) there are
 # no holes. If there are, then patch them as needed.
-# Done. Currenlty holes exist
+# Done.
 # (3) when working, then complete the roxygen to add all params, and a few
 # working examples.
 # Done
@@ -33,6 +34,7 @@
 #' @param rough_method the `method` argument of `smooth_age_5()` function from DemoTools that Smoothes populations in 5-year age groups using various methods. Possible options include `auto`, `none`, `Carrier-Farrag`, `KKN`, `Arriaga`, `United Nations`, `Strong`, `Zigzag`.
 #' @param constrain_infants logical, if age 0 is a separate age class, shall we constrain its proportion within the age group 0-5 in the output? Default `TRUE`.
 #' @param u5m numeric. Under five mortality rate.
+#' @param age_out character. The desired age structure of the output file. Possible options include `single` - for sinle years, `5-year` - for 5-year data, and `abridged` - for abridged data, e.g 0, 1-4, 5-9, etc.
 #' @param Sex character. Either `"m"` for males, `"f"` for females, or `"t"` for total (defualt).
 #' @importFrom dplyr case_when mutate group_by summarize rename left_join select join_by pull
 #' @importFrom tibble tibble
@@ -40,11 +42,20 @@
 #' @importFrom DemoTools age2int is_single is_abridged graduate_uniform names2age calcAgeAbr groupAges smooth_age_5 graduate
 #' @return data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping
 #' @examples
-#' This is just test settings used for light live coding.
 #' data(pop1m_ind, package = "DemoTools")
 #' data_in <- data.frame(Exposures = pop1m_ind,
-#'                       Age = 0:100)
-
+#'                       Age       = 0:100)
+#'                       
+#' ex1 <- smooth_flexible(
+#' data_in, 
+#' variable     = "Exposures",
+#' rough_method = "auto",
+#' fine_method  = "none", 
+#' constrain_infants = TRUE, 
+#' age_out = "abridged", 
+#' u5m     = NULL,
+#' Sex     = "t")
+#'
 
 smooth_flexible <- function(data_in,
                             variable     = "Deaths",
@@ -90,18 +101,22 @@ smooth_flexible <- function(data_in,
   age         <- data_in$Age
   has_infants <- age2int(age)[1] == 1 & age[1] == 0
   
-  # TODO
-  if (has_infants){
-    # get prop0
-  }
+  # # TODO
+  # if(has_infants){
+  #   # get prop0
+  # }
+  # 
   # detect incoming age categorization
   age_in      <- case_when(is_single(age)       ~ "single",
                            is_abridged(age)     ~ "abridged",
-                           all(age2int(age) == 5,na.rm=TRUE) ~ "5-year",   
+                           all(age2int(age) == 5,
+                               na.rm = TRUE)    ~ "5-year",   
                            TRUE                 ~ "other")
   
-  if (age_in == "single") {
+  if(age_in == "single") {
+    
     data1 <- data_in
+    
   }
   
   
@@ -109,13 +124,16 @@ smooth_flexible <- function(data_in,
   # regularize no-standard ages    #
   #--------------------------------# 
   if(age_in == "other") {
+    
     value       <- data_in[, variable, drop = TRUE]
     age         <- data_in$Age
     value1       <- graduate_uniform(Value = value, 
                                      Age   = age)
     age1         <- names2age(value1)
     # If there is an infant group, we preserve it
+    
     if(has_infants) {
+      
       ageN       <- calcAgeAbr(age1)
       value      <- groupAges(Value = value1, 
                               Age   = age1, 
@@ -179,7 +197,6 @@ smooth_flexible <- function(data_in,
     return(data_out)
     
   }
-    
   
   # ------------------------#
   # I: Handle rough methods #
@@ -188,7 +205,7 @@ smooth_flexible <- function(data_in,
   # this is a fallback data5
   data5 <- data_in |> 
     mutate(Age = Age - Age %% 5) |> 
-    group_by(Age) |> 
+    group_by(Age)  |> 
     summarize(!!variable := sum(!!sym(variable)))
   
   # (1) the case of auto everything (verify arguments to pass)
@@ -208,6 +225,7 @@ smooth_flexible <- function(data_in,
         summarize(!!variable := sum(!!sym(variable)))
       
   }
+  
   # if the rough method was a specific one, we overwrite the value data5
   # smooth_age_5 does not have pclm option for methods argument REMOVED!
   if(rough_method %in% c("Carrier-Farrag", "KKN", "Arriaga",
@@ -259,14 +277,16 @@ smooth_flexible <- function(data_in,
         mutate(!!variable := !!sym(variable) * prop) |> 
         select(Age, !!sym(variable))
       
-    } 
+    }
       
     if(age_in != "single") {
         
       # TODO: also don't issue this warning if constrain_infants == TRUE
       # we can add that condition afterwards
-      if (age_in == "5-year"){
+      if (age_in == "5-year" & constrain_infants) {
+        
         warning("We used graduate_mono() to split to single ages.\nThis (or another fine_method) was necessary because\nyou specified single-age output, but your input\ndoes not appear to be in single ages.")
+        
       }
         
         fine_method <- "mono"
@@ -283,12 +303,14 @@ smooth_flexible <- function(data_in,
     } 
     
   } 
+  
   if(fine_method == "auto") {
     # Here we presume that data5 has no detectable sawtooth pattern,
     # meaning this was so in data_in or as the result of another 
     # rough_method having been applied. Otherwise, this will get picked
     # up in the auto method and taken care of with its MAV logic.
-    if (rough_method != "auto"){
+    if(rough_method != "auto") {
+      
       data1 <- graduate_auto(data_in,
                              age_out  = "single",
                              variable = variable,
@@ -331,7 +353,6 @@ smooth_flexible <- function(data_in,
   # III group to desired output #
   #-----------------------------#
   
-  # not sure I understood it right here
   value     <- data1 |> # was data1
     pull(!!sym(variable))
   age       <- data1 |>
@@ -349,7 +370,161 @@ smooth_flexible <- function(data_in,
 
   
   # TODO: here add the constraint_infants chunk.
+  if(constrain_infants) { 
+    
+    varb <- data_in[, variable, drop = TRUE]
+    Age  <- data_in$Age
+    
+    if(age_in == "5-year") { 
+      
+      if(age_out != "5-year") {
+        
+        if(!is.null(u5m)) {
+          
+          # in odd case that child mortality is given, but Sex is not specified:
+          if(is.null(Sex)) {
+            
+            Sex <- "t"
+            warning("Sex argument not given. We assumed total (Sex = 't'). We use this variable to inform splitting the infant age group.")
+            
+          }
+          
+          # we need this variable for indirect method applied
+          stopifnot(Sex %in% c("f", "m", "t")) 
+          
+          if(variable == "Deaths") {
+            
+            D5 <- varb[1]
+            P5 <- D5 / u5m
+            
+          }
+          
+          if(variable %in% c("Exp", "Exposures", "Pop", "Population")) {
+            
+            P5 <- varb[1]
+            D5 <- P5 * u5m
+            
+          }
+          
+          if(Sex %in% c("f", "m")) {
+            
+            D0   <- lt_rule_4m0_D0(D04 = D5, 
+                                   M04 = u5m, 
+                                   Sex = Sex)
+            
+            M0   <- lt_rule_4m0_m0(D04 = D5, 
+                                   M04 = u5m, 
+                                   Sex = Sex)
+            
+            P0   <- D0 / M0
+            
+          } else {
+            
+            D0m  <- lt_rule_4m0_D0(D04 = D5, 
+                                   M04 = u5m, 
+                                   Sex = "m")
+            
+            D0f  <- lt_rule_4m0_D0(D04 = D5, 
+                                   M04 = u5m, 
+                                   Sex = "f")
+            
+            D0   <- (D0m + D0f) / 2
+            
+            M0m  <- lt_rule_4m0_m0(D04 = D5, 
+                                   M04 = u5m, 
+                                   Sex = "m")
+            
+            M0f  <- lt_rule_4m0_m0(D04 = D5, 
+                                   M04 = u5m, 
+                                   Sex = "f")
+            
+            M0   <- (M0m + M0f) / 2
+            P0   <- D0 / M0
+            
+          }
+          
+          if(variable == "Deaths") {
+            
+            D1_4 <- D5 - D0
+            varb <- c(D0, D1_4, varb[-1])
+            Age  <- c(Age[1], 1, Age[-1])
+            
+          }
+          
+          if(variable %in% c("Exp", "Exposures", "Pop", "Population")) {
+            P1_4 <- P5 - P0
+            varb <- c(P0, P1_4, varb[-1])
+            Age  <- c(Age[1], 1, Age[-1])
+            
+          }
+          
+          # For purposes of continued decision-making
+          age_in       <- "abridged"
+          fst_ages     <- varb[1:2]
+          pct_fst_ages <- fst_ages / sum(fst_ages)
+          
+        } else {
+
+            warning("Be mindful of results for the infant age group. Your output has a separate infant age group, but this was split from the input data without taking demographic knowledge into account. If you specify an under-5 mortality rate, u5m, we can do a better job.")
+
+        }
+        
+      }
+      
+    }
+    
+    if(age_in == "abridged") {
+      
+      # calculate the distribution of first two ages for data_out if needed in future
+      fst_ages     <- varb[1:2]
+      pct_fst_ages <- fst_ages / sum(fst_ages)
+      
+      }
+    
+    if(age_in == "single") { 
+      
+      # calculate the distribution of first two ages for data_out if needed in future
+      fst_ages     <- varb[1:5]
+      fst_ages     <- c(fst_ages[1], sum(fst_ages[-1]))
+      pct_fst_ages <- fst_ages / sum(fst_ages)
+      
+    }
+    
+    final_data_single <- is_single(data_out$Age)
+    
+    # (1) graduate_mono
+    varb <- data_out[, variable, drop = TRUE]
+    
+    v2   <- graduate_mono(Value = varb, 
+                          Age   = data_out$Age, 
+                          OAG   = TRUE)
+    
+    age  <- as.integer(names(v2))
+    
+    # (2) regroup
+    ageN <- switch(age_out,
+                   "abridged" = calcAgeAbr(age),
+                   "5-year"   = age - age %% 5,
+                   "single"   = age)
+    
+    v3 <- groupAges(Value = v2, 
+                    Age   = age, 
+                    AgeN  = ageN)
+    
+    data_out <- tibble(!!variable := v3,
+                       Age = as.integer(names(v3)))
+    
+    # (3) possibly constrain infants
+    if(age_out %in% c("abridged", "single") & age_in %in% c("abridged", "single") & constrain_infants) {
+      
+      v_child      <- data_out[data_out$Age < 5, variable, drop = TRUE]
+      vN           <- sum(v_child)
+      v_child[1]   <- pct_fst_ages[1] * vN
+      v_child[-1]  <- (1 - pct_fst_ages[1]) * vN * v_child[-1] / sum(v_child[-1])
+      data_out[data_out$Age < 5, variable] <- v_child
+    }
   
+  }
   
   return(data_out)
   
@@ -391,7 +566,7 @@ smooth_flexible <- function(data_in,
 #' data_in <- data.frame(Exposures = pop1m_ind,
 #'                       Age = 0:100)
 #'                       
-#' data_put <- smooth_flexible(
+#' data_out <- smooth_flexible(
 #'                data_in, 
 #'                variable     = "Exposures", 
 #'                rough_method = "auto",
