@@ -6,19 +6,19 @@
 \usage{
 graduate_auto(
   data_in,
-  age_out = NULL,
+  age_out = c("single", "abridged", "5-year"),
   variable = NULL,
   u5m = NULL,
-  Sex = "t",
+  Sex = c("t", "f", "m"),
   constrain_infants = TRUE
 )
 }
 \arguments{
-\item{data_in}{tibble. A tibble with two numeric columns - \code{Pop} or any other column with population or death counts and corresponding \code{Age} - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1-4, 5-9 etc.}
+\item{data_in}{tibble. A tibble with two numeric columns - population or death counts with supported names: \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}, and corresponding \code{Age} - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1-4, 5-9 etc.}
 
 \item{age_out}{character. A scalar with the desired age grouping output. Includes 3 possible options - \code{"single"} for single ages, \code{"5-year"} - for 5-year age groups, and \code{"abridged"} - for abridged data.}
 
-\item{variable}{character. A scalar with the variable name which is to be graduated. For example \code{"Pop"} or \code{"Death"}, or \code{"Exposures"}.}
+\item{variable}{character. A scalar with the variable name which is to be graduated. The list of possible options include \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}.}
 
 \item{u5m}{numeric. Under five mortality rate.}
 

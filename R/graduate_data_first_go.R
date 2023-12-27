@@ -108,10 +108,10 @@ graduate_auto <- function(data_in,
 
   # check if data comes in single ages
   Age     <- data_in$Age
-  age_in  <- case_when(is_single(Age)      ~ "single",
-                       is_abridged(Age)    ~ "abridged",
-                       all(Age %% 5 == 0)  ~ "5-year",
-                       TRUE                ~ "other")
+  age_in  <- case_when(is_single(Age)       ~ "single",
+                       is_abridged(Age)     ~ "abridged",
+                       all(age2int(Age) == 5,na.rm=TRUE) ~ "5-year",   
+                       TRUE                 ~ "other")
   
   # if not single or abridged, then force either abridged or 5-year,
   # depending on whether infants given.
@@ -158,7 +158,7 @@ graduate_auto <- function(data_in,
       group_by(Age) |>
       summarise(!!variable := sum(!!sym(variable)), .groups = "drop") |>
       select(!!variable, Age)
-    
+
   }
   
   # if single, then save variables and calculate the proportion in first ages in case age_out is abridged
@@ -508,7 +508,7 @@ graduate_auto_5 <- function(dat_5, variable) {
   # calculate the smoothing n for adults, new way
   n_choice_ad <- c(age_rat_score_adults < 4, age_rat_score_adults_2 < 4, age_rat_score_adults_2 >= 4)
   n           <- c(1, 2, 4)
-  adult_n     <- n[n_choice_ad]
+  adult_n     <- max(n[n_choice_ad])
 
   # old way
   # adult_n <- tibble(unsm = age_rat_score_adults,
