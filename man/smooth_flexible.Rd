@@ -22,6 +22,8 @@ smooth_flexible(
 
 \item{variable}{character. A scalar with the variable name which is to be graduated. The list of possible options include \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}.}
 
+\item{age_out}{character. The desired age structure of the output file. Possible options include \code{single} - for sinle years, \code{5-year} - for 5-year data, and \code{abridged} - for abridged data, e.g 0, 1-4, 5-9, etc.}
+
 \item{fine_method}{the \code{method} argument of \code{graduate()} function from DemoTools that graduates grouped data. Possible options include  \code{auto}, \code{none}, \code{sprague}, \code{beers(ord)}, \code{beers(mod)}, \code{grabill}, \code{pclm}, \code{mono}, \code{uniform}}
 
 \item{rough_method}{the \code{method} argument of \code{smooth_age_5()} function from DemoTools that Smoothes populations in 5-year age groups using various methods. Possible options include \code{auto}, \code{none}, \code{Carrier-Farrag}, \code{KKN}, \code{Arriaga}, \verb{United Nations}, \code{Strong}, \code{Zigzag}.}
@@ -39,8 +41,18 @@ data_out. A tibble with two numeric columns - smoothed counts for the chosen var
 Smoothes population or death counts using the variaety of methods from DemoTools packgae and "Method protocol for the evaluation of census population data by age and sex" paragraph 5.
 }
 \examples{
-This is just test settings used for light live coding.
 data(pop1m_ind, package = "DemoTools")
 data_in <- data.frame(Exposures = pop1m_ind,
-                      Age = 0:100)
+                      Age       = 0:100)
+                      
+ex1 <- smooth_flexible(
+data_in, 
+variable     = "Exposures",
+rough_method = "auto",
+fine_method  = "none", 
+constrain_infants = TRUE, 
+age_out = "abridged", 
+u5m     = NULL,
+Sex     = "t")
+
 }
