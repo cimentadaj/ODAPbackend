@@ -100,8 +100,13 @@ data_new <- left_join(data_deaths,
   relocate(Age, .before = 1) |> 
   mutate(Mx_emp = Deaths / Exposures)
 # Offer download option here.
+
+# results can be plotted for now like so:
 new_plots <- plot_initial_data(data_new)
 new_plots$`Empirical Mx`
+# still need to test the comparison plot function(s)
+# to be able to see before-after plots, which we'd like.
+
 # when data are prepped we can do the lifetable. In future, if data have subsets, we wrap this do work on a chunk rather than siphoning columns, and we do it inside group_by() |> reframe() to scale up. We'd need to be thoughtful about how to pass chunk-specific arguments, like Sex (presumably a column). I think that's just a tradeoff, for maximal control, just do one subset at a time. Note also in future, we might not want to insist on Deaths and Exposures as the inputs. In future, we'll want to allow nMx, nqx, lx, or ex as possibilities, but not needed for the proof of concept version. Anyway, to run, we need a data.frame to pull the columns from, and we need a bunch of user-specified parameters coming from the UI, as discussed. I've annotated below as well to give hints.
 lt_output <- 
   lt_flexible(data_new, # required to have Age, Deaths, Exposures

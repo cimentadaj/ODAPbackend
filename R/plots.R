@@ -381,7 +381,7 @@ plot_histogram <- function(data, y) {
 ##' @param plot_deaths logical indicates weather the death pyramid should be plotted, defaults to TRUE
 ##' @param plot_rates logical indicates weather the empirical `M(x)` should be plotted, defaults to TRUE
 ##' @return A named list with 3 elements: `Exposures` - population pyramid, `Deaths` - death pyramid and #`Empirical Mx` - log 10 transformed empirical `M(x)` value
-##' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer #theme theme element_text guide_legend
+##' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme element_text guide_legend
 ##' @importFrom scales label_log pretty_breaks
 ##' @importFrom dplyr mutate
 ##' @export
