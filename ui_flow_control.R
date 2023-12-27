@@ -43,6 +43,8 @@ initial_plots$Exposures
 # sawtooth and roughness for abridged / 5-year data), and no user control is given.
 # That is, only these methods are given, and with default age ranges.
 
+# NEW: returns a level judgement and color to highlight cell :-). For
+# single-age data we also do the 5-year data checks, meaning a 4-row output.
 heaping_exposure <- check_heaping_general(data_in, "Exposures")
 heaping_deaths   <- check_heaping_general(data_in, "Deaths")
 

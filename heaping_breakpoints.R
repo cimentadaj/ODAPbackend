@@ -3,7 +3,8 @@ bachi_min <- function(p0,target,x,Age){
   xx <- heapify(x,Age,p0,p5,
                 ageMax = 80) # check arg names
   b  <- check_heaping_bachi(Value = xx,
-                            Age = Age)
+                            Age = Age,
+                            method = "pasex")
   abs(b - target)
 }
 
@@ -23,11 +24,21 @@ for (i in 1:5){
                         target = breaks[i],
                         x = x,
                         Age = a)$min
-  xx <- heapify(x, a, p0 = p0_vec[i], p5 = p0_vec[i] / 2,ageMax = 80)
+  xx <- heapify(x, a, p0 = p0_vec[i], p5 = p0_vec[i] / 2, ageMax = 80)
   heaped_versions[[i]] <- tibble(Age = a, Exposures = xx, p0 = p0_vec[i], bachi = breaks[i])
 }
 heaped_versions <- bind_rows(heaped_versions)
 
 heaped_versions |> 
   group_by(bachi) |> 
-  summarize(myers = check_heaping_myers(Value = Exposures, Age = Age))
+  summarize(myers = check_heaping_myers(Value = Exposures, Age = Age),
+            whipple = check_heaping_whipple(Value = Exposures, Age = Age),
+            sawtooth = check_heaping_sawtooth(Value = Exposures, Age = Age),
+            roughness = check_heaping_roughness(Value = Exposures, Age = Age))
+
+heaping_table <- tibble(value)
+
+
+x5 <- groupAges(x,Age=a,N = 5)
+a5 <- names2age(x5)
+check_heaping_sawtooth(x5,a5)
