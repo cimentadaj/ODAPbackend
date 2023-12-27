@@ -72,7 +72,7 @@ data_out <- lt_output$lt
 str(data_out)
 lt_plot <- lt_output$plots
 length(lt_plot)
-lt_plot[[3]]
+
 # NEW: This produces selected lifetable summary statistics that can be displayed
 # in a table.
 # Q: is it possible for some measures to actually use demographic notation in LaTeX?

@@ -122,12 +122,17 @@ plot_lifetable <- function(data_out) {
     pivot_longer(-c(Age, AgeInt),
                  names_to  = "lt_function",
                  values_to = "val") |> 
-    filter(lt_function %in% c("nMx","ndx","lx"))
+    filter(lt_function %in% c("nMx","ndx","lx")) |> 
+   mutate(AgeInt = age2int(Age, OAG = FALSE),
+          single = is_single(Age),
+          age_mid = if_else(single, Age, Age + (AgeInt / 2)),
+          age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
+                                TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")")))
   
   nMx_plot <- 
   dt |> 
     filter(lt_function == "nMx") |> 
-    ggplot(aes(x = Age, y = val), col = "black") +
+    ggplot(aes(x = age_mid, y = val), col = "black") +
     geom_line() + # or geom_step()
     scale_y_log10() +
     theme_light() + 
@@ -139,7 +144,7 @@ plot_lifetable <- function(data_out) {
   lx_plot <-
     dt |> 
     filter(lt_function == "lx") |> 
-    ggplot(aes(x = Age, y = val), col = "black") +
+    ggplot(aes(x = age_mid, y = val), col = "black") +
     geom_line() + # or geom_step()
     theme_light() + 
     theme(axis.text = element_text(color = "black"),
@@ -160,7 +165,7 @@ plot_lifetable <- function(data_out) {
   ndx_plot <-
     dt |> 
     filter(lt_function == "ndx") |> 
-    ggplot(aes(x = Age, y = val), col = "black") +
+    ggplot(aes(x = age_mid, y = val), col = "black") +
     geom_line() + # or geom_step()
     theme_light() + 
     theme(axis.text = element_text(color = "black"),
@@ -174,7 +179,8 @@ plot_lifetable <- function(data_out) {
          title = "Death distribution (dx) generated from lifetable nmx values",
          subtitle = "Marked locations on the distribution indicate age-at-death quartiles (grey)\nand life expectancy (red)")
   
-  return(lst(nMx = nMx_plot, 
+  return(lst(plot_data = dt,
+             nMx = nMx_plot, 
              lx = lx_plot,
              ndx = ndx_plot))
   

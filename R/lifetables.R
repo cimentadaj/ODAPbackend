@@ -163,6 +163,7 @@ lt_flexible <- function(data_in,
   plots$nMx <- plot_compare_rates(data_in, 
                                   data_out, 
                                   extrapFrom = extrapFrom)
+  
   # now all cases handled
   return(list(lt = data_out, plots = plots))
   
