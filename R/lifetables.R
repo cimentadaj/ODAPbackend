@@ -156,6 +156,12 @@ lt_flexible <- function(data_in,
     
   }
   
+  # Add sex column to output
+  sex <- case_when(Sex == "m" ~ "Males",
+                   Sex == "f" ~ "Females",
+                   Sex == "t" ~ "Total")
+  data_out <- data_out |> 
+    mutate(Sex = sex, .before = 1)
   
   plots <- plot_lifetable(data_out)
   

@@ -36,7 +36,7 @@ initial_data_checks
 # at a time, and have the user optionally flip through them.
 
 initial_plots <- plot_initial_data(data_in)
-
+initial_plots$Exposures
 # do assorted diagnostics, so far only heaping indices offered
 # this is data.frame in data.frame out; the results are a table
 # of index values (Bachi and Myers indices for single age data; 
@@ -69,11 +69,11 @@ lt_output <-
             axmethod   = "un",              # advanced
             Sex        = "m")               # basic
 data_out <- lt_output$lt
-str(data_out)
 lt_plot <- lt_output$plots
-names(lt_plot$nMx)
-lt_plot$lx
-lt_plot$plot_data
+
+names(lt_plot)
+names(lt_plot$nMx) # nMx is the plot; the other thing is a df
+
 # NEW: This produces selected lifetable summary statistics that can be displayed
 # in a table.
 # Q: is it possible for some measures to actually use demographic notation in LaTeX?
