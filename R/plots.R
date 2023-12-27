@@ -372,6 +372,8 @@ plot_histogram <- function(data, y) {
 }
 
 
+# temporary exclusion
+
 ##' plot_initial_two_sex
 ##' @description Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population #pyramid and death pyramid if the data contains information on two sex.
 ##' @param data tibble. Empirical data downloaded  with the `read_data` function
