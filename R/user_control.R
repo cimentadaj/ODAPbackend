@@ -44,14 +44,8 @@
 #' data(pop1m_ind, package = "DemoTools")
 #' data_in <- data.frame(Exposures = pop1m_ind,
 #'                       Age = 0:100)
-#' smooth_flexible(data_in, 
-#'                variable     = "Exposures", 
-#'                rough_method = "auto",
-#'                fine_method  ="auto", 
-#'                constrain_infants = TRUE, 
-#'                age_out = "single", 
-#'                u5m     = .1,
-#'                Sex     = "t")
+
+
 smooth_flexible <- function(data_in,
                             variable     = "Deaths",
                             age_out      = c("single", "abridged", "5-year"),
@@ -96,16 +90,27 @@ smooth_flexible <- function(data_in,
   age         <- data_in$Age
   has_infants <- age2int(age)[1] == 1 & age[1] == 0
   
+  # TODO
+  if (has_infants){
+    # get prop0
+  }
   # detect incoming age categorization
   age_in      <- case_when(is_single(age)       ~ "single",
                            is_abridged(age)     ~ "abridged",
-                           all((age %% 5) == 0) ~ "5-year",   
+                           all(age2int(age) == 5,na.rm=TRUE) ~ "5-year",   
                            TRUE                 ~ "other")
+  
+  if (age_in == "single") {
+    data1 <- data_in
+  }
+  
+  
   #--------------------------------#
   # regularize no-standard ages    #
   #--------------------------------# 
   if(age_in == "other") {
-    
+    value       <- data_in[, variable, drop = TRUE]
+    age         <- data_in$Age
     value1       <- graduate_uniform(Value = value, 
                                      Age   = age)
     age1         <- names2age(value1)
@@ -119,7 +124,7 @@ smooth_flexible <- function(data_in,
       age_in     <- "abridged"
       
     } else {
-      x
+    
       # otherwise, group to 5-year ages
       value      <- groupAges(Value = value1,
                               Age   = age1,
@@ -190,20 +195,14 @@ smooth_flexible <- function(data_in,
   if(rough_method == "auto") {
       
     data1 <- graduate_auto(data_in,
-                           age_out  = age_out,
+                           age_out  = "single",
                            variable = variable,
                            u5m      = u5m,
                            Sex      = Sex,
                            constrain_infants = constrain_infants)
 
-      if(fine_method == "auto") {
-        
-        return(data1)
-        
-      }
-      
-      # regroup to 5, overrides previous one
-      data5 <- data1 |> 
+    # regroup to 5, overrides previous one
+    data5 <- data1 |> 
         mutate(Age = Age - Age %% 5) |> 
         group_by(Age) |> 
         summarize(!!variable := sum(!!sym(variable)))
@@ -242,7 +241,7 @@ smooth_flexible <- function(data_in,
   # rough_method will have erased detectable smoothing. Otherwise, the auto method
   # will perturb at two levels, albeit not necessarily in the same way as if
   # data_in had both fine and rough methods as auto.
-  if(fine_method == "none" & age_out == "single") {
+  if(fine_method == "none" & age_out %in% c("single","abridged")) {
     
     if(age_in == "single") {
       # this is odd indeed: under what circumstances would we want to adjust 
@@ -260,11 +259,15 @@ smooth_flexible <- function(data_in,
         mutate(!!variable := !!sym(variable) * prop) |> 
         select(Age, !!sym(variable))
       
-    } else {
+    } 
       
-      if(age_in != "single") {
+    if(age_in != "single") {
         
+      # TODO: also don't issue this warning if constrain_infants == TRUE
+      # we can add that condition afterwards
+      if (age_in == "5-year"){
         warning("We used graduate_mono() to split to single ages.\nThis (or another fine_method) was necessary because\nyou specified single-age output, but your input\ndoes not appear to be in single ages.")
+      }
         
         fine_method <- "mono"
         # value  <- data_in |> 
@@ -277,20 +280,22 @@ smooth_flexible <- function(data_in,
         # age1   <- names2age(value1)
         # data1  <- tibble(Age = age1,
         #                 !!variable := value1)
-      } 
-    }
+    } 
+    
   } 
   if(fine_method == "auto") {
     # Here we presume that data5 has no detectable sawtooth pattern,
     # meaning this was so in data_in or as the result of another 
     # rough_method having been applied. Otherwise, this will get picked
     # up in the auto method and taken care of with its MAV logic.
-    data1 <- graduate_auto(data_in,
-                           age_out  = age_out,
-                           variable = variable,
-                           u5m      = u5m,
-                           Sex      = Sex,
-                           constrain_infants = constrain_infants)
+    if (rough_method != "auto"){
+      data1 <- graduate_auto(data_in,
+                             age_out  = "single",
+                             variable = variable,
+                             u5m      = u5m,
+                             Sex      = Sex,
+                             constrain_infants = constrain_infants)
+    }
     
     data5 <- data5 |> 
       rename(age5   = Age,
@@ -342,6 +347,10 @@ smooth_flexible <- function(data_in,
   data_out <- tibble(Age = age,
                      !!variable := value_out)
 
+  
+  # TODO: here add the constraint_infants chunk.
+  
+  
   return(data_out)
   
 }
@@ -372,7 +381,7 @@ smooth_flexible <- function(data_in,
 #' @param data_out A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping. The output from the `smooth_flexible` function.
 #' @param variable character. A scalar with the variable name which is to be graduated. The list of possible options include `Pop`, `Population`, `Exp`, `Exposures` or `Deaths`.
 #' @importFrom dplyr case_when mutate group_by summarize rename left_join select join_by pull
-#' @importFrom ggplot ggplot aes geom_line geom_point scale_y_continuous scale_x_continuous theme_light theme element_text ggtitle
+#' @importFrom ggplot2 ggplot aes geom_line geom_point scale_y_continuous scale_x_continuous theme_light theme element_text ggtitle
 #' @importFrom scales pretty_breaks comma
 #' @importFrom rlang := !! sym
 #' @return list. A named list with 2 elements: `before` - plot of original input data and `after` - plot of smoothed data
