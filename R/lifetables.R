@@ -160,7 +160,6 @@ lt_flexible <- function(data_in,
   plots <- plot_lifetable(data_out)
   
   # sorry JC, forgot this!
-  data_in <- tibble(Deaths, Exposures, Age)
   plots$nMx <- plot_compare_rates(data_in, 
                                   data_out, 
                                   extrapFrom = extrapFrom)

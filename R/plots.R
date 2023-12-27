@@ -33,24 +33,23 @@ plot_compare_rates <- function(
            AgeInt = age2int(Age, OAG = FALSE),
            single = is_single(Age),
            age_mid = if_else(single, Age, Age + (AgeInt / 2)),
-           age_label = if_else(Age == max(Age) ~ paste0(max(Age),"+"),
+           age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
                                  TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")"))
            )
   data_out_plot <-
     data_out |> 
-    mutate(Mx_emp = Deaths / Exposures,
-           AgeInt = age2int(Age, OAG = FALSE),
+    mutate(AgeInt = age2int(Age, OAG = FALSE),
            single = is_single(Age),
            age_mid = if_else(single, Age, Age + (AgeInt / 2)),
-           age_label = if_else(Age == max(Age) ~ paste0(max(Age),"+"),
+           age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
                                TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")"))
     )
   
   figure <- ggplot() + 
-    geom_line(aes(x = data_out_plot$age_plot, y = data_out_plot$nMx), linewidth = 0.8) + 
+    geom_line(aes(x = data_out_plot$age_mid, y = data_out_plot$nMx), linewidth = 0.8) + 
     geom_line(data = filter(data_in_plot, 
                             Age >= extrapFrom), 
-              aes(x = age_plot, 
+              aes(x = age_mid, 
                   y = Mx_emp), 
               lty = 2, 
               col = "red", 
@@ -394,7 +393,15 @@ plot_initial_single_sex <- function(data,
                                     plot_exposures = TRUE, 
                                     plot_deaths    = TRUE, 
                                     plot_rates     = TRUE) {
-  
+  data <- 
+    data |> 
+    mutate(Mx_emp = Deaths / Exposures,
+           AgeInt = age2int(Age, OAG = FALSE),
+           single = is_single(Age),
+           age_mid = if_else(single, Age, Age + (AgeInt / 2)),
+           age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
+                        TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")"))) |> 
+    select(-single)
   if(plot_exposures) { 
     Exposures <- plot_histogram(data = data, y = "Exposures")
     
@@ -411,7 +418,7 @@ plot_initial_single_sex <- function(data,
     
   }
   
-  return(lst(Exposures, Deaths, `Empirical Mx`))
+  return(lst(Exposures, Deaths, `Empirical Mx`, data))
   
 }
 
@@ -439,17 +446,12 @@ plot_initial_data <- function(data,
                               plot_deaths    = TRUE, 
                               plot_rates     = TRUE) {
   
-  sexes <- unique(data$Sex)
-  
-  if(length(sexes) == 1) {
-    
-    result <- plot_initial_single_sex(data, 
-                                      plot_exposures = plot_exposures, 
-                                      plot_deaths = plot_deaths, 
-                                      plot_rates = plot_rates)
-    
+  if ("Sex" %in% colnames(data)){
+    sexes <- unique(data$Sex)
   } else {
-    
+    sexes <- 1
+  }
+  if (length(sexes) > 1){
     data <- data %>%
       filter(Sex %in% c("Male", "Female"))
     
@@ -457,6 +459,11 @@ plot_initial_data <- function(data,
                                    plot_exposures = plot_exposures,
                                    plot_deaths = plot_deaths,
                                    plot_rates = plot_rates)
+  } else {
+    result <- plot_initial_single_sex(data, 
+                                      plot_exposures = plot_exposures, 
+                                      plot_deaths = plot_deaths, 
+                                      plot_rates = plot_rates)
     
   }
   
