@@ -47,12 +47,11 @@
 #' smooth_flexible(data_in, 
 #'                variable     = "Exposures", 
 #'                rough_method = "auto",
-#'                fine_method  ="pclm", 
+#'                fine_method  ="auto", 
 #'                constrain_infants = TRUE, 
-#'                age_out = "5-year", 
+#'                age_out = "single", 
 #'                u5m     = .1,
 #'                Sex     = "t")
-
 smooth_flexible <- function(data_in,
                             variable     = "Deaths",
                             age_out      = c("single", "abridged", "5-year"),
@@ -74,10 +73,10 @@ smooth_flexible <- function(data_in,
   # no pclm offsets in this implementation, and no explicit tail control.
   # we exclude MAV to avoid passing in special parameters.
   # coerce to lower case for friendlier arg passing
-  rough_method <- tolower(rough_method)
-  rough_method <- match.arg(rough_method, tolower(c("auto", "none", "Carrier-Farrag",
+  # frough_method <- tolower(rough_method)
+  rough_method <- match.arg(rough_method, c("auto", "none", "Carrier-Farrag",
                                                     "KKN", "Arriaga", "United Nations",
-                                                    "Strong", "Zigzag")))
+                                                    "Strong", "Zigzag"))
   
   fine_method <- tolower(fine_method)
   fine_method <- ifelse(fine_method == "beers", "beers(ord)", fine_method)
@@ -212,18 +211,13 @@ smooth_flexible <- function(data_in,
   }
   # if the rough method was a specific one, we overwrite the value data5
   # smooth_age_5 does not have pclm option for methods argument REMOVED!
-  if(rough_method %in% tolower(c("Carrier-Farrag", "KKN", "Arriaga",
-                                 "United Nations", "Strong", "Zigzag"))) {
-    # ensure pclm actually gives back 5-year data!
-    # smooth_age_5 method argument is case sensitive
-    mtds  <- c("Carrier-Farrag", "KKN", "Arriaga", 
-               "United Nations", "Strong", "Zigzag")
-    mtd   <- mtds[match(rough_method, tolower(mtds))]
-    
+  if(rough_method %in% c("Carrier-Farrag", "KKN", "Arriaga",
+                                 "United Nations", "Strong", "Zigzag")) {
+
     data5 <- data5 |>
       mutate(!!variable := smooth_age_5(Value  = !!sym(variable),
                                         Age    = Age,
-                                        method = mtd))
+                                        method = rough_method))
   
   }
    
