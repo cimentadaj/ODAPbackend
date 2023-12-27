@@ -71,7 +71,7 @@ lt_output <-
 data_out <- lt_output$lt
 str(data_out)
 lt_plot <- lt_output$plots
-names(lt_plot$lx)
+names(lt_plot$nMx)
 lt_plot$lx
 lt_plot$plot_data
 # NEW: This produces selected lifetable summary statistics that can be displayed
