@@ -297,16 +297,19 @@ pyramid <- function(data, y) {
 # Or at least the fill legend suppressed if there is only one sex. I modified the code for this, can you check it?
 plot_input_rates <- function(data) {
  
+  data <-
+    data %>%
+    mutate(Mx_emp = Deaths / Exposures)
+
   if (any(colnames(data) == "Sex")){
-    p <-  data %>% 
-      mutate(Mx_emp = Deaths / Exposures) %>%
+    p <- data  %>%
       ggplot(aes(x = Age, y = Mx_emp, color = "black"), linewidth = 0.8) 
   } else {
-    p <-  data %>% 
-      mutate(Mx_emp = Deaths / Exposures) %>%
+    p <-  data %>%
       ggplot(aes(x = Age, y = Mx_emp), linewidth = 0.8) 
   }
   
+  figure <-
     p + 
     geom_line() + 
     scale_x_continuous(breaks = pretty_breaks()) +
@@ -317,7 +320,8 @@ plot_input_rates <- function(data) {
          subtitle = "Empirical Mx for a given age range on a log10 scale.")+
     theme(axis.text     = element_text(size = 10, color = "black"),
           plot.subtitle = element_text(size = 12, color = "black"))
-  
+
+  return(lst(figure,data))
 }
 
 
@@ -435,9 +439,9 @@ plot_histogram <- function(data, y) {
 #' @param plot_deaths logical indicates weather the death pyramid should be plotted, defaults to TRUE
 #' @param plot_rates logical indicates weather the empirical `M(x)` should be plotted, defaults to TRUE
 #' @return A named list with 3 elements: `Exposures` - population pyramid, `Deaths` - death pyramid and `Empirical Mx` - log 10 transformed empirical `M(x)` value
-#' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme theme element_text guide_legend
+#' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
-#' @importFrom dplyr mutate
+#' @importFrom dplyr mutate if_else
 #' @export
 #' @examples
 #' \dontrun{

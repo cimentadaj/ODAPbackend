@@ -70,7 +70,6 @@ data_exposures <- smooth_flexible(data_in,
                             # one of: c("auto", "none", "Carrier-Farrag", "KKN", 
                             #           "Arriaga", "United Nations","Strong", "Zigzag")
                             rough_method = "auto", 
-                            
                             # fine method: one of
                             # c("auto", "none", "sprague", "beers(ord)", "beers(mod)", 
                             # "grabill", "pclm", "mono", "uniform")
@@ -78,6 +77,8 @@ data_exposures <- smooth_flexible(data_in,
                             u5m = u5m, # need to calc ahead of time
                             Sex = "m", # user-given, default "t"
                             constrain_infants = FALSE) # default true
+
+
 data_deaths <- smooth_flexible(data_in, 
                                   variable = "Deaths", # either Deaths or Exposures
                                   age_out = "single",     # "single", "abridged", or "5-year".
@@ -87,7 +88,6 @@ data_deaths <- smooth_flexible(data_in,
                                   # one of: c("auto", "none", "Carrier-Farrag", "KKN", 
                                   #           "Arriaga", "United Nations","Strong", "Zigzag")
                                   rough_method = "auto", 
-                                  
                                   # fine method: one of
                                   # c("auto", "none", "sprague", "beers(ord)", "beers(mod)", 
                                   # "grabill", "pclm", "mono", "uniform")
@@ -95,6 +95,10 @@ data_deaths <- smooth_flexible(data_in,
                                   u5m = u5m, # need to calc ahead of time
                                   Sex = "m", # user-given, default "t"
                                   constrain_infants = FALSE) # default true
+
+
+library(dplyr)
+
 data_new <- left_join(data_deaths, 
                       data_exposures, by = join_by(Age)) |> 
   relocate(Age, .before = 1) |> 
@@ -104,6 +108,7 @@ data_new <- left_join(data_deaths,
 # results can be plotted for now like so:
 new_plots <- plot_initial_data(data_new)
 new_plots$`Empirical Mx`
+
 # still need to test the comparison plot function(s)
 # to be able to see before-after plots, which we'd like.
 
@@ -122,6 +127,7 @@ lt_output <-
             a0rule     = "ak",              # advanced
             axmethod   = "un",              # advanced
             Sex        = "m")               # basic
+
 data_out <- lt_output$lt
 lt_plot <- lt_output$plots
 
