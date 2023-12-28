@@ -308,24 +308,24 @@ plot_input_rates <- function(data) {
  
   data <-
     data %>%
-    mutate(Mx_emp = Deaths / Exposures)
+    mutate(nMx = round(Deaths / Exposures, 8))
 
   if (any(colnames(data) == "Sex")){
     p <- data  %>%
-      ggplot(aes(x = Age, y = Mx_emp, color = "black"), linewidth = 0.8) 
+      ggplot(aes(x = Age, y = nMx, color = "black"), linewidth = 0.8)
   } else {
     p <-  data %>%
-      ggplot(aes(x = Age, y = Mx_emp), linewidth = 0.8) 
+      ggplot(aes(x = Age, y = nMx), linewidth = 0.8) 
   }
   
   figure <-
     p + 
     geom_line() + 
     scale_x_continuous(breaks = pretty_breaks()) +
-    scale_y_log10(labels = label_log(digits = 2)) +
+    scale_y_log10() +
     theme_light() +
     labs(x = "Age",
-         y = "nMx",
+         y = "nMx (log10 scale)",
          subtitle = "Empirical Mx for a given age range on a log10 scale.")+
     theme(axis.text     = element_text(size = 10, color = "black"),
           plot.subtitle = element_text(size = 12, color = "black"))
@@ -347,7 +347,7 @@ plot_input_rates <- function(data) {
 #' plot_histogram(data = mutate(data, Sex = "Female"), y = "Deaths")
 #' }
 
-plot_histogram <- function(data, y) { 
+plot_histogram <- function(data, y) {
   if (! "AgeInt" %in% colnames(data)){
     data <-
       data |> 
@@ -471,16 +471,44 @@ plot_initial_single_sex <- function(data,
            single = is_single(Age),
            age_mid = if_else(single, Age, Age + (AgeInt / 2)),
            age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
-                        TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")"))) |> 
+                                 TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")"))) |>
     select(-single)
-  if(plot_exposures) { 
+
+  if(plot_exposures) {
     Exposures <- plot_histogram(data = data, y = "Exposures")
-    
+
+    dt <- data
+    dt$Exposures <- round(dt$Exposures / dt$AgeInt, 8)
+    dt$age_label <- paste0("Ages between: ", dt$age_label)
+
+    Exposures$figure <-
+      Exposures$figure +
+      geom_col(
+        data = dt,
+        aes(
+          y = Exposures,
+          text = age_label
+        )
+      )
   }
-  
+
   if(plot_deaths) {
     Deaths <- plot_histogram(data = data, y = "Deaths")
-    
+
+    dt <- data
+    dt$Deaths <- round(dt$Deaths / dt$AgeInt, 8)
+    dt$age_label <- paste0("Ages between: ", dt$age_label)
+
+    Deaths$figure <-
+      Deaths$figure +
+      geom_col(
+        data = dt,
+        aes(
+          y = Deaths,
+          text = age_label
+        )
+      )
+
   }
   
   if(plot_rates) { 
