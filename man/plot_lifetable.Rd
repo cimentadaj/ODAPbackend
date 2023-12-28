@@ -18,28 +18,33 @@ Creates a list of plots of lifetable functions
 \examples{
 \dontrun{
 library(tibble)
-Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
-247473,223014,172260,149338,127242,105715,79614,53660,
-31021,16805,8000,4000,2000,1000)
+Exposures <- c(
+  100958, 466275, 624134, 559559, 446736, 370653, 301862, 249409,
+  247473, 223014, 172260, 149338, 127242, 105715, 79614, 53660,
+  31021, 16805, 8000, 4000, 2000, 1000
+)
 
-Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
-            1335,3257,2200,4023,2167,4578,2956,4212,
-            2887,2351,1500,900,500,300)
+Deaths <- c(
+  8674, 1592, 618, 411, 755, 1098, 1100, 1357,
+  1335, 3257, 2200, 4023, 2167, 4578, 2956, 4212,
+  2887, 2351, 1500, 900, 500, 300
+)
 
-Age = c(0, 1, seq(5, 100, by = 5))
-data_in <- tibble(Age,Deaths,Exposures)
-data_out <- 
+Age <- c(0, 1, seq(5, 100, by = 5))
+data_in <- tibble(Age, Deaths, Exposures)
+data_out <-
   lt_flexible(data_in,
-              OAnew     = 100,
-              age_out   = "single",  
-              extrapFrom = 80,
-              extrapFit = Age[Age >= 60], 
-              radix     = 1e+05,
-              extrapLaw = NULL,
-              SRB       = 1.05,
-              a0rule    = "ak",
-              axmethod  = "un",
-              Sex       = "m")
+    OAnew = 100,
+    age_out = "single",
+    extrapFrom = 80,
+    extrapFit = Age[Age >= 60],
+    radix = 1e+05,
+    extrapLaw = NULL,
+    SRB = 1.05,
+    a0rule = "ak",
+    axmethod = "un",
+    Sex = "m"
+  )
 plots <- plot_lifetable(data_out = data_out)
 print(plots$nMx)
 print(plots$lx)

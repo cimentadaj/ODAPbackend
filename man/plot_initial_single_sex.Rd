@@ -47,10 +47,13 @@ plot_initial_two_sex(data = data,
 }
 plot_initial_single_sex
 \dontrun{
-plot_initial_single_sex(data = mutate(data, 
-                                      sex = "Female"), 
-                        plot_exposures = TRUE, 
-                        plot_deaths = TRUE, 
-                        plot_rates = TRUE)
+plot_initial_single_sex(
+  data = mutate(data,
+    sex = "Female"
+  ),
+  plot_exposures = TRUE,
+  plot_deaths = TRUE,
+  plot_rates = TRUE
+)
 }
 }

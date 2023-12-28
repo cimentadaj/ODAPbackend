@@ -11,7 +11,7 @@ lt_flexible(
   extrapFrom = 80,
   extrapFit = Age[Age >= 60],
   extrapLaw = NULL,
-  radix = 1e+05,
+  radix = 100000,
   SRB = 1.05,
   a0rule = "ak",
   axmethod = "un",

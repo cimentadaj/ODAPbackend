@@ -28,9 +28,10 @@ Plots the corresponding 3 graphics for single sex or for both sex depending on d
 }
 \examples{
 \dontrun{
-plot_initial_data(mutate(data, sex = "Female"), 
-                  plot_exposures = TRUE, 
-                  plot_deaths = TRUE, 
-                  plot_rates = TRUE)
+plot_initial_data(mutate(data, sex = "Female"),
+  plot_exposures = TRUE,
+  plot_deaths = TRUE,
+  plot_rates = TRUE
+)
 }
 }
