@@ -2,7 +2,7 @@
 # you can load with library(), if you're
 # certain to have the up-to-date version
 devtools::load_all()
-
+library(dplyr)
 
 # user_file is presumed given from the UI;
 # this way of getting data into memory is optional;
@@ -75,7 +75,9 @@ data_exposures <- smooth_flexible(data_in,
                             u5m = u5m, # need to calc ahead of time
                             Sex = "m", # user-given, default "t"
                             constrain_infants = FALSE) # default true
-
+# now returns data and figure, incl "figure data"
+figure_exposures  <- data_exposures$figure
+data_exposures    <- data_exposures$data
 
 data_deaths <- smooth_flexible(data_in, 
                                   variable = "Deaths", # either Deaths or Exposures
@@ -93,9 +95,9 @@ data_deaths <- smooth_flexible(data_in,
                                   u5m = u5m, # need to calc ahead of time
                                   Sex = "m", # user-given, default "t"
                                   constrain_infants = FALSE) # default true
+figure_deaths  <- data_deaths$figure
+data_deaths    <- data_deaths$data
 
-
-library(dplyr)
 
 data_new <- left_join(data_deaths, 
                       data_exposures, by = join_by(Age)) |> 

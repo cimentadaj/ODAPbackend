@@ -14,7 +14,7 @@ plot_smooth_compare(data_in, data_out, variable)
 \item{variable}{character. A scalar with the variable name which is to be graduated. The list of possible options include \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}.}
 }
 \value{
-list. A named list with 2 elements: \code{before} - plot of original input data and \code{after} - plot of smoothed data
+list. A named list with 3 elements: \code{figure} - plot of original versus adjusted data and \code{data_adjusted} - and \code{data_original}, the plotted data.
 #' @examples
 This is just test settings used for light live coding.
 data(pop1m_ind, package = "DemoTools")
@@ -30,8 +30,7 @@ constrain_infants = TRUE,
 age_out = "5-year",
 u5m     = .1,
 Sex     = "t")
-
-plot_smooth_compare(data_in, data_out, variable = "Exposures")
+\dontrun{print(data_out$figure$figure) }
 }
 \description{
 Plots the original counts and the smoothed counts over the chocosen age ranges for ease of comparison.

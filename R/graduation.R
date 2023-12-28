@@ -603,7 +603,7 @@ smooth_flexible <- function(data_in,
                             u5m = NULL,
                             Sex = c("t", "f", "m"),
                             constrain_infants = TRUE) {
-  
+  data_orig <- data_in
   # ensure just one of each method is chosen. 
   # rough auto is compatible with a non-auto fine,
   # since we can always regroup to 5s. 
@@ -901,8 +901,9 @@ smooth_flexible <- function(data_in,
   data_out <- tibble(Age = age,
                      !!variable := value_out)
   
-  
-  # TODO: here add the constraint_infants chunk.
+  # ---------------------------------------------#
+  # IV handle constraining of infant proportions #
+  # ---------------------------------------------#
   if(constrain_infants) { 
     
     varb <- data_in[, variable, drop = TRUE]
@@ -1059,27 +1060,16 @@ smooth_flexible <- function(data_in,
     
   }
   
-  return(data_out)
+  # return figure as elsewhere
+  figure <- plot_smooth_compare(data_in = data_orig,
+                                data_out = data_out,
+                                variable = variable)
+  
+  
+  return(lst(data = data_out,
+             figure = figure))
   
 }
-
-
-# In my opinion there is no need for double list output and this will look waaay better
-# So I will just keep it in here just in case
-# plot_smooth_compare <- function(data_in, data_out, variable) {
-#   
-#   ggplot() +
-#     geom_line( data = data_in,  aes(x = Age, y = !!sym(variable)), color = "black") +
-#     geom_point(data = data_in,  aes(x = Age, y = !!sym(variable)), color = "black") +
-#     geom_line( data = data_out, aes(x = Age, y = !!sym(variable)), color = "red", linewidth = 1) +
-#     scale_x_continuous(breaks = pretty_breaks()) +
-#     scale_y_continuous(breaks = pretty_breaks(), labels = scales::comma) +
-#     theme_light() +
-#     theme(axis.text = element_text(color = "black"),
-#           plot.title = element_text(size = 12)) +
-#     ggtitle(label = "Black connected dots correspond to original input data,\nwhile red line corresponds to the smoothed data")
-#   
-# }
 
 
 
@@ -1092,7 +1082,7 @@ smooth_flexible <- function(data_in,
 #' @importFrom ggplot2 ggplot aes geom_line geom_point scale_y_continuous scale_x_continuous theme_light theme element_text ggtitle
 #' @importFrom scales pretty_breaks comma
 #' @importFrom rlang := !! sym
-#' @return list. A named list with 2 elements: `before` - plot of original input data and `after` - plot of smoothed data
+#' @return list. A named list with 3 elements: `figure` - plot of original versus adjusted data and `data_adjusted` - and `data_original`, the plotted data.
 #' #' @examples
 #' This is just test settings used for light live coding.
 #' data(pop1m_ind, package = "DemoTools")
@@ -1108,30 +1098,43 @@ smooth_flexible <- function(data_in,
 #'                age_out = "5-year", 
 #'                u5m     = .1,
 #'                Sex     = "t")
-#'                
-#'plot_smooth_compare(data_in, data_out, variable = "Exposures")
+#' \dontrun{print(data_out$figure$figure) }     
+
 plot_smooth_compare <- function(data_in, data_out, variable) {
+  data_in <- data_in |> 
+    mutate(
+      single = is_single(Age),
+      AgeInt = age2int(Age, OAvalue = 1),
+      age_mid = if_else(single, Age, Age + (AgeInt / 2)),
+      age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
+                            TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")")),
+      plot_y = !!sym(variable) / AgeInt)
   
-  pt1 <- ggplot() +
-    geom_line( data = data_in,  aes(x = Age, y = !!sym(variable)), color = "black") +
-    geom_point(data = data_in,  aes(x = Age, y = !!sym(variable)), color = "black") +
+  data_out <- data_out |> 
+    mutate(
+      single = is_single(Age),
+      AgeInt = age2int(Age, OAvalue = 1),
+      age_mid = if_else(single, Age, Age + (AgeInt / 2)),
+      age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
+                            TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")")),
+      plot_y = !!sym(variable) / AgeInt)
+
+  figure <- ggplot() +
+    geom_line( data = data_in,  aes(x = age_mid, y = plot_y), color = "black") +
+    geom_point(data = data_in,  aes(x = age_mid, y = plot_y), color = "black") +
+    geom_line(data = data_out, aes(x = age_mid, y = plot_y), color = "red", linewidth = 1) +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_continuous(breaks = pretty_breaks(), labels = comma) +
     theme_light() +
     theme(axis.text = element_text(color = "black"),
           plot.title = element_text(size = 12)) +
-    ggtitle(label = "Original input data")
+    labs(title = paste("Original (black) and adjusted (red)", variable, "data"),
+         x = "Age",
+         y = variable)
   
-  pt2 <- ggplot() +
-    geom_line(data = data_out, aes(x = Age, y = !!sym(variable)), color = "red", linewidth = 1) +
-    scale_x_continuous(breaks = pretty_breaks()) +
-    scale_y_continuous(breaks = pretty_breaks(), labels = comma) +
-    theme_light() +
-    theme(axis.text = element_text(color = "black"),
-          plot.title = element_text(size = 12)) +
-    ggtitle(label = "Smoothed output data")
   
-  return(list(before = pt1, 
-              after  = pt2))
+  return(lst(figure, 
+             data_adjusted = data_out,
+             data_original = data_in))
   
 }
