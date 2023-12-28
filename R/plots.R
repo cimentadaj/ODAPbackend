@@ -29,10 +29,11 @@ plot_compare_rates <- function(
   
   data_in_plot <-
     data_in |> 
-    mutate(Mx_emp = Deaths / Exposures,
+    # TODO: Shall we call it Age-specific Mortality?
+    mutate(`Age-specific Mortality` = round(Deaths / Exposures, 8),
            AgeInt = age2int(Age, OAG = FALSE),
            single = is_single(Age),
-           age_mid = if_else(single, Age, Age + (AgeInt / 2)),
+           `Age Mid` = if_else(single, Age, Age + (AgeInt / 2)),
            age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
                                  TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")"))
            )
@@ -40,17 +41,21 @@ plot_compare_rates <- function(
     data_out |> 
     mutate(AgeInt = age2int(Age, OAG = FALSE),
            single = is_single(Age),
-           age_mid = if_else(single, Age, Age + (AgeInt / 2)),
+           `Age Mid` = if_else(single, Age, Age + (AgeInt / 2)),
            age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
-                               TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")"))
+                                 TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")")),
+           nMx = round(nMx, 8)
     )
   
-  figure <- ggplot() + 
-    geom_line(aes(x = data_out_plot$age_mid, y = data_out_plot$nMx), linewidth = 0.8) + 
-    geom_line(data = filter(data_in_plot, 
-                            Age >= extrapFrom), 
-              aes(x = age_mid, 
-                  y = Mx_emp), 
+  figure <-
+    ggplot() + 
+    geom_line(data = data_out_plot, aes_string(x = "`Age Mid`", y = "nMx"), linewidth = 0.8) + 
+    geom_line(data = filter(data_in_plot, Age >= extrapFrom), 
+              aes_string(
+                x = "`Age Mid`", 
+                # TODO: Shall we call it Age-specific Mortality?
+                y = "`Age-specific Mortality`"
+              ),
               lty = 2, 
               col = "red", 
               linewidth = 1) +
@@ -135,16 +140,19 @@ plot_lifetable <- function(data_out) {
     theme(axis.text = element_text(color = "black"),
           plot.subtitle = element_text(size = 12, color = "black"),
           axis.title.y  = element_blank())
+
   radix <- data_out$lx[1]
   
   lx_plot <-
-    dt |> 
-    ggplot(aes(x = age_plot, y = lx), col = "black") +
+    dt |>
+    mutate(lx = round(lx, 8)) %>%
+    ggplot(aes(x = Age, y = lx), col = "black") +
     geom_line() + # or geom_step()
-    theme_light() + 
-    theme(axis.text = element_text(color = "black"),
-          plot.subtitle = element_text(size = 12, color = "black"),
-          axis.title.y  = element_blank()) +
+    theme_light() +
+    theme(
+      axis.text = element_text(color = "black"),
+      plot.subtitle = element_text(size = 12, color = "black")
+    ) +
     # geom_vline(xintercept = c(lx25,lx50,lx75),
     #            linewidth  = .5, color = gray(.5)) +
     geom_vline(xintercept = data_out$ex[1],color="red") +
@@ -161,7 +169,6 @@ plot_lifetable <- function(data_out) {
     annotate("text",x=lx75+4,y=.77*radix, color = gray(.5), label = "75%") +
     annotate("text",x=lx50+4,y=.52*radix, color = gray(.5), label = "50%") +
     annotate("text",x=lx25+4,y=.27*radix, color = gray(.5), label = "25%") +
-    
     labs(x = "Age",
        y = "lx",
        title = "Survival curve (lx) generated from lifetable nmx values",
@@ -180,13 +187,15 @@ plot_lifetable <- function(data_out) {
 
 
    ndx_plot <-
-    dt |> 
-    ggplot(aes(x = age_plot, y = ndx / AgeInt), col = "black") +
-    geom_line() + # or geom_step()
-    theme_light() + 
-    theme(axis.text = element_text(color = "black"),
-          plot.subtitle = element_text(size = 12, color = "black"),
-          axis.title.y  = element_blank()) +
+     dt |>
+     mutate(dx = round(ndx / AgeInt, 8)) %>%
+     ggplot(aes(x = Age, y = dx), col = "black") +
+     geom_line() + # or geom_step()
+     theme_light() +
+     theme(
+       axis.text = element_text(color = "black"),
+       plot.subtitle = element_text(size = 12, color = "black")
+     ) +
      
      # vertical ticks
      annotate("segment",x=lx75,xend=lx75,y=dx_mark[1] + R*.02, yend=dx_mark[1] - R*.02, 
