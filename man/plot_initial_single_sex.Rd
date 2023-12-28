@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{plot_initial_single_sex}
 \alias{plot_initial_single_sex}
-\title{plot_initial_single_sex}
+\title{plot_initial_two_sex}
 \usage{
 plot_initial_single_sex(
   data,
@@ -21,12 +21,31 @@ plot_initial_single_sex(
 \item{plot_rates}{logical indicates weather the empirical \code{M(x)} should be plotted, defaults to TRUE}
 }
 \value{
+A named list with 3 elements: \code{Exposures} - population pyramid, \code{Deaths} - death pyramid and #\verb{Empirical Mx} - log 10 transformed empirical \code{M(x)} value
+
 A named list with 3 elements: \code{Exposures} - population pyramid, \code{Deaths} - death pyramid and \verb{Empirical Mx} - log 10 transformed empirical \code{M(x)} value
 }
 \description{
+Plots a line graph of the log10 transformed empirical mortality rate \code{M(x)}, population #pyramid and death pyramid if the data contains information on two sex.
+
 Plots a line graph of the log10 transformed empirical mortality rate \code{M(x)}, population histogram and death histogram if the data contains information on only one sex.
 }
 \examples{
+\dontrun{
+data1           <- data
+data1$Sex       <- "Female"
+data1$Exposures <- data1$Exposures
+data1$Deaths    <- data1$Deaths
+data <- data \%>\%
+ full_join(data1) \%>\%
+ mutate(Deaths = ifelse(Sex == "Female", Deaths + rpois(22, lambda = 50), Deaths))
+
+plot_initial_two_sex(data = data,
+                     plot_exposures = TRUE,
+                     plot_deaths = TRUE,
+                     plot_rates = TRUE)
+}
+plot_initial_single_sex
 \dontrun{
 plot_initial_single_sex(data = mutate(data, 
                                       sex = "Female"), 

@@ -1,8 +1,8 @@
 Package: ODAPbackend
 Type: Package
 Title: Standardize, Evaluate, and Adjust Demographic Data
-Version: 00.00.018
-Date: 2023-12-13
+Version: 00.01.002
+Date: 2023-12-28
 Authors@R: c(
    person("Tim", "Riffe", role = c("aut", "cre"), 
           email = "tim.riffe@gmail.com", comment = c(ORCID = "0000-0002-2673-4622")),
@@ -21,7 +21,7 @@ Suggests:
     rmarkdown,
     markdown,
 Imports:
-    DemoTools,
+    DemoTools (>= 01.13.79),
     stringr,
     dplyr,
     scales,

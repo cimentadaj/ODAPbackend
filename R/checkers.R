@@ -76,8 +76,8 @@ extension_check <- function(user_file) {
 #' }
 check_numeric <- function(data) { 
   
-  data <- subset(data, select = c("Deaths", "Exposures", "Age", "AgeInt"))
-  
+  # data <- subset(data, select = c("Deaths", "Exposures", "Age", "AgeInt"))
+  data <- subset(data, select = c("Deaths", "Exposures", "Age"))
   isnumeric <- data %>%
     map(~ is.numeric(.)) %>% 
     unlist()
@@ -136,9 +136,12 @@ check_missing_cols <- function(data) {
   # AgeInt being given.
   
   # TODO: Sex should not be insisted upon, but if it's there we should validate values
-  data <- subset(data, select = c("Deaths", "Exposures", "Age", "AgeInt", "Sex"))
+  # data <- subset(data, select = c("Deaths", "Exposures", "Age", "AgeInt", "Sex"))
+  # 
+  # missing_cols <- setdiff(c("Deaths", "Exposures", "Age", "AgeInt", "Sex"), names(data)) 
+  data <- subset(data, select = c("Deaths", "Exposures", "Age"))
   
-  missing_cols <- setdiff(c("Deaths", "Exposures", "Age", "AgeInt", "Sex"), names(data)) 
+  missing_cols <- setdiff(c("Deaths", "Exposures", "Age"), names(data)) 
   
   if(length(missing_cols) > 0) { 
     
@@ -178,15 +181,12 @@ check_missing_cols <- function(data) {
 #'
 #'data <- tibble(Deaths = Deaths, 
 #'                        Exposures = Exposures, 
-#'                        Age = c(0, 1, seq(5, 100, by = 5)),
-#'                        AgeInt = c(diff(Age), NA))
+#'                        Age = c(0, 1, seq(5, 100, by = 5)))
 #'
 #' check_rows(
 #'     data = data)
 #' }
 check_rows <- function(data) { 
-  
-  data <- subset(data, select = c("Deaths", "Exposures", "Age", "AgeInt"))
   
   if(nrow(data) < 10) { 
     
@@ -236,22 +236,14 @@ check_rows <- function(data) {
 #' }
 check_nas <- function(data) {
   
-  data <- subset(data, select = c("Deaths", "Exposures", "Age", "AgeInt"))
-  
-  if(any(names(data) == "AgeInt") & is.na(last(data$AgeInt)) & sum(is.na(data$AgeInt)) == 1) { 
-    
-    nas <- data |>
-      subset(select = -AgeInt) |>  
-      is.na() |>
-      colSums()
-    
-  } else { 
-    
     nas <- data |>
       is.na() |>
       colSums()
-    
-  }
+   if (any(names(nas) == "AgeInt")){
+     if (nas["AgeInt"] == 1 & is.na(last(data$AgeInt))){
+       nas["AgeInt"] <- 0
+     }
+   }
   
   if(sum(nas) > 0) { 
     
@@ -302,8 +294,11 @@ check_nas <- function(data) {
 #' }
 check_coherent <- function(data) { 
   
-  tst <- is_age_coherent(data$Age, data$AgeInt)
-  
+  if ("AgeInt" %in% colnames(data)){
+    tst <- is_age_coherent(data$Age, data$AgeInt)
+  } else {
+    tst <- TRUE
+  }
   if(!tst) {
     
     message <- "Age classes and age intervals are not coherent"
@@ -395,12 +390,14 @@ check_sequential <- function(data) {
 #'     data = data)
 #' }
 check_redundant <- function(data) { 
-  
-  tst <- is_age_redundant(data$Age, data$AgeInt)
-  
+  if ("AgeInt" %in% colnames(data)){
+    tst <- is_age_redundant(data$Age, data$AgeInt)
+  } else {
+    tst <- FALSE
+  }
   if(tst) {
     
-    message <- "Provided age data is redundadt"
+    message <- "Provided age data is redundant"
     
   } else { 
     
@@ -501,13 +498,13 @@ check_sex <- function(data) {
       
     } else { 
       
-      message <- "Data should contain variable sex coded with either `Male`, `Female`, or `Total` or should contain information on both sexes and/or Total. Data with no sex information or with sex information not in a given  format is invalid."
+      message <- "If Sex variable is given, it should be coded with either `Male`, `Female`, or `Total`."
       
     }
     
    } else {
   
-     message <- "Data should contain variable sex coded with either `Male`, `Female`, or `Total` or should contain information on both sexes and/or Total. Data with no sex information or with sex information not in a given  format is invalid."
+     message <- NA_character_
      
     }
   

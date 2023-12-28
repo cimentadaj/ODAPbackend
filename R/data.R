@@ -3,7 +3,22 @@
 # fpath <- system.file("extdata", "abridged_data.csv", package="ODAPbackend")
 # read_csv(fpath)
 
+# #' dat_heap_smooth
+# #' @description
+# #' \itemize{
+# #'   \item Age dbl, Single ages 0-110+
+# #'   \item Deaths double, Death counts for a single year heapifyed
+# #'   \item Exposures double, population exposed to risk heapifyed
+# #'   \item Population double, population counts for a single year heapifyed
 
+# #' }.
+# #' @docType data
+# #' @format
+# #'  a data.frame with four columns and 111 rows
+# #' @source
+# #'   Human Mortality Database
+# "dat_heap_smooth"
+#
 # #' abridged_data
 # #' @description
 # #' \itemize{

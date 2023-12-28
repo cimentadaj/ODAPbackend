@@ -15,27 +15,56 @@
 #' }
 #' 
 check_heaping_general <- function(data, y) { 
-  
-  if(is_single(data$Age)) { 
+  tbl <- tibble(level = c(c("Highly accurate", "Fairly accurate", "Approximate",
+                            "Rough","Very rough")),
+                color = c("#ffffb2","#fecc5c","#fd8d3c","#f03b20","#bd0026"))
+  has_single <- is_single(data$Age)
+  if(has_single) { 
+    
+
     
     # go with 
-    bachi <- check_heaping_bachi(subset(data, select = y, drop = TRUE),  data$Age, OAG = TRUE)
+    bachi <- check_heaping_bachi(subset(data, select = y, drop = TRUE),  
+                                 data$Age, 
+                                 OAG = TRUE, 
+                                 method = "pasex")
     myers <- check_heaping_myers(subset(data, select = y, drop = TRUE),  data$Age)
     
-    res <- data.frame(method = c("bachi", "myers"),
-                      result = c(bachi, myers))
+    res <- tibble(`age scale` = "single",
+                      method = c("bachi", "myers"),
+                      result = c(bachi, myers)) |> 
+      mutate(level = cut(result, 
+                  breaks = c(0,1,2,5,15,80),
+                  labels = c("Highly accurate", "Fairly accurate", "Approximate",
+                             "Rough","Very rough")) |> as.character()) |> 
+      left_join(tbl, by = join_by(level))
     
-  } else { 
+  } 
+    tblr <- tibble(method = "roughness",
+                   level = c(1.03))
+  # 5-year methods
+  roughness <- check_heaping_roughness(subset(data, select = y, drop = TRUE), data$Age, ageMin = 30)
+  sawtooth  <- check_heaping_sawtooth( subset(data, select = y, drop = TRUE), data$Age, ageMin = 30)
+  r <- cut(roughness,breaks = c(0,.1,.2,.5,1.5,10),
+           labels = c("Highly accurate", "Fairly accurate", "Approximate",
+                      "Rough","Very rough")) |> as.character()
+  s <- cut(sawtooth,breaks = c(1,1.03,1.1,1.5,3,10),
+           labels = c("Highly accurate", "Fairly accurate", "Approximate",
+                      "Rough","Very rough")) |> as.character()
+  
+    res5 <- tibble(`age scale` = "5-year",
+                   method = c("roughness", "sawtooth"),
+                   result = c(roughness, sawtooth),
+                   level = c(r,s)) |> 
+      left_join(tbl, by = join_by(level))
     
-    roughness <- check_heaping_roughness(subset(data, select = y, drop = TRUE), data$Age, ageMin = 30)
-    sawtooth  <- check_heaping_sawtooth( subset(data, select = y, drop = TRUE), data$Age, ageMin = 30)
-    
-    res <- data.frame(method = c("roughness", "sawtooth"),
-                      result = c(roughness, sawtooth))
-    
+  if (has_single){
+    out <- bind_rows(res,res5)
+  } else {
+    out <- res5
   }
   
-  return(res)
+  return(out)
   
 }
 

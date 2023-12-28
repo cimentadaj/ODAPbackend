@@ -69,6 +69,7 @@ lt_flexible <- function(data_in,
   
   Deaths <- data_in$Deaths
   Exposures <- data_in$Exposures
+  Mx_emp <- Deaths / Exposures
   Age <- data_in$Age
   # TR: no need to determine extrapLaw here, it happens
   # natively in the lt functions.
@@ -156,14 +157,20 @@ lt_flexible <- function(data_in,
     
   }
   
+  # Add sex column to output
+  sex <- case_when(Sex == "m" ~ "Males",
+                   Sex == "f" ~ "Females",
+                   Sex == "t" ~ "Total")
+  data_out <- data_out |> 
+    mutate(Sex = sex, .before = 1)
   
   plots <- plot_lifetable(data_out)
   
   # sorry JC, forgot this!
-  data_in <- tibble(Deaths, Exposures, Age)
   plots$nMx <- plot_compare_rates(data_in, 
                                   data_out, 
                                   extrapFrom = extrapFrom)
+  
   # now all cases handled
   return(list(lt = data_out, plots = plots))
   
