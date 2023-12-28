@@ -48,8 +48,6 @@ initial_plots$Exposures
 heaping_exposure <- check_heaping_general(data_in, "Exposures")
 heaping_deaths   <- check_heaping_general(data_in, "Deaths")
 
-# I think we should include a column giving guidance on what are high, medium and low values, and a text blob on what is interpretation of each index. Will look into it.
-
 # placeholder 1. We also may want to let users dig deeper into heaping options, using the function check_heaping_user(), but this is not yet general enough to be worth it. So just leave a marker here.
 
 # placeholder 2 leave space here for graduation or smoothing steps. 
