@@ -511,9 +511,22 @@ plot_initial_single_sex <- function(data,
 
   }
   
-  if(plot_rates) { 
+  if(plot_rates) {
     
     `Empirical Mx` <- plot_input_rates(data = data)
+
+    dt <- data
+    dt$age_label <- paste0("Ages between: ", dt$age_label)
+    dt$nMx <- round(dt$Deaths / dt$Exposures, 8)
+
+    `Empirical Mx`$figure <-
+      `Empirical Mx`$figure +
+      geom_line(
+        data = dt,
+        aes(
+          text = age_label
+        )
+      )
     
   }
   
