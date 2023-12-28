@@ -73,6 +73,9 @@ lt_flexible <- function(data_in,
   a0rule <- case_when(a0rule == "Andreev-Kingkade" ~ "ak",
                       a0rule == "Coale-Demeny" ~ "cd",
                       TRUE ~ a0rule)
+  axmethod <- case_when(axmethod == "UN (Greville)" ~ "un",
+                        axmethod == "PASEX" ~ "pas",
+                      TRUE ~ axmethod)
   
   Deaths <- data_in$Deaths
   Exposures <- data_in$Exposures
