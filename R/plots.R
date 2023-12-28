@@ -67,7 +67,7 @@ plot_compare_rates <- function(
   
   
   # return a list with both data and figure
-  return(lst(nMx = figure,
+  return(lst(nMx_plot = figure,
              nMx_plot_data = data_out_plot))
   
 }
