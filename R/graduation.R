@@ -8,7 +8,7 @@
 #' @param Sex character. Either `"m"` for males, `"f"` for females, or `"t"` for total (defualt).
 #' @importFrom dplyr mutate group_by filter pull select summarise
 #' @importFrom tibble tibble
-#' @importFrom rlang := !!
+#' @importFrom rlang := !! .data
 #' @importFrom DemoTools is_single is_abridged check_heaping_bachi groupAges ageRatioScore mav graduate_mono calcAgeAbr age2int graduate_uniform names2age lt_rule_4m0_D0 lt_rule_4m0_m0
 #' @return data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping
 #' @export
@@ -346,15 +346,15 @@ graduate_auto <- function(data_in,
       # We don't have years of education. 
       # So I choose the maximum n for mav from the two available in the table.
       n <- tibble(
-        min_bachi    = c(4,    2,   0.75, 0,    8),
-        max_bachi    = c(8,    4,   2,    0.75, 30),
-        second_index = c(0.65, 0.6, 0.7,  0.55, 101),
-        ind          = c(rep(prp0and5, 2), rep(mxprop2, 2), Inf),
-        mav_val_y    = c(10, 6, 4, 2, 10),
-        mav_val_n    = c(6,  4, 2, 1, 10)) |>
-        filter(min_bachi < index & max_bachi >= index) |>
-        mutate(my_n = ifelse(ind > second_index, mav_val_y, mav_val_n)) |>
-        pull(my_n)
+        "min_bachi"    = c(4,    2,   0.75, 0,    8),
+        "max_bachi"    = c(8,    4,   2,    0.75, 30),
+        "second_index" = c(0.65, 0.6, 0.7,  0.55, 101),
+        "ind"          = c(rep(prp0and5, 2), rep(mxprop2, 2), Inf),
+        "mav_val_y"    = c(10, 6, 4, 2, 10),
+        "mav_val_n"    = c(6,  4, 2, 1, 10)) |>
+        filter(.data$min_bachi < index & .data$max_bachi >= index) |>
+        mutate(my_n = ifelse(.data$ind > .data$second_index, .data$mav_val_y, .data$mav_val_n)) |>
+        pull("my_n")
       
       # n for kids
       n_kids <- ifelse(n < 3, 1, 2)
@@ -363,12 +363,12 @@ graduate_auto <- function(data_in,
       
       # kids
       kids <- data_in |>
-        filter(Age < 18) |>
+        filter(.data$Age < 18) |>
         pull(variable)
       
       # adults
       adults <- data_in |>
-        filter(Age > 17) |>
+        filter(.data$Age > 17) |>
         pull(variable)
       
       # smoothing adults
@@ -448,7 +448,7 @@ graduate_auto <- function(data_in,
 #' @return A tibble with 2 columns - your chosen `variable` with graduated and smoothed counts and `Age`
 #' @importFrom dplyr filter
 #' @importFrom tibble tibble
-#' @importFrom rlang := !!
+#' @importFrom rlang := !! .data
 #' @importFrom DemoTools mav graduate_mono ageRatioScore
 #' @return data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping
 #' @export
@@ -462,23 +462,23 @@ graduate_auto_5 <- function(dat_5, variable) {
   # TR: OK, we leave this note here and can ask about it in future.
   
   kids <- dat_5 |>
-    filter(Age < 20)
+    filter(.data$Age < 20)
   
   # ages 15 to Inf
   adults <- dat_5 |>
-    filter(Age > 14)
+    filter(.data$Age > 14)
   
   # calculate the age ratio score before smoothing separately for kids and adults
   # Only for age score, we add one additional age to kids
   rsc_kids <- dat_5 |>
-    filter(Age < 24)
+    filter(.data$Age < 24)
   
   age_rat_score_kids <- ageRatioScore(Value = rsc_kids[, variable, drop = TRUE],
                                       Age   = rsc_kids$Age) # check this
   
   # for adults use ages 15-19 : 70-74 for score calculation
   rsc_adults <- adults |>
-    filter(Age < 75)
+    filter(.data$Age < 75)
   
   age_rat_score_adults <- ageRatioScore(
     Value  = rsc_adults[, variable, drop = TRUE],
@@ -497,7 +497,7 @@ graduate_auto_5 <- function(dat_5, variable) {
   # calculate the age ratio score after smoothing for adults
   age_rat_adults_2 <- tibble(!!variable := dat5_mav_adults,
                              Age = as.integer(names(dat5_mav_adults))) |>
-    filter(Age < 75)
+    filter(.data$Age < 75)
   
   age_rat_score_adults_2 <-
     ageRatioScore(
@@ -660,9 +660,9 @@ smooth_flexible <- function(data_in,
     
     value       <- data_in[, variable, drop = TRUE]
     age         <- data_in$Age
-    value1       <- graduate_uniform(Value = value, 
-                                     Age   = age)
-    age1         <- names2age(value1)
+    value1      <- graduate_uniform(Value = value,
+                                    Age   = age)
+    age1        <- names2age(value1)
     # If there is an infant group, we preserve it
     
     if(has_infants) {
@@ -737,7 +737,7 @@ smooth_flexible <- function(data_in,
   
   # this is a fallback data5
   data5 <- data_in |> 
-    mutate(Age = Age - Age %% 5) |> 
+    mutate(Age = .data$Age - .data$Age %% 5) |> 
     group_by(Age)  |> 
     summarize(!!variable := sum(!!sym(variable)))
   
@@ -753,7 +753,7 @@ smooth_flexible <- function(data_in,
     
     # regroup to 5, overrides previous one
     data5 <- data1 |> 
-      mutate(Age = Age - Age %% 5) |> 
+      mutate(Age = .data$Age - .data$Age %% 5) |> 
       group_by(Age) |> 
       summarize(!!variable := sum(!!sym(variable)))
     
@@ -792,7 +792,7 @@ smooth_flexible <- function(data_in,
   # rough_method will have erased detectable smoothing. Otherwise, the auto method
   # will perturb at two levels, albeit not necessarily in the same way as if
   # data_in had both fine and rough methods as auto.
-  if(fine_method == "none" & age_out %in% c("single","abridged")) {
+  if(fine_method == "none" & age_out %in% c("single", "abridged")) {
     
     if(age_in == "single") {
       # this is odd indeed: under what circumstances would we want to adjust 
@@ -804,11 +804,11 @@ smooth_flexible <- function(data_in,
                value5 = !!sym(variable))
       
       data1 <- data_in |> 
-        mutate(age5 = Age - Age %% 5) |> 
-        mutate(prop = !!sym(variable) / sum(!!sym(variable)), .by = age5) |> 
-        left_join(data5, by = join_by(age5)) |> 
-        mutate(!!variable := !!sym(variable) * prop) |> 
-        select(Age, !!sym(variable))
+        mutate(age5 = .data$Age - .data$Age %% 5) |> 
+        mutate(prop = !!sym(variable) / sum(!!sym(variable)), .by = "age5") |> 
+        left_join(data5, by = join_by("age5")) |> 
+        mutate(!!variable := !!sym(variable) * .data$prop) |> 
+        select("Age", !!sym(variable))
       
     }
     
@@ -857,11 +857,11 @@ smooth_flexible <- function(data_in,
              value5 = !!sym(variable) )
     
     data1 <- data1 |> 
-      mutate(age5 = Age - Age %% 5) |> 
-      mutate(prop = !!sym(variable) / sum(!!sym(variable)), .by = age5) |> 
-      left_join(data5, by = join_by(age5)) |> 
-      mutate(!!variable := !!sym(variable) * prop) |> 
-      select(Age, !!sym(variable))
+      mutate(age5 = .data$Age - .data$Age %% 5) |> 
+      mutate(prop = !!sym(variable) / sum(!!sym(variable)), .by = "age5") |> 
+      left_join(data5, by = join_by("age5")) |> 
+      mutate(!!variable := !!sym(variable) * .data$prop) |> 
+      select("Age", !!sym(variable))
     
   }
   
@@ -1081,7 +1081,7 @@ smooth_flexible <- function(data_in,
 #' @importFrom dplyr case_when mutate group_by summarize rename left_join select join_by pull
 #' @importFrom ggplot2 ggplot aes geom_line geom_point scale_y_continuous scale_x_continuous theme_light theme element_text ggtitle
 #' @importFrom scales pretty_breaks comma
-#' @importFrom rlang := !! sym
+#' @importFrom rlang := !! sym .data
 #' @return list. A named list with 3 elements: `figure` - plot of original versus adjusted data and `data_adjusted` - and `data_original`, the plotted data.
 #' #' @examples
 #' This is just test settings used for light live coding.
@@ -1098,31 +1098,32 @@ smooth_flexible <- function(data_in,
 #'                age_out = "5-year", 
 #'                u5m     = .1,
 #'                Sex     = "t")
-#' \dontrun{print(data_out$figure$figure) }     
+#' print(data_out$figure$figure)
 
 plot_smooth_compare <- function(data_in, data_out, variable) {
+  
   data_in <- data_in |> 
     mutate(
-      single = is_single(Age),
-      AgeInt = age2int(Age, OAvalue = 1),
-      age_mid = if_else(single, Age, Age + (AgeInt / 2)),
-      age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
-                            TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")")),
-      plot_y = !!sym(variable) / AgeInt)
+      single = is_single(.data$Age),
+      AgeInt = age2int(.data$Age, OAvalue = 1),
+      age_mid = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
+      age_label = case_when(.data$Age == max(.data$Age) ~ paste0(max(.data$Age),"+"),
+                            TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")")),
+      plot_y = !!sym(variable) / .data$AgeInt)
   
   data_out <- data_out |> 
     mutate(
-      single = is_single(Age),
-      AgeInt = age2int(Age, OAvalue = 1),
-      age_mid = if_else(single, Age, Age + (AgeInt / 2)),
-      age_label = case_when(Age == max(Age) ~ paste0(max(Age),"+"),
-                            TRUE ~ paste0("[",Age, ",", Age + AgeInt, ")")),
-      plot_y = !!sym(variable) / AgeInt)
+      single = is_single(.data$Age),
+      AgeInt = age2int(.data$Age, OAvalue = 1),
+      age_mid = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
+      age_label = case_when(.data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
+                            TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")")),
+      plot_y = !!sym(variable) / .data$AgeInt)
 
   figure <- ggplot() +
-    geom_line( data = data_in,  aes(x = age_mid, y = plot_y), color = "black") +
-    geom_point(data = data_in,  aes(x = age_mid, y = plot_y), color = "black") +
-    geom_line(data = data_out, aes(x = age_mid, y = plot_y), color = "red", linewidth = 1) +
+    geom_line(data = data_in,  aes(x = data_in$age_mid, y = data_in$plot_y), color = "black") +
+    geom_point(data = data_in,  aes(x = data_in$age_mid, y = data_in$plot_y), color = "black") +
+    geom_line(data = data_out, aes(x = data_out$age_mid, y = data_out$plot_y), color = "red", linewidth = 1) +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_continuous(breaks = pretty_breaks(), labels = comma) +
     theme_light() +
