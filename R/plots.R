@@ -46,6 +46,7 @@ plot_compare_rates <- function(data_in, # raw mx to plot
       AgeInt = age2int(Age, OAG = FALSE),
       single = is_single(Age),
       `Age Mid` = if_else(single, Age, Age + (AgeInt / 2)),
+      age_plot = if_else(single, Age, Age + (AgeInt / 2)),
       age_label = case_when(
         Age == max(Age) ~ paste0(max(Age), "+"),
         TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")")
@@ -86,7 +87,7 @@ plot_compare_rates <- function(data_in, # raw mx to plot
   # return a list with both data and figure
   return(lst(
     nMx_plot = figure,
-    nMx_plot_data = data_out_plot
+    nMx_plot_data = data_out_plot |> select(Age, age_label, nMx)
   ))
 }
 
@@ -267,9 +268,9 @@ plot_lifetable <- function(data_out) {
     )
 
   return(lst(
-    nMx = lst(nMx_plot, nMx_plot_data = dt |> select(Age, age_plot, age_label, nMx)),
-    lx = lst(lx_plot, lx_plot_data = dt |> select(Age, age_plot, age_label, lx)),
-    ndx = lst(ndx_plot, ndx_plot_data = dt |> select(Age, age_plot, age_label, ndx))
+    nMx = lst(nMx_plot, nMx_plot_data = dt |> select(Age, age_label, nMx)),
+    lx = lst(lx_plot, lx_plot_data = dt |> select(Age, age_label, lx)),
+    ndx = lst(ndx_plot, ndx_plot_data = dt |> select(Age, age_label, ndx))
   ))
 }
 
@@ -376,7 +377,12 @@ plot_input_rates <- function(data) {
       plot.subtitle = element_text(size = 12, color = "black")
     )
 
-  return(lst(figure, data))
+  return(
+    lst(
+      figure,
+      data = data |> select(Age, age_label, nMx)
+    )
+  )
 }
 
 
@@ -434,7 +440,12 @@ plot_histogram <- function(data, y) {
       x = "Age"
     )
 
-  return(lst(figure, data))
+  return(
+    lst(
+      figure,
+      data = data |> select(Age, age_label, !!sym(y))
+    )
+  )
 }
 
 
