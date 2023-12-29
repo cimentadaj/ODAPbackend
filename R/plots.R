@@ -34,12 +34,12 @@ plot_compare_rates <- function(data_in, # raw mx to plot
     # TODO: Shall we call it Age-specific Mortality?
     mutate(
       `Age-specific Mortality` = round(.data$Deaths / .data$Exposures, 8),
-      AgeInt = age2int(Age, OAG = FALSE),
-      single = is_single(Age),
-      `Age Mid` = if_else(single, Age, Age + (AgeInt / 2)),
+      AgeInt = age2int(.data$Age, OAG = FALSE),
+      single = is_single(.data$Age),
+      `Age Mid` = if_else(single, .data$Age, .data$Age + (.data$AgeInt / 2)),
       age_label = case_when(
-        .data$Age == max(Age) ~ paste0(max(Age), "+"),
-        TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")")
+        .data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
+        TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")")
       )
     )
   data_out_plot <-
@@ -53,17 +53,17 @@ plot_compare_rates <- function(data_in, # raw mx to plot
         .data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
         TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")")
       ),
-      nMx = round(nMx, 8)
+      nMx = round(.data$nMx, 8)
     )
 
   figure <-
     ggplot() +
-    geom_line(data = data_out_plot, aes_string(x = "`Age Mid`", y = "nMx"), linewidth = 0.8) +
+    geom_line(data = data_out_plot, aes(.data$`Age Mid`,y = .data$nMx), linewidth = 0.8) +
     geom_line(
       data = filter(data_in_plot, .data$Age >= min(extrapFrom, max(data_out$Age))),
-      aes_string(
-        x = "`Age Mid`",
-        y = "`Age-specific Mortality`"
+      aes(
+        x = .data$`Age Mid`,
+        y = .data$`Age-specific Mortality`
       ),
       lty = 2,
       col = "red",
@@ -169,7 +169,7 @@ plot_lifetable <- function(data_out) {
 
 
   lx_plot <- dt |>
-    mutate(.data$lx = round(.data$lx, 8)) %>%
+    mutate(lx = round(.data$lx, 8)) %>%
     ggplot(aes(x = .data$age_plot, y = .data$lx), col = "black") +
     geom_line() + # or geom_step()
     theme_light() +
@@ -477,9 +477,6 @@ plot_histogram <- function(data, y) {
 ##' plot_initial_two_sex
 ##' @description Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population #pyramid and death pyramid if the data contains information on two sex.
 ##' @param data tibble. Empirical data downloaded  with the `read_data` function
-##' @param plot_exposures logical indicates weather the population pyramid should be plotted, defaults #to TRUE
-##' @param plot_deaths logical indicates weather the death pyramid should be plotted, defaults to TRUE
-##' @param plot_rates logical indicates weather the empirical `M(x)` should be plotted, defaults to TRUE
 ##' @return A named list with 3 elements: `Exposures` - population pyramid, `Deaths` - death pyramid and #`Empirical Mx` - log 10 transformed empirical `M(x)` value
 ##' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme element_text guide_legend
 ##' @importFrom scales label_log pretty_breaks
@@ -495,16 +492,10 @@ plot_histogram <- function(data, y) {
 ##'  full_join(data1) %>%
 ##'  mutate(Deaths = ifelse(Sex == "Female", Deaths + rpois(22, lambda = 50), Deaths))
 ##'
-##' plot_initial_two_sex(data = data,
-##'                      plot_exposures = TRUE,
-##'                      plot_deaths = TRUE,
-##'                      plot_rates = TRUE)
+##' plot_initial_two_sex(data = data)
 ##' }
 #
-## plot_initial_two_sex <- function(data,
-##                                  plot_exposures = TRUE,
-##                                  plot_deaths    = TRUE,
-##                                  plot_rates     = TRUE) {
+## plot_initial_two_sex <- function(data) {
 ##
 ##   if(plot_exposures) {
 ##
@@ -542,10 +533,7 @@ plot_histogram <- function(data, y) {
 #' plot_initial_single_sex(
 #'   data = mutate(data,
 #'     sex = "Female"
-#'   ),
-#'   plot_exposures = TRUE,
-#'   plot_deaths = TRUE,
-#'   plot_rates = TRUE
+#'   )
 #' )
 #' }
 
@@ -624,9 +612,6 @@ plot_initial_single_sex <- function(data) {
 #' plot_initial_data
 #' @description Plots the corresponding 3 graphics for single sex or for both sex depending on data provided by the user.
 #' @param data tibble. Empirical data downloaded  with the `read_data` function
-#' @param plot_exposures logical. Weather the exposures should be plotted
-#' @param plot_deaths logical. Weather the Deaths should be plotted#' @param dplot_ratesata logical Empirical data downloaded  with the `read_data` function
-#' @param plot_rates logical. Weather the rates should be plotted#' @param dplot_ratesata logical Empirical data downloaded  with the `read_data` function
 #' @return A list with 3 corresponding plots for either one or two sex.
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
@@ -634,22 +619,15 @@ plot_initial_single_sex <- function(data) {
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_initial_data(mutate(data, sex = "Female"),
-#'   plot_exposures = TRUE,
-#'   plot_deaths = TRUE,
-#'   plot_rates = TRUE
+#' plot_initial_data(mutate(data, sex = "Female")
 #' )
 #' }
 
 
-plot_initial_data <- function(data, 
-                              plot_exposures = TRUE, 
-                              plot_deaths    = TRUE, 
-                              plot_rates     = TRUE) {
+plot_initial_data <- function(data) {
   
   if("Sex" %in% colnames(data)) {
     
-
     sexes <- unique(data$Sex)
     
   } else {
@@ -666,18 +644,11 @@ plot_initial_data <- function(data,
 
     warning("Currently plots only handle single-sex data")
     
-    # result <- plot_initial_two_sex(data,
-    #                                plot_exposures = plot_exposures,
-    #                                plot_deaths = plot_deaths,
-    #                                plot_rates = plot_rates)
+ 
   } else {
 
-    result <- plot_initial_single_sex(data, 
-                                      plot_exposures = plot_exposures, 
-                                      plot_deaths    = plot_deaths, 
-                                      plot_rates     = plot_rates)
+    result <- plot_initial_single_sex(data)
     
-
   }
 
   return(result)
