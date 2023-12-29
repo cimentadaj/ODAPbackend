@@ -14,6 +14,10 @@ library(dplyr)
 data_in <- readr::read_csv(system.file("extdata",
                                        "abridged_data.csv",
                                        package="ODAPbackend"))
+
+data_in <- readr::read_csv(system.file("extdata",
+                                       "dat_heap_smooth.csv",
+                                       package="ODAPbackend"))
 # character string of file name, presumed in data/ folder
 # returns data.frame
 # data_in <- read_data(user_file)
@@ -36,7 +40,7 @@ initial_data_checks
 # at a time, and have the user optionally flip through them.
 
 initial_plots <- plot_initial_data(data_in)
-initial_plots$Exposures
+initial_plots$Deaths
 # do assorted diagnostics, so far only heaping indices offered
 # this is data.frame in data.frame out; the results are a table
 # of index values (Bachi and Myers indices for single age data; 

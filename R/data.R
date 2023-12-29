@@ -51,3 +51,32 @@
 # #' @source
 # #'   Human Mortality Database
 # "abridged_data2"
+
+# library(HMDHFDplus)
+# D <- readHMDweb("DEUTNP","Deaths_1x1", username = Sys.getenv("us"), password = Sys.getenv("pw"))
+# E <- readHMDweb("DEUTNP","Exposures_1x1", username = Sys.getenv("us"), password = Sys.getenv("pw"))
+# 
+# D <-
+#   D |> 
+#   filter(Year == 2010) |> 
+#   select(Age, Deaths = Total) |> 
+#   mutate(Age = ifelse(Age > 100, 100, Age)) |> 
+#   summarize(Deaths = sum(Deaths), .by = Age) |> 
+#   mutate(Deaths = heapify(Value = Deaths, Age = Age, ageMax = 90, p0 = 1.15, p5 = 1.1))
+# 
+# E <-
+#   E |> 
+#   filter(Year == 2010) |> 
+#   select(Age, Exposures = Total) |> 
+#   mutate(Age = ifelse(Age > 100, 100, Age)) |> 
+#   summarize(Exposures = sum(Exposures), .by = Age) |> 
+#   mutate(heapify(Value = Exposures, Age = Age, ageMax = 90, p0 = 1.05, p5 = 1))
+# 
+# dat_heap_smooth <- left_join(D,E,by = join_by(Age))
+# 
+# write_csv(dat_heap_smooth, file = "inst/extdata/dat_heap_smooth.csv")
+# 
+# data_in <- readr::read_csv(system.file("extdata",
+#                                        "dat_heap_smooth.csv",
+#                                        package="ODAPbackend"))
+

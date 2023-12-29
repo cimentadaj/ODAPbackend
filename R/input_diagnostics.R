@@ -45,10 +45,10 @@ check_heaping_general <- function(data, y) {
   # 5-year methods
   roughness <- check_heaping_roughness(subset(data, select = y, drop = TRUE), data$Age, ageMin = 30)
   sawtooth  <- check_heaping_sawtooth( subset(data, select = y, drop = TRUE), data$Age, ageMin = 30)
-  r <- cut(roughness,breaks = c(0,.1,.2,.5,1.5,10),
+  r <- cut(roughness,breaks = c(.5,1.03,1.1,1.5,3,100),
            labels = c("Highly accurate", "Fairly accurate", "Approximate",
                       "Rough","Very rough")) |> as.character()
-  s <- cut(sawtooth,breaks = c(1,1.03,1.1,1.5,3,10),
+  s <- cut(sawtooth,breaks = c(.5,1.03,1.1,1.5,3,100),
            labels = c("Highly accurate", "Fairly accurate", "Approximate",
                       "Rough","Very rough")) |> as.character()
   

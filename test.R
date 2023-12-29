@@ -285,5 +285,7 @@ sum(ind)
 dfind <- lapply(beefy_output, is.data.frame) |> unlist()
  beefy_output[!dfind] |> names()
 
-
+data(pop1m_ind, package = "DemoTools")
+data_in <- data.frame(Exposures = pop1m_ind,
+                      Age       = 0:100)
 
