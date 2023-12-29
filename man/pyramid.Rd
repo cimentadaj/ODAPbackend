@@ -19,13 +19,13 @@ Generate a population pyramid from the user data. WARNING contains some tidy eva
 }
 \examples{
 \dontrun{
-data1           <- data
-data1$Sex       <- "Female"
+data1 <- data
+data1$Sex <- "Female"
 data1$Exposures <- data1$Exposures
-data1$Deaths    <- data1$Deaths
-data <- data \%>\% 
- full_join(data1) \%>\%
- mutate(Deaths = ifelse(Sex == "Female", Deaths + rpois(22, lambda = 50), Deaths))
+data1$Deaths <- data1$Deaths
+data <- data \%>\%
+  full_join(data1) \%>\%
+  mutate(Deaths = ifelse(Sex == "Female", Deaths + rpois(22, lambda = 50), Deaths))
 
 pyramid(data = data, y = "Deaths")
 }

@@ -14,7 +14,7 @@
 #' @param SRB numeric. the sex ratio at birth (boys / girls), default `1.05`
 #' @param a0rule character. Either `"ak"` (default) or `"cd"`.
 #' @param axmethod character. Either `"pas"` or `"un"`.
-#' @param Sex character. Either `"m"` for males, `"f"` for females (default). 
+#' @param Sex character. Either `"m"` for males, `"f"` for females (default).
 #' @return A single or abridged life table iof data.frame format with corresponding columns:
 #' Age integer. Lower bound of abridged age class,
 #' AgeInt integer. Age class widths.
