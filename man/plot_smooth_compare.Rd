@@ -30,7 +30,7 @@ constrain_infants = TRUE,
 age_out = "5-year",
 u5m     = .1,
 Sex     = "t")
-\dontrun{print(data_out$figure$figure) }
+print(data_out$figure$figure)
 }
 \description{
 Plots the original counts and the smoothed counts over the chocosen age ranges for ease of comparison.
