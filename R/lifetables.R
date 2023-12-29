@@ -1,4 +1,7 @@
 
+# [ ] make Male, Female, Total acceptable Sex inputs,
+# properly coercing Total to b for lt_abridged...
+
 #' lt_flexible
 #' @description Calculate an abridged-age or a single-age lifetable.
 #' @param data_in a `data.frame` or `tibble` with columns `Age``, `Deaths``, and `Exposures``
@@ -66,6 +69,16 @@ lt_flexible <- function(data_in,
                         a0rule     = "ak",
                         axmethod   = "un",
                         Sex        = "m") {
+  
+  a0rule <- case_when(a0rule == "Andreev-Kingkade" ~ "ak",
+                      a0rule == "Coale-Demeny" ~ "cd",
+                      TRUE ~ a0rule)
+  axmethod <- case_when(axmethod == "UN (Greville)" ~ "un",
+                        axmethod == "PASEX" ~ "pas",
+                      TRUE ~ axmethod)
+  Sex <- substr(Sex, 1, 1) |> 
+    tolower()
+  Sex <- ifelse(Sex == "t", "b", Sex)
   
   Deaths <- data_in$Deaths
   Exposures <- data_in$Exposures
@@ -160,7 +173,7 @@ lt_flexible <- function(data_in,
   # Add sex column to output
   sex <- case_when(Sex == "m" ~ "Males",
                    Sex == "f" ~ "Females",
-                   Sex == "t" ~ "Total")
+                   Sex == "b" ~ "Total")
   data_out <- data_out |> 
     mutate(Sex = sex, .before = 1)
   
