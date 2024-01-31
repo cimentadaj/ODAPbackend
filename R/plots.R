@@ -382,12 +382,12 @@ plot_input_rates <- function(data) {
   if(any(colnames(data) == "Sex")){
     
     p <- data |>
-      ggplot(aes(x = .data$age_plot, y = .data$nMx, color = "black"), linewidth = 0.8)
+      ggplot(aes(x = age_plot, y = nMx), linewidth = 0.8)
     
   } else {
     
     p <- data |>
-      ggplot(aes(x = .data$age_plot, y = .data$nMx), linewidth = 0.8)
+      ggplot(aes(x = age_plot, y = nMx), linewidth = 0.8)
     
   }
   
@@ -430,31 +430,29 @@ plot_input_rates <- function(data) {
 #' \dontrun{
 #' plot_histogram(data = mutate(data, Sex = "Female"), y = "Deaths")
 #' }
-
 plot_histogram <- function(data, y) {
   
   if (! "AgeInt" %in% colnames(data)){
-    
     data <- data |> 
-      mutate(AgeInt = age2int(.data$Age, OAvalue = 1))
-    
+      mutate(AgeInt = age2int(Age, OAvalue = 1))
   }
   
+  y_sym <- sym(y)
+  
   data <- data |> 
-    mutate(y_plot = !!sym(y) / .data$AgeInt,
-           age_label = case_when(.data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
-                                 TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")"))) |> 
-    select("Age", "AgeInt", "age_label", !!sym(y), "y_plot") 
+    mutate(y_plot = !!y_sym / AgeInt,
+           age_label = case_when(Age == max(Age) ~ paste0(max(Age), "+"),
+                                 TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")"))) |> 
+    select(Age, AgeInt, age_label, !!y_sym, y_plot) 
     
   
   figure <- data |> 
-    ggplot(aes(x = .data$Age + .data$AgeInt / 2, y = .data$y_plot, width = .data$AgeInt), 
-           color = "black") +
+    ggplot(aes(x = Age + AgeInt / 2, y = y_plot, width = AgeInt), color = "black") +
     geom_col() +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_continuous(
       labels = abs_and_comma,
-      limits = c(0, max(.data$y_plot))) +
+      limits = c(0, max(data$y_plot, na.rm = TRUE))) +
     theme_light() +
     scale_fill_brewer(palette = "Dark2") +
     theme(
@@ -474,7 +472,7 @@ plot_histogram <- function(data, y) {
   return(
     lst(
       figure,
-      data = data |> select(.data$Age, .data$age_label, !!sym(y))
+      data = data |> select(Age, age_label, !!y_sym)
     )
   )
 }
@@ -547,12 +545,12 @@ plot_histogram <- function(data, y) {
 plot_initial_single_sex <- function(data) {
   data <- 
     data |> 
-    mutate(Mx_emp    = .data$Deaths / .data$Exposures,
-           AgeInt    = age2int(.data$Age, OAG = FALSE),
-           single    = is_single(.data$Age),
-           `Age Mid`   = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
-           age_label = case_when(.data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
-                                 TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")"))) |> 
+    mutate(Mx_emp    = Deaths / Exposures,
+           AgeInt    = age2int(Age, OAG = FALSE),
+           single    = is_single(Age),
+           `Age Mid`   = if_else(single, Age, Age + (AgeInt / 2)),
+           age_label = case_when(Age == max(Age) ~ paste0(max(Age), "+"),
+                                 TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")"))) |> 
     select(-"single")
   
     # ------------------ #
@@ -569,8 +567,8 @@ plot_initial_single_sex <- function(data) {
       geom_col(
         data = dt,
         aes(
-          y = .data$Exposures,
-          text = .data$age_label
+          y = Exposures,
+          text = age_label
         )
       )
     # ------------------ #
@@ -587,8 +585,8 @@ plot_initial_single_sex <- function(data) {
       geom_col(
         data = dt,
         aes(
-          y = .data$Deaths,
-          text = .data$age_label
+          y = Deaths,
+          text = age_label
         )
       )
   
@@ -598,6 +596,7 @@ plot_initial_single_sex <- function(data) {
     `Empirical Mx` <- plot_input_rates(data = data)
 
     dt           <- data
+    dt$age_plot <- dt$`Age Mid`
     dt$age_label <- paste0("Ages beween: ", dt$age_label)
     dt$nMx       <- round(dt$Deaths / dt$Exposures, 8)
 
@@ -606,9 +605,8 @@ plot_initial_single_sex <- function(data) {
       geom_line(
         data = dt,
         aes(
-          text = .data$age_label
-        ),
-        colour = "black"
+          text = age_label
+        )
       )
   
 
