@@ -1,6 +1,7 @@
 
-# [ ] make Male, Female, Total acceptable Sex inputs,
-# properly coercing Total to b for lt_abridged...
+# [ ] allow lx, nMx, nqx inputs
+# [ ] if data go up to 75+ we can't have jumpoff at 80, the value 80 needs
+#     to be dynamically determined
 
 #' lt_flexible
 #' @description Calculate an abridged-age or a single-age lifetable.

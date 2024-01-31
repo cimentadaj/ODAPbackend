@@ -285,5 +285,22 @@ sum(ind)
 dfind <- lapply(beefy_output, is.data.frame) |> unlist()
  beefy_output[!dfind] |> names()
 
-
-
+data(pop1m_ind, package = "DemoTools")
+data_in <- data.frame(Exposures = pop1m_ind,
+                      Age       = 0:100)
+Value <- data_in$Deaths
+Age <- data_in$Age
+function (Value, Age, ageMin = 40, ageMax = max(Age[Age%%5 == 
+                                                      0]) - 10) 
+{
+ageMin <- ageMin - ageMin%%10
+VH5 <- groupAges(Value, Age, 5)
+A5 <- names2age(VH5)
+adj2 <- avg_adj(VH5)
+ai <- A5 >= ageMin & A5 <= ageMax
+m05 <- suppressWarnings(matrix((VH5/adj2)[ai], nrow = 2))
+if (sum(ai)%%2 != 0 | any(is.na(m05))) {
+  m05 <- m05[, -ncol(m05)]
+}
+1/ratx(rowMeans(m05, na.rm = TRUE))
+}

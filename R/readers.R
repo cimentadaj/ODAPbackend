@@ -12,6 +12,7 @@
 #' @importFrom DemoTools is_age_coherent is_age_sequential is_age_redundant
 #' @importFrom purrr map set_names
 #' @importFrom tidyselect matches
+#' @importFrom rlang .data
 #' @export
 #' @examples
 #' \dontrun{
@@ -67,13 +68,11 @@ read_data <- function(user_file, skip = 0) {
   
   # here we just guarantee that the 5 columns come in a given order and with a given name
   data_in <- data_in %>% 
-    dplyr::select(matches("Deaths"), matches("Exposures"), matches("Age$"), matches("AgeInt$"), matches("Sex$")) %>% 
-    set_names(c("Deaths", "Exposures", "Age", "AgeInt", "Sex", names(.)[-c(1:5)]))
+    dplyr::select(matches("Deaths"), matches("Exposures"), matches("Age$"), matches("AgeInt$"), matches("Sex$"))
   
   # calculate empirical nmx
   data_in <- data_in %>%
-    mutate(Mx_emp = Deaths / Exposures)
+    mutate(Mx_emp = .data$Deaths / .data$Exposures)
   # 
   return(data_in)
 }
-
