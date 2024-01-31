@@ -40,6 +40,7 @@ plot_compare_rates <- function(data_in, # raw mx to plot
         TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")")
       )
     )
+
   data_out_plot <-
     data_out |>
     mutate(
@@ -49,14 +50,23 @@ plot_compare_rates <- function(data_in, # raw mx to plot
       age_plot = if_else(single, Age, Age + (AgeInt / 2)),
       age_label = case_when(
         Age == max(Age) ~ paste0(max(Age), "+"),
-        TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")")
+        TRUE ~ paste0("Ages between: [", Age, ",", Age + AgeInt, ")")
       ),
       nMx = round(nMx, 8)
     )
 
   figure <-
     ggplot() +
-    geom_line(data = data_out_plot, aes_string(x = "`Age Mid`", y = "nMx"), linewidth = 0.8) +
+    geom_line(
+      data = data_out_plot,
+      aes_string(x = "`Age Mid`", y = "nMx"),
+      linewidth = 0.8
+    ) +
+    geom_line(
+      data = data_out_plot,
+      aes_string(x = "`Age Mid`", y = "nMx", text = "age_label"),
+      linewidth = 0.8
+    ) +
     geom_line(
       data = filter(data_in_plot, Age >= extrapFrom),
       aes_string(
@@ -149,14 +159,15 @@ plot_lifetable <- function(data_out) {
       age_plot = if_else(single, Age, Age + (AgeInt / 2)),
       age_label = case_when(
         Age == max(Age) ~ paste0(max(Age), "+"),
-        TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")")
+        TRUE ~ paste0("Ages between: [", Age, ",", Age + AgeInt, ")")
       )
     )
 
   nMx_plot <-
     dt |>
     ggplot(aes(x = age_plot, y = nMx), col = "black") +
-    geom_line() + # or geom_step()
+    geom_line() +
+    geom_line(aes(text = age_label)) + # or geom_step()
     scale_y_log10() +
     theme_light() +
     theme(
@@ -171,7 +182,8 @@ plot_lifetable <- function(data_out) {
     dt |>
     mutate(lx = round(lx, 8)) %>%
     ggplot(aes(x = Age, y = lx), col = "black") +
-    geom_line() + # or geom_step()
+    geom_line() +
+    geom_line(aes(text = age_label)) + # or geom_step()
     theme_light() +
     theme(
       axis.text = element_text(color = "black"),
@@ -219,7 +231,8 @@ plot_lifetable <- function(data_out) {
     dt |>
     mutate(dx = round(ndx / AgeInt, 8)) %>%
     ggplot(aes(x = Age, y = dx), col = "black") +
-    geom_line() + # or geom_step()
+    geom_line() +
+    geom_line(aes(text = age_label)) + # or geom_step()
     theme_light() +
     theme(
       axis.text = element_text(color = "black"),
@@ -363,7 +376,7 @@ plot_input_rates <- function(data) {
 
   figure <-
     p +
-    geom_line() +
+    geom_line(color = "black") +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_log10() +
     theme_light() +
@@ -531,6 +544,7 @@ plot_initial_single_sex <- function(data,
                                     plot_exposures = TRUE,
                                     plot_deaths = TRUE,
                                     plot_rates = TRUE) {
+
   data <-
     data |>
     mutate(
@@ -593,7 +607,7 @@ plot_initial_single_sex <- function(data,
       geom_line(
         data = dt,
         aes(
-          text = age_label,
+          text = age_label
         ),
         colour = "black"
       )
