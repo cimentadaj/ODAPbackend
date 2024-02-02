@@ -284,12 +284,35 @@ plot_lifetable <- function(data_out) {
       subtitle = "Marked locations on the distribution indicate age-at-death quartiles (grey)\nand life expectancy (red)"
     )
 
-  return(lst(nMx = lst(nMx_plot, nMx_plot_data = dt |> 
-                         select("Age", "age_plot", "age_label", "nMx")), 
-             lx = lst(lx_plot, lx_plot_data = dt |> 
-                        select("Age", "age_plot", "age_label", "lx")),
-             ndx = lst(ndx_plot, ndx_plot_data = dt |> 
-                         select("Age", "age_plot", "age_label", "ndx"))))
+
+  nqx_plot <- 
+    dt |>
+    mutate(nqx = round(nqx, 2)) %>%
+    ggplot(aes(x = .data$Age, y = .data$nqx), col = "black") +
+    geom_line() +
+    geom_line(aes(text = age_label)) +
+    scale_y_log10() +
+    theme_light() +
+    theme(
+      axis.text = element_text(color = "black")
+    ) +
+    labs(
+      x = "Age",
+      y = "nqx (log scale)",
+      title = "Conditional Death Probabilities"
+    )
+   
+
+  return(lst(
+    nMx = lst(nMx_plot, nMx_plot_data = dt |>
+      select("Age", "age_plot", "age_label", "nMx")),
+    lx = lst(lx_plot, lx_plot_data = dt |>
+      select("Age", "age_plot", "age_label", "lx")),
+    ndx = lst(ndx_plot, ndx_plot_data = dt |>
+      select("Age", "age_plot", "age_label", "ndx")),
+    nqx = lst(nqx_plot, nqx_plot_data = dt |>
+      select("Age", "age_plot", "age_label", "nqx")),
+  ))
 
 
 }
