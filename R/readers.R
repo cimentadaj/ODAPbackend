@@ -88,7 +88,7 @@ create_groupid <- function(data, keys){
 
 #' @importFrom dplyr group_by summarize
 #' @export
-check_subsets <- function(data){
+check_groupid <- function(data){
   stopifnot(".id" %in% colnames(data))
   check <-
     data |> 
