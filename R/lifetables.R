@@ -178,6 +178,7 @@ lt_flexible <- function(data_in,
   data_out <- data_out |> 
     mutate(Sex = sex, .before = 1)
   
+  # TR: decouple this by Monday, and email JC, meet Tues
   plots <- plot_lifetable(data_out)
   
   # sorry JC, forgot this!
