@@ -82,7 +82,7 @@ read_data <- function(user_file, skip = 0) {
 create_groupid <- function(data, keys){
   data |> 
     group_by_at(keys) |> 
-    mutate(.id = cur_group_id())
+    mutate(.id = cur_group_id(), .before = 1)
 }
 
 
