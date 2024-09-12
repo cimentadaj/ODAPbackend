@@ -192,7 +192,6 @@ lt_flexible <- function(data_in,
 #' @param data_in a `data.frame` or `tibble` with columns `Age``, `Deaths``, and `Exposures``
 #' @param data_out `tibble` as produced by `lt_flexible()`
 #' @param extrapFrom integer. Age from which to impute extrapolated mortality.
-
 lt_plot <- function(data_in, 
                     data_out, 
                     extrapFrom = extrapFrom){
