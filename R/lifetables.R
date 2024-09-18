@@ -1,6 +1,7 @@
 
-# [ ] make Male, Female, Total acceptable Sex inputs,
-# properly coercing Total to b for lt_abridged...
+# [ ] allow lx, nMx, nqx inputs
+# [ ] if data go up to 75+ we can't have jumpoff at 80, the value 80 needs
+#     to be dynamically determined
 
 #' lt_flexible
 #' @description Calculate an abridged-age or a single-age lifetable.
@@ -14,7 +15,7 @@
 #' @param SRB numeric. the sex ratio at birth (boys / girls), default `1.05`
 #' @param a0rule character. Either `"ak"` (default) or `"cd"`.
 #' @param axmethod character. Either `"pas"` or `"un"`.
-#' @param Sex character. Either `"m"` for males, `"f"` for females (default). 
+#' @param Sex character. Either `"m"` for males, `"f"` for females (default).
 #' @return A single or abridged life table iof data.frame format with corresponding columns:
 #' Age integer. Lower bound of abridged age class,
 #' AgeInt integer. Age class widths.
@@ -177,6 +178,24 @@ lt_flexible <- function(data_in,
   data_out <- data_out |> 
     mutate(Sex = sex, .before = 1)
   
+
+  
+  # now all cases handled
+  return(data_out)
+  
+}
+
+#' lt_plot
+#' @description Plot wrapper, created lifetable plot list previously returned by `lt_flexible()`
+#' @details This function should be run after `lt_flexible()`, so that you can pass both `data_in` and `data_out`. There is no fallback at this time to generate `data_out` on the fly if missing. We need to pass `extrapFrom` at this time indicate the jump-off in the plot. In the future this may be detected or passed in another way.
+#' @export
+#' @param data_in a `data.frame` or `tibble` with columns `Age``, `Deaths``, and `Exposures``
+#' @param data_out `tibble` as produced by `lt_flexible()`
+#' @param extrapFrom integer. Age from which to impute extrapolated mortality.
+lt_plot <- function(data_in, 
+                    data_out, 
+                    extrapFrom = extrapFrom){
+
   plots <- plot_lifetable(data_out)
   
   # sorry JC, forgot this!
@@ -184,9 +203,7 @@ lt_flexible <- function(data_in,
                                   data_out, 
                                   extrapFrom = extrapFrom)
   
-  # now all cases handled
-  return(list(lt = data_out, plots = plots))
-  
+  return(plots)
 }
 
 

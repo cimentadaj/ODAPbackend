@@ -76,3 +76,24 @@ read_data <- function(user_file, skip = 0) {
   # 
   return(data_in)
 }
+
+#' @importFrom dplyr cur_group_id mutate
+#' @export
+create_groupid <- function(data, keys){
+  data |> 
+    group_by_at(keys) |> 
+    mutate(.id = cur_group_id(), .before = 1)
+}
+
+
+#' @importFrom dplyr group_by summarize
+#' @export
+check_groupid <- function(data){
+  stopifnot(".id" %in% colnames(data))
+  check <-
+    data |> 
+    group_by(.id, Age) |> 
+    summarize(n = n(), .groups = "drop")
+  all(check$n == 1)
+}
+

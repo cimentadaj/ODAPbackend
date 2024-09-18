@@ -39,7 +39,7 @@
 #' ex3 <- graduate_auto(
 #'data_in,
 #'age_out  = "single",
-#'variable = "Population",
+#'variable = "Exposures",
 #'u5m      = NULL,
 #'Sex      = "t",
 #'constrain_infants = TRUE

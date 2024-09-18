@@ -4,21 +4,10 @@
 \alias{plot_initial_data}
 \title{plot_initial_data}
 \usage{
-plot_initial_data(
-  data,
-  plot_exposures = TRUE,
-  plot_deaths = TRUE,
-  plot_rates = TRUE
-)
+plot_initial_data(data)
 }
 \arguments{
 \item{data}{tibble. Empirical data downloaded  with the \code{read_data} function}
-
-\item{plot_exposures}{logical. Weather the exposures should be plotted}
-
-\item{plot_deaths}{logical. Weather the Deaths should be plotted#' @param dplot_ratesata logical Empirical data downloaded  with the \code{read_data} function}
-
-\item{plot_rates}{logical. Weather the rates should be plotted#' @param dplot_ratesata logical Empirical data downloaded  with the \code{read_data} function}
 }
 \value{
 A list with 3 corresponding plots for either one or two sex.
@@ -28,9 +17,7 @@ Plots the corresponding 3 graphics for single sex or for both sex depending on d
 }
 \examples{
 \dontrun{
-plot_initial_data(mutate(data, sex = "Female"), 
-                  plot_exposures = TRUE, 
-                  plot_deaths = TRUE, 
-                  plot_rates = TRUE)
+plot_initial_data(mutate(data, sex = "Female")
+)
 }
 }

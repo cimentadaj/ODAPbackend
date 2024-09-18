@@ -4,21 +4,10 @@
 \alias{plot_initial_single_sex}
 \title{plot_initial_two_sex}
 \usage{
-plot_initial_single_sex(
-  data,
-  plot_exposures = TRUE,
-  plot_deaths = TRUE,
-  plot_rates = TRUE
-)
+plot_initial_single_sex(data)
 }
 \arguments{
 \item{data}{tibble. Empirical data downloaded  with the \code{read_data} function}
-
-\item{plot_exposures}{logical indicates weather the population pyramid should be plotted, defaults to TRUE}
-
-\item{plot_deaths}{logical indicates weather the death pyramid should be plotted, defaults to TRUE}
-
-\item{plot_rates}{logical indicates weather the empirical \code{M(x)} should be plotted, defaults to TRUE}
 }
 \value{
 A named list with 3 elements: \code{Exposures} - population pyramid, \code{Deaths} - death pyramid and #\verb{Empirical Mx} - log 10 transformed empirical \code{M(x)} value
@@ -40,17 +29,14 @@ data <- data \%>\%
  full_join(data1) \%>\%
  mutate(Deaths = ifelse(Sex == "Female", Deaths + rpois(22, lambda = 50), Deaths))
 
-plot_initial_two_sex(data = data,
-                     plot_exposures = TRUE,
-                     plot_deaths = TRUE,
-                     plot_rates = TRUE)
+plot_initial_two_sex(data = data)
 }
 plot_initial_single_sex
 \dontrun{
-plot_initial_single_sex(data = mutate(data, 
-                                      sex = "Female"), 
-                        plot_exposures = TRUE, 
-                        plot_deaths = TRUE, 
-                        plot_rates = TRUE)
+plot_initial_single_sex(
+  data = mutate(data,
+    sex = "Female"
+  )
+)
 }
 }

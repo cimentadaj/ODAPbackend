@@ -14,66 +14,88 @@
 #' @examples
 #' \dontrun{
 #' library(readr)
-#' fpath <- system.file("extdata", "abridged_data.csv", package="ODAPbackend")
+#' fpath <- system.file("extdata", "abridged_data.csv", package = "ODAPbackend")
 #' data_in <- read_csv(fpath)
-#' plot_compare_rates(data_in = data_in, 
-#'                    data_out = data_out, 
-#'                    extrapFrom = 60)
+#' plot_compare_rates(
+#'   data_in = data_in,
+#'   data_out = data_out,
+#'   extrapFrom = 60
+#' )
 #' }
-
-plot_compare_rates <- function(
-                        data_in, # raw mx to plot
-                        data_out, # the data from lt
-                        extrapFrom) {
+plot_compare_rates <- function(data_in, # raw mx to plot
+                               data_out, # the data from lt
+                               extrapFrom) {
   # plot the results
-  
+
   input_single <- is_single(data_in$Age)
-  
-  data_in_plot <- data_in |> 
-    mutate(Mx_emp = .data$Deaths / .data$Exposures,
-           AgeInt = age2int(.data$Age, OAG = FALSE),
-           single = is_single(.data$Age),
-           age_mid = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
-           age_label = case_when(.data$Age == max(.data$Age) ~ paste0(max(.data$Age),"+"),
-                                 TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")"))
-           )
-  
-  data_out_plot <- data_out |> 
-    mutate(AgeInt = age2int(.data$Age, OAG = FALSE),
-           single = is_single(.data$Age),
-           age_mid = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
-           age_label = case_when(.data$Age == max(.data$Age) ~ paste0(max(.data$Age),"+"),
-                               TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")"))
+
+  data_in_plot <-
+    data_in |>
+    # TODO: Shall we call it Age-specific Mortality?
+    mutate(
+      `Age-specific Mortality` = round(.data$Deaths / .data$Exposures, 8),
+      AgeInt = age2int(.data$Age, OAG = FALSE),
+      single = is_single(.data$Age),
+      `Age Mid` = if_else(single, .data$Age, .data$Age + (.data$AgeInt / 2)),
+      age_label = case_when(
+        .data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
+        TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")")
+      )
     )
-  
-  dt11 <- filter(data_in_plot, .data$Age >= extrapFrom)
-  
-  figure <- ggplot() + 
-    geom_line(aes(x = data_out_plot$age_mid, y = data_out_plot$nMx), linewidth = 0.8) + 
-    geom_line(aes(x = dt11$age_mid, y = dt11$Mx_emp), 
-              lty = 2,
-              col = "red", 
-              linewidth = 1) +
+
+  data_out_plot <-
+    data_out |>
+    mutate(
+      AgeInt = age2int(.data$Age, OAG = FALSE),
+      single = is_single(.data$Age),
+      `Age Mid` = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
+      age_plot = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
+      age_label = case_when(
+        .data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
+        TRUE ~ paste0("Ages between [", .data$Age, ",", .data$Age + .data$AgeInt, ")")
+      ),
+      nMx = round(.data$nMx, 8)
+    )
+
+  figure <-
+    ggplot() +
+    geom_line(data = data_out_plot, aes(.data$`Age Mid`,y = .data$nMx), linewidth = 0.8) +
+    geom_line(data = data_out_plot, aes(.data$`Age Mid`,y = .data$nMx, text = .data$age_label), linewidth = 0.8) +
+    geom_line(
+      data = filter(data_in_plot, .data$Age >= min(extrapFrom, max(data_out$Age))),
+      aes(
+        x = .data$`Age Mid`,
+        y = .data$`Age-specific Mortality`
+      ),
+      lty = 2,
+      col = "red",
+      linewidth = 1
+    ) +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_log10() +
     theme_light() +
-    geom_vline(xintercept = extrapFrom, lty = 2)+
-    labs(x = "Age",
-         y = "nMx (log scale)",
-         title = "Comparison of empirical nMx and lifetable nmx values",
-         subtitle = "Vertical line indicates extrapolation jump-off age\nred dashed line indicates empirical rates,\nwhich differ from lifetable rates after the jump-off age")+
-    theme(axis.text = element_text(color = "black"),
-          plot.subtitle = element_text(size = 12, color = "black"))
-  
-  
+    geom_vline(xintercept = extrapFrom, lty = 2) +
+    labs(
+      x = "Age",
+      y = "nMx (log scale)",
+      title = "Comparison of empirical nMx and lifetable nmx values",
+      subtitle = "Vertical line indicates extrapolation jump-off age\nred dashed line indicates empirical rates,\nwhich differ from lifetable rates after the jump-off age"
+    ) +
+    theme(
+      axis.text = element_text(color = "black"),
+      plot.subtitle = element_text(size = 12, color = "black")
+    )
+
+
   # return a list with both data and figure
-  return(lst(nMx_plot = figure,
-             nMx_plot_data = data_out_plot))
-  
+  return(lst(
+    nMx_plot = figure,
+    nMx_plot_data = data_out_plot |> select(.data$Age, .data$age_label, .data$nMx)
+  ))
 }
 
 #' plot_lifetable
-#' @description Creates a list of plots of lifetable functions 
+#' @description Creates a list of plots of lifetable functions
 #' @param data_out tibble. Modeled lifetable generated by the lt_flexible function.
 #' @return A ggplot line graph with facets showing the following variables: ex, lx, nAx, ndx, nLx, nMx, nqx, Sx, Tx. The dotted lines for ndx and lx correspond to .25, 0.5, and 0.75 quartiles of the distribution and the solid line is e0.
 #' @importFrom ggplot2 ggplot geom_line facet_wrap scale_x_continuous scale_y_continuous theme_light geom_vline theme element_text element_text annotate
@@ -86,28 +108,33 @@ plot_compare_rates <- function(
 #' @examples
 #' \dontrun{
 #' library(tibble)
-#' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
-#' 247473,223014,172260,149338,127242,105715,79614,53660,
-#' 31021,16805,8000,4000,2000,1000)
-#' 
-#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
-#'             1335,3257,2200,4023,2167,4578,2956,4212,
-#'             2887,2351,1500,900,500,300)
+#' Exposures <- c(
+#'   100958, 466275, 624134, 559559, 446736, 370653, 301862, 249409,
+#'   247473, 223014, 172260, 149338, 127242, 105715, 79614, 53660,
+#'   31021, 16805, 8000, 4000, 2000, 1000
+#' )
 #'
-#'Age = c(0, 1, seq(5, 100, by = 5))
-#'data_in <- tibble(Age,Deaths,Exposures)
-#' data_out <- 
+#' Deaths <- c(
+#'   8674, 1592, 618, 411, 755, 1098, 1100, 1357,
+#'   1335, 3257, 2200, 4023, 2167, 4578, 2956, 4212,
+#'   2887, 2351, 1500, 900, 500, 300
+#' )
+#'
+#' Age <- c(0, 1, seq(5, 100, by = 5))
+#' data_in <- tibble(Age, Deaths, Exposures)
+#' data_out <-
 #'   lt_flexible(data_in,
-#'               OAnew     = 100,
-#'               age_out   = "single",  
-#'               extrapFrom = 80,
-#'               extrapFit = Age[Age >= 60], 
-#'               radix     = 1e+05,
-#'               extrapLaw = NULL,
-#'               SRB       = 1.05,
-#'               a0rule    = "ak",
-#'               axmethod  = "un",
-#'               Sex       = "m")
+#'     OAnew = 100,
+#'     age_out = "single",
+#'     extrapFrom = 80,
+#'     extrapFit = Age[Age >= 60],
+#'     radix = 1e+05,
+#'     extrapLaw = NULL,
+#'     SRB = 1.05,
+#'     a0rule = "ak",
+#'     axmethod = "un",
+#'     Sex = "m"
+#'   )
 #' plots <- plot_lifetable(data_out = data_out)
 #' print(plots$nMx)
 #' print(plots$lx)
@@ -115,252 +142,190 @@ plot_compare_rates <- function(
 #' }
 # TODO: add plot titles
 plot_lifetable <- function(data_out) {
-  
-  lx25 <- ineq_quantile_lower(age = data_out$Age, lx = data_out$lx,  quantile = 0.25)
-  lx50 <- ineq_quantile_lower(age = data_out$Age, lx = data_out$lx,  quantile = 0.5)
-  lx75 <- ineq_quantile_lower(age = data_out$Age, lx = data_out$lx,  quantile = 0.75)
-  e0   <- data_out$ex[data_out$Age == 0]
-  
+  lx25 <- ineq_quantile_lower(age = data_out$Age, lx = data_out$lx, quantile = 0.25)
+  lx50 <- ineq_quantile_lower(age = data_out$Age, lx = data_out$lx, quantile = 0.5)
+  lx75 <- ineq_quantile_lower(age = data_out$Age, lx = data_out$lx, quantile = 0.75)
+  e0 <- data_out$ex[data_out$Age == 0]
+
   dt <- data_out %>%
-          mutate(AgeInt = age2int(.data$Age, OAG = FALSE),
-                 single = is_single(.data$Age),
-                 age_plot = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
-                 age_label = case_when(Age == max(.data$Age) ~ paste0(max(.data$Age),"+"),
-                                TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")")))
-  
-  nMx_plot <- dt |> 
+    mutate(
+      AgeInt = age2int(.data$Age, OAG = FALSE),
+      single = is_single(.data$Age),
+      age_plot = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
+      age_label = case_when(
+        Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
+        TRUE ~ paste0("Ages between: [", Age, ",", Age + AgeInt, ")")
+      )
+    )
+
+  nMx_plot <- dt |>
     ggplot(aes(x = .data$age_plot, y = .data$nMx), col = "black") +
     geom_line() + # or geom_step()
+    geom_line(aes(text = age_label)) + # or geom_step()
     scale_y_log10() +
-    theme_light() + 
-    theme(axis.text = element_text(color = "black"),
-          plot.subtitle = element_text(size = 12, color = "black"),
-          axis.title.y  = element_blank())
-  radix <- data_out$lx[1]
-  
-  lx_plot <- dt |>
-    ggplot(aes(x = .data$age_plot, y = .data$lx), col = "black") +
-    geom_line() + # or geom_step()
     theme_light() +
     theme(
       axis.text = element_text(color = "black"),
       plot.subtitle = element_text(size = 12, color = "black"),
-      axis.title.y  = element_blank()
+      axis.title.y = element_blank()
+    )
+  # --------- #
+  # lx  plot  #
+  # --------- #
+  radix <- data_out$lx[1]
+
+  lx_plot <- dt |>
+    mutate(lx = round(.data$lx, 8)) %>%
+    ggplot(aes(x = .data$age_plot, y = .data$lx), col = "black") +
+    geom_line() + # or geom_step()
+    geom_line(aes(text = age_label)) + # or geom_step()
+    theme_light() +
+    theme(
+      axis.text = element_text(color = "black"),
+      plot.subtitle = element_text(size = 12, color = "black")
     ) +
-    # geom_vline(xintercept = c(lx25,lx50,lx75),
-    #            linewidth  = .5, color = gray(.5)) +
+
     geom_vline(xintercept = data_out$ex[1], color = "red") +
-    annotate(
-      "text",
-      x = data_out$ex[1] + 2,
-      y = .25 * radix,
-      label = "life expectancy",
-      color = "red",
-      angle = -90
+    annotate("text",
+      x = data_out$ex[1] + 2, y = .25 * radix,
+      label = "life expectancy", color = "red", angle = -90
     ) +
-    annotate(
-      "segment",
-      x = lx75 - 2,
-      xend = lx75 + 2,
-      y = .75 * radix,
-      yend = .75 * radix,
-      color = gray(.5)
-    ) +
-    annotate(
-      "segment",
-      x = lx50 - 2,
-      xend = lx50 + 2,
-      y = .50 * radix,
-      yend = .50 * radix,
-      color = gray(.5)
-    ) +
-    annotate(
-      "segment",
-      x = lx25 - 2,
-      xend = lx25 + 2,
-      y = .25 * radix,
-      yend = .25 * radix,
-      color = gray(.5)
-    ) +
-    
-    annotate(
-      "segment",
-      x = lx75,
-      xend = lx75,
-      y = .73 * radix,
-      yend = .77 * radix,
-      color = gray(.5)
-    ) +
-    annotate(
-      "segment",
-      x = lx50,
-      xend = lx50,
-      y = .48 * radix,
-      yend = .52 * radix,
-      color = gray(.5)
-    ) +
-    annotate(
-      "segment",
-      x = lx25,
-      xend = lx25,
-      y = .23 * radix,
-      yend = .27 * radix,
-      color = gray(.5)
-    ) +
-    
-    annotate(
-      "text",
-      x = lx75 + 4,
-      y = .77 * radix,
-      color = gray(.5),
-      label = "75%"
-    ) +
-    annotate(
-      "text",
-      x = lx50 + 4,
-      y = .52 * radix,
-      color = gray(.5),
-      label = "50%"
-    ) +
-    annotate(
-      "text",
-      x = lx25 + 4,
-      y = .27 * radix,
-      color = gray(.5),
-      label = "25%"
-    ) +
-    
+    annotate("segment", x = lx75 - 2, xend = lx75 + 2, y = .75 * radix, yend = .75 * radix, color = gray(.5)) +
+    annotate("segment", x = lx50 - 2, xend = lx50 + 2, y = .50 * radix, yend = .50 * radix, color = gray(.5)) +
+    annotate("segment", x = lx25 - 2, xend = lx25 + 2, y = .25 * radix, yend = .25 * radix, color = gray(.5)) +
+    annotate("segment", x = lx75, xend = lx75, y = .73 * radix, yend = .77 * radix, color = gray(.5)) +
+    annotate("segment", x = lx50, xend = lx50, y = .48 * radix, yend = .52 * radix, color = gray(.5)) +
+    annotate("segment", x = lx25, xend = lx25, y = .23 * radix, yend = .27 * radix, color = gray(.5)) +
+    annotate("text", x = lx75 + 4, y = .77 * radix, color = gray(.5), label = "75%") +
+    annotate("text", x = lx50 + 4, y = .52 * radix, color = gray(.5), label = "50%") +
+    annotate("text", x = lx25 + 4, y = .27 * radix, color = gray(.5), label = "25%") +
     labs(
-      x      = "Age",
-      y        = "lx",
-      title    = "Survival curve (lx) generated from lifetable nmx values",
+      x = "Age",
+      y = "lx",
+      title = "Survival curve (lx) generated from lifetable nmx values",
       subtitle = "Marked locations on the curve indicate survival quartiles"
     )
+
   
+  # --------- #
+  # ndx plot  #
+  # --------- #
+  R <- dt$ndx |>
+    max() |>
+    pretty() |>
+    max()
   
-  R <- dt$ndx |> max() |> pretty() |> max()
+  dx_ages <- c(lx75, lx50, lx25) |> floor()
+
+  R <- (dt$ndx /dt$AgeInt) |> max() |> pretty() |> max()
   dx_ages <- c(lx75, lx50, lx25) |> floor()
   
   if(is_abridged(dt$Age)) {
-    
     dx_ages <- dx_ages - dx_ages %% 5
-    
   }
-  dx_mark <- dt |> 
-    filter(.data$Age %in% dx_ages) |> 
-    mutate(ndx = .data$ndx / .data$AgeInt) |> 
-    pull("ndx")
+
+  dx_mark <-
+    dt |>
+    filter(.data$Age %in% dx_ages) |>
+    mutate(ndx = .data$ndx / .data$AgeInt) |>
+    pull(.data$ndx)
 
 
-   ndx_plot <- dt |> 
-    ggplot(aes(x = .data$age_plot, y = .data$ndx / .data$AgeInt), col = "black") +
+  ndx_plot <-
+    dt |>
+    mutate(dx = round(.data$ndx / .data$AgeInt, 8)) %>%
+    ggplot(aes(x = .data$Age, y = .data$dx), col = "black") +
     geom_line() + # or geom_step()
-    theme_light() + 
-    theme(axis.text = element_text(color = "black"),
-          plot.subtitle = element_text(size = 12, color = "black"),
-          axis.title.y  = element_blank()) +
-     
-     # vertical ticks
-     annotate(
-       "segment",
-       x = lx75,
-       xend = lx75,
-       y = dx_mark[1] + R * .02,
-       yend = dx_mark[1] - R * .02,
-       color = gray(.5)
-     ) +
-     annotate(
-       "segment",
-       x = lx50,
-       xend = lx50,
-       y = dx_mark[2] + R * .02,
-       yend = dx_mark[2] - R * .02,
-       color = gray(.5)
-     ) +
-     annotate(
-       "segment",
-       x = lx25,
-       xend = lx25,
-       y = dx_mark[3] + R * .02,
-       yend = dx_mark[3] - R * .02,
-       color = gray(.5)
-     ) +
-     # horizontal ticks
-     annotate(
-       "segment",
-       x = lx75 - 2,
-       xend = lx75 + 2,
-       y = dx_mark[1],
-       yend = dx_mark[1],
-       color = gray(.5)
-     ) +
-     annotate(
-       "segment",
-       x = lx50 - 2,
-       xend = lx50 + 2,
-       y = dx_mark[2],
-       yend = dx_mark[2],
-       color = gray(.5)
-     ) +
-     annotate(
-       "segment",
-       x = lx25 - 2,
-       xend = lx25 + 2,
-       y = dx_mark[3],
-       yend = dx_mark[3],
-       color = gray(.5)
-     ) +
-     # labels
-     annotate(
-       "text",
-       x = lx75 - 5,
-       y = dx_mark[1] + R * .03,
-       color = gray(.5),
-       label = "25%"
-     ) +
-     annotate(
-       "text",
-       x = lx50 + 4,
-       y = dx_mark[2] + R * .03,
-       color = gray(.5),
-       label = "50%"
-     ) +
-     annotate(
-       "text",
-       x = lx25 + 4,
-       y = dx_mark[3] + R * .03,
-       color = gray(.5),
-       label = "75%"
-     ) +
-     
+    geom_line(aes(text = age_label)) + # or geom_step()
+    theme_light() +
+    theme(
+      axis.text = element_text(color = "black"),
+      plot.subtitle = element_text(size = 12, color = "black")
+    ) +
+
+    # vertical ticks
+    annotate("segment",
+      x = lx75, xend = lx75, y = dx_mark[1] + R * .02, yend = dx_mark[1] - R * .02,
+      color = gray(.5)
+    ) +
+    annotate("segment",
+      x = lx50, xend = lx50, y = dx_mark[2] + R * .02, yend = dx_mark[2] - R * .02,
+      color = gray(.5)
+    ) +
+    annotate("segment",
+      x = lx25, xend = lx25, y = dx_mark[3] + R * .02, yend = dx_mark[3] - R * .02,
+      color = gray(.5)
+    ) +
+    # horizontal ticks
+    annotate("segment",
+      x = lx75 - 2, xend = lx75 + 2, y = dx_mark[1], yend = dx_mark[1],
+      color = gray(.5)
+    ) +
+    annotate("segment",
+      x = lx50 - 2, xend = lx50 + 2, y = dx_mark[2], yend = dx_mark[2],
+      color = gray(.5)
+    ) +
+    annotate("segment",
+      x = lx25 - 2, xend = lx25 + 2, y = dx_mark[3], yend = dx_mark[3],
+      color = gray(.5)
+    ) +
+    # labels
+    annotate("text", x = lx75 - 5, y = dx_mark[1] + R * .03, color = gray(.5), label = "25%") +
+    annotate("text", x = lx50 + 4, y = dx_mark[2] + R * .03, color = gray(.5), label = "50%") +
+    annotate("text", x = lx25 + 4, y = dx_mark[3] + R * .03, color = gray(.5), label = "75%") +
+
     # geom_vline(xintercept = c(lx25,lx50,lx75),
     #            linewidth  = .5, color = gray(.5)) +
     geom_vline(xintercept = data_out$ex[1], color = "red") +
-    labs(x        = "Age",
-         y        = "dx",
-         title    = "Death distribution (dx) generated from lifetable nmx values",
-         subtitle = "Marked locations on the distribution indicate age-at-death quartiles (grey)\nand life expectancy (red)")
+    labs(
+      x = "Age",
+      y = "dx",
+      title = "Death distribution (dx) generated from lifetable nmx values",
+      subtitle = "Marked locations on the distribution indicate age-at-death quartiles (grey)\nand life expectancy (red)"
+    )
 
-  return(lst(nMx = lst(nMx_plot, nMx_plot_data = dt |> 
-                         select("Age", "age_plot", "age_label", "nMx")), 
-             lx = lst(lx_plot, lx_plot_data = dt |> 
-                        select("Age", "age_plot", "age_label", "lx")),
-             ndx = lst(ndx_plot, ndx_plot_data = dt |> 
-                         select("Age", "age_plot", "age_label", "ndx"))))
-  
+
+  nqx_plot <- 
+    dt |>
+    mutate(nqx = round(nqx, 2)) %>%
+    ggplot(aes(x = .data$Age, y = .data$nqx), col = "black") +
+    geom_line() +
+    geom_line(aes(text = age_label)) +
+    scale_y_log10() +
+    theme_light() +
+    theme(
+      axis.text = element_text(color = "black")
+    ) +
+    labs(
+      x = "Age",
+      y = "nqx (log scale)",
+      title = "Conditional Death Probabilities"
+    )
+   
+
+  return(lst(
+    nMx = lst(nMx_plot, nMx_plot_data = dt |>
+      select("Age", "age_plot", "age_label", "nMx")),
+    lx = lst(lx_plot, lx_plot_data = dt |>
+      select("Age", "age_plot", "age_label", "lx")),
+    ndx = lst(ndx_plot, ndx_plot_data = dt |>
+      select("Age", "age_plot", "age_label", "ndx")),
+    nqx = lst(nqx_plot, nqx_plot_data = dt |>
+      select("Age", "age_plot", "age_label", "nqx")),
+  ))
+
+
 }
 
 
 
-abs_and_comma <- function (x, ...) {
-  
+abs_and_comma <- function(x, ...) {
   format(abs(x), ..., big.mark = ",", scientific = FALSE, trim = TRUE)
-  
 }
 
 #' pyramid
-#' @description Generate a population pyramid from the user data. WARNING contains some tidy evaluation 
-#' @param data tibble. Empirical data downloaded  with the `read_data` function. Should contain the Exposures, Deaths 
+#' @description Generate a population pyramid from the user data. WARNING contains some tidy evaluation
+#' @param data tibble. Empirical data downloaded  with the `read_data` function. Should contain the Exposures, Deaths
 #' @param y  character. This argument indicating weather the `Exposures` or `Deaths` should be plotted.
 #' @return A pyramid for either Deaths or Exposures
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme geom_bar element_text guide_legend
@@ -370,24 +335,25 @@ abs_and_comma <- function (x, ...) {
 #' @export
 #' @examples
 #' \dontrun{
-#'data1           <- data
-#'data1$Sex       <- "Female"
-#'data1$Exposures <- data1$Exposures
-#'data1$Deaths    <- data1$Deaths
-#'data <- data %>% 
-#'  full_join(data1) %>%
-#'  mutate(Deaths = ifelse(Sex == "Female", Deaths + rpois(22, lambda = 50), Deaths))
+#' data1 <- data
+#' data1$Sex <- "Female"
+#' data1$Exposures <- data1$Exposures
+#' data1$Deaths <- data1$Deaths
+#' data <- data %>%
+#'   full_join(data1) %>%
+#'   mutate(Deaths = ifelse(Sex == "Female", Deaths + rpois(22, lambda = 50), Deaths))
 #'
 #' pyramid(data = data, y = "Deaths")
 #' }
-
 pyramid <- function(data, y) {
+
   
   data |>
     filter(.data$Sex %in% c("Male", "Female")) |>
     mutate(Sex = factor(.data$Sex, levels = c("Male", "Female"))) |> 
     mutate(!!y := ifelse(.data$Sex == "Male", -(!!sym(y)), !!sym(y))) |> # done
     ggplot(aes(x = .data$Age, y = (.data[[y]] / .data$AgeInt), fill = .data$Sex, width = .data$AgeInt)) +
+
     geom_bar(stat = "identity") +
     coord_flip() +
     scale_x_continuous(breaks = pretty_breaks()) +
@@ -396,21 +362,24 @@ pyramid <- function(data, y) {
       limits = max(pull(mutate(data, "new" := .data[[y]] / .data$AgeInt), "new")) * c(-1, 1)) +
     theme_light() +
     scale_fill_brewer(palette = "Dark2", guide = guide_legend(title = "Sex")) +
-    theme(legend.position = "bottom",
-          axis.text     = element_text(color = "black", size = 10),
-          axis.title    = element_text(color = "black", size = 12),
-          legend.text   = element_text(color = "black", size = 12),
-          legend.title  = element_text(color = "black", size = 14),
-          plot.subtitle = element_text(color = "black", size = 14)
-    ) + 
-    labs(subtitle = str_c("Pyramid of ", y, "."),
-         y = y)
-  }
+    theme(
+      legend.position = "bottom",
+      axis.text = element_text(color = "black", size = 10),
+      axis.title = element_text(color = "black", size = 12),
+      legend.text = element_text(color = "black", size = 12),
+      legend.title = element_text(color = "black", size = 14),
+      plot.subtitle = element_text(color = "black", size = 14)
+    ) +
+    labs(
+      subtitle = str_c("Pyramid of ", y, "."),
+      y = y
+    )
+}
 
 
 #' plot_input_rates
 #' @description Plots a line graph of the log10 transformed empirical mortality rate (Mx).
-#' @param data tibble. Empirical data downloaded  with the `read_data` function 
+#' @param data tibble. Empirical data downloaded  with the `read_data` function
 #' @return A linechart of log 10 scaled empirical `M(x)` values
 #' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
@@ -421,45 +390,59 @@ pyramid <- function(data, y) {
 #' \dontrun{
 #' plot_input_rates(data = mutate(data, sex = "Female"))
 #' }
-#' 
-# TODO: color = sex should only be used if there are >1 sex categories. 
-# Removed. Done.
-# Or at least the fill legend suppressed if there is only one sex. I modified the code for this, can you check it?
+#'
+
 plot_input_rates <- function(data) {
- 
+
   data <- data |>
-    mutate(Mx_emp = .data$Deaths / .data$Exposures)
+    mutate(nMx = round(.data$Deaths / .data$Exposures,8),
+           AgeInt = age2int(.data$Age, OAG = FALSE),
+           single = is_single(.data$Age),
+           age_plot = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
+           age_label = case_when(Age == max(.data$Age) ~ paste0(max(.data$Age),"+"),
+                               TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")")))
 
   if(any(colnames(data) == "Sex")){
     
     p <- data |>
-      ggplot(aes(x = .data$Age, y = .data$Mx_emp, color = "black"), linewidth = 0.8)
+      ggplot(aes(x = age_plot, y = nMx), linewidth = 0.8)
     
   } else {
     
     p <- data |>
-      ggplot(aes(x = .data$Age, y = .data$Mx_emp), linewidth = 0.8)
+      ggplot(aes(x = age_plot, y = nMx), linewidth = 0.8)
     
   }
   
   figure <- p + 
-    geom_line() + 
+    geom_line(color = "black") + 
     scale_x_continuous(breaks = pretty_breaks()) +
-    scale_y_log10(labels = label_log(digits = 2)) +
+    scale_y_log10() +
     theme_light() +
-    labs(x = "Age",
-         y = "nMx",
-         subtitle = "Empirical Mx for a given age range on a log10 scale.")+
-    theme(axis.text     = element_text(size = 10, color = "black"),
-          plot.subtitle = element_text(size = 12, color = "black"))
+    labs(
+      x = "Age",
+      y = "nMx (log10 scale)",
+      subtitle = "Empirical Mx for a given age range on a log10 scale."
+    ) +
+    theme(
+      axis.text = element_text(size = 10, color = "black"),
+      plot.subtitle = element_text(size = 12, color = "black")
+    )
 
-  return(lst(figure, data))
+
+  return(
+    lst(
+      figure,
+      data = data |> select(.data$Age, .data$age_label, .data$nMx)
+    )
+  )
+
 }
 
 
 #' plot_histogram
 #' @description Plots a histogram of population or death, depending on the user choice.
-#' @param data tibble. Empirical data downloaded  with the `read_data` function 
+#' @param data tibble. Empirical data downloaded  with the `read_data` function
 #' @param y character. This argument indicats weather the `Exposures` or `Deaths` should be plotted.
 #' @return A histogramm for either Deaths or Exposures
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend element_blank
@@ -470,45 +453,51 @@ plot_input_rates <- function(data) {
 #' \dontrun{
 #' plot_histogram(data = mutate(data, Sex = "Female"), y = "Deaths")
 #' }
-
-plot_histogram <- function(data, y) { 
+plot_histogram <- function(data, y) {
   
   if (! "AgeInt" %in% colnames(data)){
-    
     data <- data |> 
-      mutate(AgeInt = age2int(.data$Age, OAvalue = 1))
-    
+      mutate(AgeInt = age2int(Age, OAvalue = 1))
   }
   
+  y_sym <- sym(y)
+  
   data <- data |> 
-    mutate(y_plot = !!sym(y) / .data$AgeInt,
-           age_label = case_when(.data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
-                                 TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")"))) |> 
-    select("Age", "AgeInt", "age_label", !!sym(y), "y_plot") 
+    mutate(y_plot = !!y_sym / AgeInt,
+           age_label = case_when(Age == max(Age) ~ paste0(max(Age), "+"),
+                                 TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")"))) |> 
+    select(Age, AgeInt, age_label, !!y_sym, y_plot) 
     
   
   figure <- data |> 
-    ggplot(aes(x = .data$Age + .data$AgeInt / 2, y = .data$y_plot, width = .data$AgeInt), 
-           color = "black") +
+    ggplot(aes(x = Age + AgeInt / 2, y = y_plot, width = AgeInt), color = "black") +
     geom_col() +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_continuous(
       labels = abs_and_comma,
-      limits = c(0, max(.data$y_plot))) +
+      limits = c(0, max(data$y_plot, na.rm = TRUE))) +
     theme_light() +
     scale_fill_brewer(palette = "Dark2") +
-    theme(legend.position = "bottom",
-          axis.text     = element_text(color = "black", size = 10),
-          axis.title    = element_text(color = "black", size = 12),
-          legend.text   = element_blank(),
-          legend.title  = element_blank(),
-          plot.subtitle = element_text(color = "black", size = 14)
-    ) + 
-    labs(subtitle = str_c("Age histogram of ", y, "."),
-         y = y,
-         x = "Age")
-  
-  return(lst(figure, data))
+    theme(
+      legend.position = "bottom",
+      axis.text = element_text(color = "black", size = 10),
+      axis.title = element_text(color = "black", size = 12),
+      legend.text = element_blank(),
+      legend.title = element_blank(),
+      plot.subtitle = element_text(color = "black", size = 14)
+    ) +
+    labs(
+      subtitle = str_c("Age histogram of ", y, "."),
+      y = y,
+      x = "Age"
+    )
+
+  return(
+    lst(
+      figure,
+      data = data |> select(Age, age_label, !!y_sym)
+    )
+  )
 }
 
 
@@ -517,9 +506,6 @@ plot_histogram <- function(data, y) {
 ##' plot_initial_two_sex
 ##' @description Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population #pyramid and death pyramid if the data contains information on two sex.
 ##' @param data tibble. Empirical data downloaded  with the `read_data` function
-##' @param plot_exposures logical indicates weather the population pyramid should be plotted, defaults #to TRUE
-##' @param plot_deaths logical indicates weather the death pyramid should be plotted, defaults to TRUE
-##' @param plot_rates logical indicates weather the empirical `M(x)` should be plotted, defaults to TRUE
 ##' @return A named list with 3 elements: `Exposures` - population pyramid, `Deaths` - death pyramid and #`Empirical Mx` - log 10 transformed empirical `M(x)` value
 ##' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme element_text guide_legend
 ##' @importFrom scales label_log pretty_breaks
@@ -534,46 +520,37 @@ plot_histogram <- function(data, y) {
 ##' data <- data %>%
 ##'  full_join(data1) %>%
 ##'  mutate(Deaths = ifelse(Sex == "Female", Deaths + rpois(22, lambda = 50), Deaths))
-##' 
-##' plot_initial_two_sex(data = data,
-##'                      plot_exposures = TRUE,
-##'                      plot_deaths = TRUE,
-##'                      plot_rates = TRUE)
+##'
+##' plot_initial_two_sex(data = data)
 ##' }
 #
-## plot_initial_two_sex <- function(data, 
-##                                  plot_exposures = TRUE, 
-##                                  plot_deaths    = TRUE, 
-##                                  plot_rates     = TRUE) {
-##   
-##   if(plot_exposures) { 
-##     
+## plot_initial_two_sex <- function(data) {
+##
+##   if(plot_exposures) {
+##
 ##     Exposures <- pyramid(data = data, y = "Exposures")
-##     
+##
 ##   }
-##   
+##
 ##   if(plot_deaths) {
-##     
+##
 ##     Deaths <- pyramid(data = data, y = "Deaths")
-##     
+##
 ##   }
-##   
-##   if(plot_rates) { 
-##     
+##
+##   if(plot_rates) {
+##
 ##     `Empirical Mx` <- plot_input_rates(data = data)
-##     
+##
 ##     }
-## 
+##
 ##   return(lst(Exposures, Deaths, `Empirical Mx`))
-## 
+##
 ## }
 
 #' plot_initial_single_sex
 #' @description Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population histogram and death histogram if the data contains information on only one sex.
-#' @param data tibble. Empirical data downloaded  with the `read_data` function 
-#' @param plot_exposures logical indicates weather the population pyramid should be plotted, defaults to TRUE
-#' @param plot_deaths logical indicates weather the death pyramid should be plotted, defaults to TRUE
-#' @param plot_rates logical indicates weather the empirical `M(x)` should be plotted, defaults to TRUE
+#' @param data tibble. Empirical data downloaded  with the `read_data` function
 #' @return A named list with 3 elements: `Exposures` - population pyramid, `Deaths` - death pyramid and `Empirical Mx` - log 10 transformed empirical `M(x)` value
 #' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
@@ -582,55 +559,87 @@ plot_histogram <- function(data, y) {
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_initial_single_sex(data = mutate(data, 
-#'                                       sex = "Female"), 
-#'                         plot_exposures = TRUE, 
-#'                         plot_deaths = TRUE, 
-#'                         plot_rates = TRUE)
+#' plot_initial_single_sex(
+#'   data = mutate(data,
+#'     sex = "Female"
+#'   )
+#' )
 #' }
-plot_initial_single_sex <- function(data, 
-                                    plot_exposures = TRUE, 
-                                    plot_deaths    = TRUE, 
-                                    plot_rates     = TRUE) {
+plot_initial_single_sex <- function(data) {
   data <- 
     data |> 
-    mutate(Mx_emp    = .data$Deaths / .data$Exposures,
-           AgeInt    = age2int(.data$Age, OAG = FALSE),
-           single    = is_single(.data$Age),
-           age_mid   = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
-           age_label = case_when(.data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
-                                 TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")"))) |> 
+    mutate(Mx_emp    = Deaths / Exposures,
+           AgeInt    = age2int(Age, OAG = FALSE),
+           single    = is_single(Age),
+           `Age Mid`   = if_else(single, Age, Age + (AgeInt / 2)),
+           age_label = case_when(Age == max(Age) ~ paste0(max(Age), "+"),
+                                 TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")"))) |> 
     select(-"single")
   
-  if(plot_exposures) {
-    
+    # ------------------ #
+    # exposures bar plot #
+    # ------------------ #
     Exposures <- plot_histogram(data = data, y = "Exposures")
-    
-  }
-  
-  if(plot_deaths) {
-    
+
+    dt           <- data
+    dt$Exposures <- round(dt$Exposures / dt$AgeInt, 8)
+    dt$age_label <- paste0("Ages between: ", dt$age_label)
+
+    Exposures$figure <-
+      Exposures$figure +
+      geom_col(
+        data = dt,
+        aes(
+          y = Exposures,
+          text = age_label
+        )
+      )
+    # ------------------ #
+    #    deaths bar plot #
+    # ------------------ #
     Deaths <- plot_histogram(data = data, y = "Deaths")
-    
-  }
+
+    dt           <- data
+    dt$Deaths    <- round(dt$Deaths / dt$AgeInt, 8)
+    dt$age_label <- paste0("Ages between: ", dt$age_label)
+
+    Deaths$figure <-
+      Deaths$figure +
+      geom_col(
+        data = dt,
+        aes(
+          y = Deaths,
+          text = age_label
+        )
+      )
   
-  if(plot_rates) { 
-    
+    # ------------------ #
+    # rates plot         #
+    # ------------------ #
     `Empirical Mx` <- plot_input_rates(data = data)
-    
-  }
+
+    dt           <- data
+    dt$age_plot <- dt$`Age Mid`
+    dt$age_label <- paste0("Ages beween: ", dt$age_label)
+    dt$nMx       <- round(dt$Deaths / dt$Exposures, 8)
+
+    `Empirical Mx`$figure <-
+      `Empirical Mx`$figure +
+      geom_line(
+        data = dt,
+        aes(
+          text = age_label
+        )
+      )
   
+
   return(lst(Exposures, Deaths, `Empirical Mx`))
-  
 }
 
 
 #' plot_initial_data
 #' @description Plots the corresponding 3 graphics for single sex or for both sex depending on data provided by the user.
-#' @param data tibble. Empirical data downloaded  with the `read_data` function 
-#' @param plot_exposures logical. Weather the exposures should be plotted
-#' @param plot_deaths logical. Weather the Deaths should be plotted#' @param dplot_ratesata logical Empirical data downloaded  with the `read_data` function 
-#' @param plot_rates logical. Weather the rates should be plotted#' @param dplot_ratesata logical Empirical data downloaded  with the `read_data` function 
+#' @param data tibble. Empirical data downloaded  with the `read_data` function
 #' @return A list with 3 corresponding plots for either one or two sex.
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
@@ -638,16 +647,12 @@ plot_initial_single_sex <- function(data,
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_initial_data(mutate(data, sex = "Female"), 
-#'                   plot_exposures = TRUE, 
-#'                   plot_deaths = TRUE, 
-#'                   plot_rates = TRUE)
+#' plot_initial_data(mutate(data, sex = "Female")
+#' )
 #' }
 
-plot_initial_data <- function(data, 
-                              plot_exposures = TRUE, 
-                              plot_deaths    = TRUE, 
-                              plot_rates     = TRUE) {
+
+plot_initial_data <- function(data) {
   
   if("Sex" %in% colnames(data)) {
     
@@ -658,26 +663,21 @@ plot_initial_data <- function(data,
     sexes <- 1
     
   }
-  
-  if(length(sexes) > 1) {
+
+  if (length(sexes) > 1) {
+
     
     data <- data |>
       filter(.data$Sex %in% c("Male", "Female"))
-    
+
     warning("Currently plots only handle single-sex data")
     
-    # result <- plot_initial_two_sex(data,
-    #                                plot_exposures = plot_exposures,
-    #                                plot_deaths = plot_deaths,
-    #                                plot_rates = plot_rates)
+ 
   } else {
-    result <- plot_initial_single_sex(data, 
-                                      plot_exposures = plot_exposures, 
-                                      plot_deaths    = plot_deaths, 
-                                      plot_rates     = plot_rates)
+
+    result <- plot_initial_single_sex(data)
     
   }
-  
+
   return(result)
-  
 }
