@@ -279,7 +279,7 @@ lt_flexible_chunk <- function(
 #' @description Plot wrapper, created lifetable plot list previously returned by `lt_flexible()`
 #' @details This function should be run after `lt_flexible()`, so that you can pass both `data_in` and `data_out`. There is no fallback at this time to generate `data_out` on the fly if missing. We need to pass `extrapFrom` at this time indicate the jump-off in the plot. In the future this may be detected or passed in another way.
 #' @importFrom dplyr group_split mutate group_nest full_join
-#' @importFrom purrr map2 map
+#' @importFrom purrr map2 map set_names
 #' @importFrom tidyr pivot_wider
 #' @export
 #' @param data_in a `data.frame` or `tibble` with columns `Age`, `Deaths`, and `Exposures` and `.id`
@@ -299,9 +299,12 @@ lt_plot <- function(data_in,
       mutate(.id = "all")
   }
   
+  id1 <- unique(data_in$.id)
+  
   plots <- data_out |>
     group_split(.data$.id, .keep = TRUE)|>
-    map(~ plot_lifetable(.x))
+    map(~ plot_lifetable(.x)) %>% 
+    set_names(id1)
   
   # sorry JC, forgot this!
   d_in <-  data_in |>
@@ -404,7 +407,8 @@ lt_summary_chunk <- function(data_out) {
                ax = data_out$nAx)
   
 
-  IQR        <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.25,  upper = 0.75)
+  IQR        <- ineq_iqr(age = data_out$Age, 
+                         lx = data_out$lx, lower = 0.25,  upper = 0.75)
 
   # TR: corrected this; you were using ndx before, we only need for age 0...
   median_age <- ineq_quantile(age = data_out$Age, lx = data_out$lx, quantile = 0.5)[1]

@@ -170,7 +170,7 @@ plot_lifetable <- function(data_out) {
   nMx_plot <- dt |>
     ggplot(aes(x = .data$age_plot, y = .data$nMx), col = "black") +
     geom_line() + # or geom_step()
-    geom_line(aes(text = .data$age_label)) + # or geom_step()
+    geom_line() + # or geom_step()
     scale_y_log10() +
     theme_light() +
     theme(
@@ -192,7 +192,7 @@ plot_lifetable <- function(data_out) {
     mutate(lx = round(.data$lx, 8)) |>
     ggplot(aes(x = .data$age_plot, y = .data$lx), col = "black") +
     geom_line() + # or geom_step()
-    geom_line(aes(text = .data$age_label)) + # or geom_step()
+    geom_line() + # or geom_step()
     theme_light() +
     theme(
       axis.text = element_text(color = "black"),
@@ -248,7 +248,7 @@ plot_lifetable <- function(data_out) {
     mutate(dx = round(.data$ndx / .data$AgeInt, 8)) |>
     ggplot(aes(x = .data$Age, y = .data$dx), col = "black") +
     geom_line() + # or geom_step()
-    geom_line(aes(text = .data$age_label)) + # or geom_step()
+    geom_line() + # or geom_step()
     theme_light() +
     theme(
       axis.text = element_text(color = "black"),
@@ -301,7 +301,7 @@ plot_lifetable <- function(data_out) {
     mutate(nqx = round(.data$nqx, 2)) |>
     ggplot(aes(x = .data$Age, y = .data$nqx), col = "black") +
     geom_line() +
-    geom_line(aes(text = .data$age_label)) +
+    geom_line() +
     scale_y_log10() +
     theme_light() +
     theme(
