@@ -63,7 +63,7 @@
 #'   age_out = "single", 
 #'   u5m     = .1
 #' )
-#' 
+#' }
 lt_flexible <- function(data_in,
                         OAnew      = 100,
                         age_out    = "single",
@@ -72,6 +72,7 @@ lt_flexible <- function(data_in,
                         extrapLaw  = NULL,
                         radix      = 1e+05,
                         SRB        = 1.05,
+                        Sex        = "t",
                         a0rule     = "Andreev-Kingkade",
                         axmethod   = "UN (Greville)") {
   
@@ -93,9 +94,6 @@ lt_flexible <- function(data_in,
   data_out <- data_in |>
     reframe(
       lt_flexible_chunk(data_in    = .data, 
-                        Deaths     = Deaths,
-                        Exposures  = Exposures,
-                        Age        = Age,
                         Sex        = first(Sex),  
                         OAnew      = OAnew,  
                         extrapFrom = extrapFrom,
@@ -171,9 +169,6 @@ lt_flexible <- function(data_in,
 #' }
 lt_flexible_chunk <- function(
     data_in,
-    Deaths,
-    Exposures,
-    Age,
     Sex,
     OAnew      = 100,
     age_out    = "single", 

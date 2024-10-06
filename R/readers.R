@@ -77,7 +77,11 @@ read_data <- function(user_file, skip = 0) {
   return(data_in)
 }
 
-#' @importFrom dplyr cur_group_id mutate
+#' @title create_groupid
+#' @description Checks to make sure that key variables plus age result in one row per unique stratum.
+#' @param data a `data.frame` or `tibble`
+#' @param keys character vector of columns definining strata
+#' @importFrom dplyr cur_group_id mutate group_by_at
 #' @export
 create_groupid <- function(data, keys){
   data |> 
@@ -85,7 +89,10 @@ create_groupid <- function(data, keys){
     mutate(.id = cur_group_id(), .before = 1)
 }
 
-
+#' @title check_groupid
+#' @description Checks to make sure `.id` column plus `Age` indeed completely define all strata present in the data.
+#' @param data `data.frame`-like object
+#' @return logical TRUE if strata completely defined.
 #' @importFrom dplyr group_by summarize
 #' @export
 check_groupid <- function(data){

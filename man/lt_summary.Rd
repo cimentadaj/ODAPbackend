@@ -36,19 +36,16 @@ Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 
 Age = c(0, 1, seq(5, 100, by = 5))
 data_out <- 
-  lt_flexible(Deaths    = Deaths,
-              Exposures = Exposures,
-              Age       = Age,
+  lt_flexible(data_in,
               OAnew     = 100,
-              age_out   = "single",
+              age_out   = "single",  
               extrapFrom = 80,
-              extrapFit = Age[Age >= 60],
+              extrapFit = NULL, 
               radix     = 1e+05,
               extrapLaw = NULL,
               SRB       = 1.05,
               a0rule    = "ak",
-              axmethod  = "un",
-              Sex       = "m")
+              axmethod  = "un")
               
 lt_summary(data_out)
 }

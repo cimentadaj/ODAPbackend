@@ -14,10 +14,10 @@ plot_compare_rates(data_in, data_out, extrapFrom)
 \item{extrapFrom}{numeric. extrapFrom an age interval from which the lifetable was extrapolated.}
 }
 \value{
-A line graph with black line corresponding to empirical Mx data and red line corresponding to modelled Mx data from the  chosen extrapFrom value.
+A line graph with black line corresponding to empirical Mx data and red line corresponding to modelled Mx data from the  chosen extrapFrom value for each group specified by .id column.
 }
 \description{
-Plots a line graph of the log10 transformed empirical mortality rate (Mx) data and a fitted data from a chosen age.
+Plots a line graph of the log10 transformed empirical mortality rate (Mx) data and a fitted data from a chosen age. Can work with .id argument indicating groups
 }
 \examples{
 \dontrun{

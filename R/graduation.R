@@ -41,7 +41,8 @@ smooth_flexible <- function(data_in,
                                                     "KKN", "Arriaga", "United Nations",
                                                     "Strong", "Zigzag"),
                                   u5m           = NULL,
-                                  constrain_infants = TRUE) {
+                                  constrain_infants = TRUE,
+                                  Sex) {
   
   if (!(".id" %in% colnames(data_in))) {
     data_in <- data_in |>
@@ -89,15 +90,15 @@ smooth_flexible <- function(data_in,
 
 
 
-data_out <- smooth_flexible_group(
-  data_in, 
-  variable     = "Deaths", 
-  rough_method = "auto",
-  fine_method  = "pclm", 
-  constrain_infants = TRUE, 
-  age_out = "single", 
-  u5m     = .1
-)
+# data_out <- smooth_flexible_chunk(
+#   data_in, 
+#   variable     = "Deaths", 
+#   rough_method = "auto",
+#   fine_method  = "pclm", 
+#   constrain_infants = TRUE, 
+#   age_out = "single", 
+#   u5m     = .1
+# )
 #' @title graduate_auto
 #' @description Smooth population or death counts with moving averages. The method was adopted from the "Method protocol for the evaluation of census population data by age and sex" paragraph 5.
 #' @param data_in tibble. A tibble with two numeric columns - population or death counts with supported names: `Pop`, `Population`, `Exp`, `Exposures` or `Deaths`, and corresponding `Age` - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1-4, 5-9 etc.
