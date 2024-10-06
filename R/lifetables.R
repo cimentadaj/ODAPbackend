@@ -30,7 +30,7 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' library(tibble)
+#' library(tidyverse)
 #' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
 #' 247473,223014,172260,149338,127242,105715,79614,53660,
 #' 31021,16805,8000,4000,2000,1000)
@@ -54,14 +54,8 @@
 #'   dplyr::select(-sex)
 #'
 #' 
-#' data_out <- smooth_flexible(
-#'   data_in, 
-#'   variable     = "Deaths", 
-#'   rough_method = "auto",
-#'   fine_method  = "pclm", 
-#'   constrain_infants = TRUE, 
-#'   age_out = "single", 
-#'   u5m     = .1
+#' data_out <- lt_flexible(
+#'   data_in = data_in
 #' )
 #' }
 lt_flexible <- function(data_in,
@@ -207,11 +201,11 @@ lt_flexible_chunk <- function(
     # TR possibly more args to pass, or different arg management;
     # for instance, construct a completed list of args
     # and execute the function using do.call()
-    AgeInt <- age2int(.data$Age)
+    AgeInt <- age2int(data_in$Age)
     
-    data_out <- lt_abridged(Deaths     = .data$Deaths,
-                            Exposures  = .data$Exposures,
-                            Age        = .data$Age,
+    data_out <- lt_abridged(Deaths     = data_in$Deaths,
+                            Exposures  = data_in$Exposures,
+                            Age        = data_in$Age,
                             AgeInt     = AgeInt,
                             OAnew      = OAnew,
                             extrapFrom = extrapFrom,
@@ -227,9 +221,9 @@ lt_flexible_chunk <- function(
   # Compute `data_out` based on age conditions
   if (age_in == "abridged" & age_out == "single") {
     
-    data_out <- lt_abridged2single(Deaths     = .data$Deaths,
-                                   Exposures  = .data$Exposures,
-                                   Age        = .data$Age,
+    data_out <- lt_abridged2single(Deaths     = data_in$Deaths,
+                                   Exposures  = data_in$Exposures,
+                                   Age        = data_in$Age,
                                    OAnew      = OAnew,  
                                    extrapFrom = extrapFrom,
                                    extrapFit  = extrapFit,
@@ -246,8 +240,8 @@ lt_flexible_chunk <- function(
     # Don't check age_out yet here, because the abridge function requires a
     # precalculated lifetable, see below
     # TR same story; arg management should be complete and strategic
-    data_out <- lt_single_mx(nMx        = .data$Mx_emp,
-                             Age        = .data$Age,
+    data_out <- lt_single_mx(nMx        = data_in$Mx_emp,
+                             Age        = data_in$Age,
                              OAnew      = OAnew,
                              extrapFrom = extrapFrom,
                              extrapFit  = extrapFit, # should we change it here too to 1 year intervals?
