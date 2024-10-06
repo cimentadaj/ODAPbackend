@@ -93,14 +93,17 @@ create_groupid <- function(data, keys){
 #' @description Checks to make sure `.id` column plus `Age` indeed completely define all strata present in the data.
 #' @param data `data.frame`-like object
 #' @return logical TRUE if strata completely defined.
-#' @importFrom dplyr group_by summarize
+#' @importFrom dplyr group_by summarize n
 #' @export
 check_groupid <- function(data){
+  
   stopifnot(".id" %in% colnames(data))
+  
   check <-
     data |> 
-    group_by(.id, Age) |> 
+    group_by(.data$.id, .data$Age) |> 
     summarize(n = n(), .groups = "drop")
+  
   all(check$n == 1)
 }
 

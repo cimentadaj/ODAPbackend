@@ -7,7 +7,7 @@
 #' @param constrain_infants logical, if age 0 is a separate age class, shall we constrain its proportion within the age group 0-5 in the output? Default `TRUE`.
 #' @param u5m numeric. Under five mortality rate.
 #' @param age_out character. The desired age structure of the output file. Possible options include `single` - for sinle years, `5-year` - for 5-year data, and `abridged` - for abridged data, e.g 0, 1-4, 5-9, etc.
-#' @param Sex character. Either `"m"` for males, `"f"` for females, or `"t"` for total (defualt).
+#' @param Sex character. Either `"m"` for males, `"f"` for females, or `"t"`. This variable should exist in the dataframe. If more than 1 sex is present, then graduation will be done for all the sexes present in the data
 #' @importFrom dplyr  mutate group_split first
 #' @importFrom purrr set_names map
 #' @importFrom rlang .data
@@ -17,7 +17,8 @@
 #' @examples
 #' data(pop1m_ind, package = "DemoTools")
 #' data_in <- data.frame(Exposures = pop1m_ind,
-#'                       Age       = 0:100)
+#'                       Age       = 0:100,
+#'                       Sex = "f")
 #'                       
 #' ex1 <- smooth_flexible(
 #' data_in, 
@@ -26,8 +27,7 @@
 #' fine_method  = "none", 
 #' constrain_infants = TRUE, 
 #' age_out = "abridged", 
-#' u5m     = NULL,
-#' Sex     = "t")
+#' u5m     = NULL)
 #' 
 #' 
 smooth_flexible <- function(data_in,
@@ -73,7 +73,7 @@ smooth_flexible <- function(data_in,
   # Process each group separately
   results <- data_in |>
     mutate(Sex = substr(Sex, 1, 1), Sex = tolower(Sex)) |>
-    group_split(.id, .keep = TRUE) |>
+    group_split(.data$.id, .keep = TRUE) |>
     map(~ group_func(.x))
   
   # Extract smoothed data and figures from each result

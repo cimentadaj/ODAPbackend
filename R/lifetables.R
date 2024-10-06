@@ -10,7 +10,7 @@
 #' @param SRB numeric. the sex ratio at birth (boys / girls), default `1.05`
 #' @param a0rule character. Either `"ak"` (default) or `"cd"`.
 #' @param axmethod character. Either `"pas"` or `"un"`.
-#' @param Sex character. Either `"m"` for males, `"f"` for females (default).
+#' @param Sex character. Either `"m"` for males, `"f"` for females. This variable should be preswent in the dataframe. If there is more than pne sex in the data, then the lifetable will be calculazted for each sex present.
 #' @return A single or abridged life table of data.frame format with corresponding columns:
 #' Age integer. Lower bound of abridged age class,
 #' AgeInt integer. Age class widths.
@@ -79,7 +79,7 @@ lt_flexible <- function(data_in,
   data_in <- data_in |>
     mutate(Sex = substr(Sex, 1, 1),
            Sex = ifelse(Sex == "t", "b", Sex)) |>
-    mutate(Mx_emp = Deaths / Exposures)
+    mutate(Mx_emp = .data$Deaths / .data$Exposures)
   
   if (!(".id" %in% colnames(data_in))) {
     data_in <- data_in |>
@@ -103,7 +103,7 @@ lt_flexible <- function(data_in,
                         SRB        = SRB,
                         a0rule     = a0rule,
                         axmethod   = axmethod
-      ), .by = .id
+      ), .by = .data$.id
     )
   
   return(data_out)
@@ -153,7 +153,7 @@ lt_flexible <- function(data_in,
 #'             2887,2351,1500,900,500,300)
 #'
 #'Age = c(0, 1, seq(5, 100, by = 5))
-#'data_in <- tibble(Age,Deaths,Exposures)
+#'data_in <- tibble(Age,Deaths,Exposures, Sex = "f")
 #' data_out <- 
 #'   lt_flexible(data_in,
 #'               OAnew     = 100,
@@ -207,11 +207,11 @@ lt_flexible_chunk <- function(
     # TR possibly more args to pass, or different arg management;
     # for instance, construct a completed list of args
     # and execute the function using do.call()
-    AgeInt <- age2int(Age)
+    AgeInt <- age2int(.data$Age)
     
-    data_out <- lt_abridged(Deaths     = Deaths,
-                            Exposures  = Exposures,
-                            Age        = Age,
+    data_out <- lt_abridged(Deaths     = .data$Deaths,
+                            Exposures  = .data$Exposures,
+                            Age        = .data$Age,
                             AgeInt     = AgeInt,
                             OAnew      = OAnew,
                             extrapFrom = extrapFrom,
@@ -227,9 +227,9 @@ lt_flexible_chunk <- function(
   # Compute `data_out` based on age conditions
   if (age_in == "abridged" & age_out == "single") {
     
-    data_out <- lt_abridged2single(Deaths     = Deaths,
-                                   Exposures  = Exposures,
-                                   Age        = Age,
+    data_out <- lt_abridged2single(Deaths     = .data$Deaths,
+                                   Exposures  = .data$Exposures,
+                                   Age        = .data$Age,
                                    OAnew      = OAnew,  
                                    extrapFrom = extrapFrom,
                                    extrapFit  = extrapFit,
@@ -246,8 +246,8 @@ lt_flexible_chunk <- function(
     # Don't check age_out yet here, because the abridge function requires a
     # precalculated lifetable, see below
     # TR same story; arg management should be complete and strategic
-    data_out <- lt_single_mx(nMx        = Mx_emp,
-                             Age        = Age,
+    data_out <- lt_single_mx(nMx        = .data$Mx_emp,
+                             Age        = .data$Age,
                              OAnew      = OAnew,
                              extrapFrom = extrapFrom,
                              extrapFit  = extrapFit, # should we change it here too to 1 year intervals?
@@ -306,24 +306,24 @@ lt_plot <- function(data_in,
   }
   
   plots <- data_out |>
-    group_split(.id, .keep = TRUE)|>
+    group_split(.data$.id, .keep = TRUE)|>
     map(~ plot_lifetable(.x))
   
   # sorry JC, forgot this!
   d_in <-  data_in |>
     mutate(type = "d_in") |>
-    mutate(id = .id) |>
-    group_nest(.id, type)
+    mutate(id = .data$.id) |>
+    group_nest(.data$.id, .data$type)
   
   d_out <- data_out |>
     mutate(type = "d_out")|>
-    mutate(id = .id) |>
-    group_nest(.id, type)
+    mutate(id = .data$.id) |>
+    group_nest(.data$.id, .data$type)
   
   data <- d_in |>
     full_join(d_out) |> 
-    pivot_wider(names_from  = type,
-                values_from = data) |>
+    pivot_wider(names_from  = .data$type,
+                values_from = .data$data) |>
     mutate(new = map2(.x = d_out,
                       .y = d_in, 
                       ~ plot_compare_rates(data_in  = .y,
@@ -393,7 +393,7 @@ lt_summary <- function(data_out){
   }
   
   out <- data_out %>%
-    reframe(lt_summary_chunk(data_out = .data), .by = .id)
+    reframe(lt_summary_chunk(data_out = .data), .by = .data$.id)
   
   return(out)
 }
