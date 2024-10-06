@@ -1,3 +1,104 @@
+#' @title smooth_flexible wrapper aroung smooth_flexible_chunk allows to work with .id variable and create the output for groups. 
+#' @description Smoothes population or death counts using the variaety of methods from DemoTools packgae and "Method protocol for the evaluation of census population data by age and sex" paragraph 5.
+#' @param data_in tibble. A tibble with two numeric columns - population or death counts with supported names: `Pop`, `Population`, `Exp`, `Exposures` or `Deaths`, and corresponding `Age` - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1-4, 5-9 etc.
+#' @param variable character. A scalar with the variable name which is to be graduated. The list of possible options include `Pop`, `Population`, `Exp`, `Exposures` or `Deaths`.
+#' @param fine_method the `method` argument of `graduate()` function from DemoTools that graduates grouped data. Possible options include  `auto`, `none`, `sprague`, `beers(ord)`, `beers(mod)`, `grabill`, `pclm`, `mono`, `uniform`
+#' @param rough_method the `method` argument of `smooth_age_5()` function from DemoTools that Smoothes populations in 5-year age groups using various methods. Possible options include `auto`, `none`, `Carrier-Farrag`, `KKN`, `Arriaga`, `United Nations`, `Strong`, `Zigzag`.
+#' @param constrain_infants logical, if age 0 is a separate age class, shall we constrain its proportion within the age group 0-5 in the output? Default `TRUE`.
+#' @param u5m numeric. Under five mortality rate.
+#' @param age_out character. The desired age structure of the output file. Possible options include `single` - for sinle years, `5-year` - for 5-year data, and `abridged` - for abridged data, e.g 0, 1-4, 5-9, etc.
+#' @param Sex character. Either `"m"` for males, `"f"` for females, or `"t"` for total (defualt).
+#' @importFrom dplyr  mutate group_split first
+#' @importFrom purrr set_names map
+#' @importFrom rlang .data
+#' @importFrom DemoTools age2int is_single is_abridged graduate_uniform names2age calcAgeAbr groupAges smooth_age_5 graduate
+#' @return data_out. A list of lists. For each sepate group specified by the .id column the function will generate a list that will contain 2 lists: data and figures. Data tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping and one character column indicating .id groups. And figures 2 dataframes - data_adjusted and data_orioginal correspodnign to the dataframes withpre and post old age mortality adjustment and a figure visualizing the corresponding differences.
+#' @export
+#' @examples
+#' data(pop1m_ind, package = "DemoTools")
+#' data_in <- data.frame(Exposures = pop1m_ind,
+#'                       Age       = 0:100)
+#'                       
+#' ex1 <- smooth_flexible(
+#' data_in, 
+#' variable     = "Exposures",
+#' rough_method = "auto",
+#' fine_method  = "none", 
+#' constrain_infants = TRUE, 
+#' age_out = "abridged", 
+#' u5m     = NULL,
+#' Sex     = "t")
+#' 
+#' 
+smooth_flexible <- function(data_in,
+                                  variable      = "Deaths",
+                                  age_out       = c("single", "abridged", "5-year"),
+                                  fine_method   = c("auto", "none", "sprague",
+                                                    "beers(ord)", "beers(mod)",
+                                                    "grabill", "pclm", "mono",
+                                                    "uniform"),
+                                  rough_method  = c("auto", "none", "Carrier-Farrag",
+                                                    "KKN", "Arriaga", "United Nations",
+                                                    "Strong", "Zigzag"),
+                                  u5m           = NULL,
+                                  constrain_infants = TRUE,
+                                  Sex) {
+  
+  if (!(".id" %in% colnames(data_in))) {
+    data_in <- data_in |>
+      mutate(.id = "all")
+  }
+  
+  
+  id <-  unique(data_in$.id)
+  
+  
+  group_func <- function(group_data) {
+    
+    Sex <- first(group_data$Sex)
+    
+    smooth_flexible_chunk(
+      data_in           = group_data,
+      variable          = variable,
+      age_out           = age_out,
+      fine_method       = fine_method,
+      rough_method      = rough_method,
+      u5m               = u5m,
+      Sex               = Sex,
+      constrain_infants = constrain_infants
+    )
+  }
+  
+  
+  # Process each group separately
+  results <- data_in |>
+    mutate(Sex = substr(Sex, 1, 1), Sex = tolower(Sex)) |>
+    group_split(.id, .keep = TRUE) |>
+    map(~ group_func(.x))
+  
+  # Extract smoothed data and figures from each result
+  smoothed_data <- map(results, "data") |>
+    set_names(id) |>
+    bind_rows(.id = ".id")
+  
+  figures       <- map(results, "figure") |>
+    set_names(id)
+  
+  return(list(data    = smoothed_data, 
+              figures = figures))
+}
+
+
+
+# data_out <- smooth_flexible_chunk(
+#   data_in, 
+#   variable     = "Deaths", 
+#   rough_method = "auto",
+#   fine_method  = "pclm", 
+#   constrain_infants = TRUE, 
+#   age_out = "single", 
+#   u5m     = .1
+# )
 #' @title graduate_auto
 #' @description Smooth population or death counts with moving averages. The method was adopted from the "Method protocol for the evaluation of census population data by age and sex" paragraph 5.
 #' @param data_in tibble. A tibble with two numeric columns - population or death counts with supported names: `Pop`, `Population`, `Exp`, `Exposures` or `Deaths`, and corresponding `Age` - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1-4, 5-9 etc.
@@ -95,7 +196,6 @@
 #               age_out = "abridged",
 #               variable = "Exposures",
 #               constrain_infants = FALSE)
-
 graduate_auto <- function(data_in,
                           age_out  = c("single", "abridged", "5-year"),
                           variable = NULL,
@@ -558,7 +658,7 @@ graduate_auto_5 <- function(dat_5, variable) {
   
 }
 
-#' @title smooth_flexible rough and fine smoothing and graduation of count data
+#' @title smooth_flexible_chunk rough and fine smoothing and graduation of count data
 #' @description Smoothes population or death counts using the variaety of methods from DemoTools packgae and "Method protocol for the evaluation of census population data by age and sex" paragraph 5.
 #' @param data_in tibble. A tibble with two numeric columns - population or death counts with supported names: `Pop`, `Population`, `Exp`, `Exposures` or `Deaths`, and corresponding `Age` - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1-4, 5-9 etc.
 #' @param variable character. A scalar with the variable name which is to be graduated. The list of possible options include `Pop`, `Population`, `Exp`, `Exposures` or `Deaths`.
@@ -570,7 +670,7 @@ graduate_auto_5 <- function(dat_5, variable) {
 #' @param Sex character. Either `"m"` for males, `"f"` for females, or `"t"` for total (defualt).
 #' @importFrom dplyr case_when mutate group_by summarize rename left_join select join_by pull
 #' @importFrom tibble tibble
-#' @importFrom rlang := !! sym
+#' @importFrom rlang := !! sym .data
 #' @importFrom DemoTools age2int is_single is_abridged graduate_uniform names2age calcAgeAbr groupAges smooth_age_5 graduate
 #' @return data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping
 #' @export
@@ -589,8 +689,7 @@ graduate_auto_5 <- function(dat_5, variable) {
 #' u5m     = NULL,
 #' Sex     = "t")
 #'
-
-smooth_flexible <- function(data_in,
+smooth_flexible_chunk <- function(data_in,
                             variable     = "Deaths",
                             age_out      = c("single", "abridged", "5-year"),
                             fine_method  = c("auto", "none", "sprague",
@@ -1066,12 +1165,10 @@ smooth_flexible <- function(data_in,
                                 variable = variable)
   
   
-  return(lst(data = data_out,
+  return(list(data = data_out,
              figure = figure))
   
 }
-
-
 
 #' @title plot_smooth_compare compares the original and smoothed counts over the chosen age ranges
 #' @description Plots the original counts and the smoothed counts over the chocosen age ranges for ease of comparison.
@@ -1099,7 +1196,6 @@ smooth_flexible <- function(data_in,
 #'                u5m     = .1,
 #'                Sex     = "t")
 #' print(data_out$figure$figure)
-
 plot_smooth_compare <- function(data_in, data_out, variable) {
   
   data_in <- data_in |> 
@@ -1119,7 +1215,7 @@ plot_smooth_compare <- function(data_in, data_out, variable) {
       age_label = case_when(.data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
                             TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")")),
       plot_y = !!sym(variable) / .data$AgeInt)
-
+  
   figure <- ggplot() +
     geom_line(data = data_in,  aes(x = data_in$age_mid, y = data_in$plot_y), color = "black") +
     geom_point(data = data_in,  aes(x = data_in$age_mid, y = data_in$plot_y), color = "black") +

@@ -1,9 +1,119 @@
+#' lt_flexible
+#' @description Wrepper for calculation of abridged-age or a single-age lifetable.
+#' @param data_in a `data.frame` or `tibble` with columns `Age``, `Deaths``, and `Exposures``. Can have a `.id` column in which case the results will be generated for each group as specified by this column.
+#' @param OAnew integer. Desired open age group (5-year ages only). Default `100`. If higher then rates are extrapolated.
+#' @param age_out character. Indicates weather single or abridged lifetable output is desired. takes values `"single"`, `"abridged"`. Defaults to "single"
+#' @param extrapFrom integer. Age from which to impute extrapolated mortality.
+#' @param extrapFit integer vector. Ages to include in model fitting. Defaults to all ages > =60.
+#' @param radix numeric. Lifetable radix, `l0`. Default `100000`.
+#' @param extrapLaw character. If extrapolating, which parametric mortality law should be invoked? Options include `"Kannisto"`, `"Kannisto_Makeham"`, `"Makeham"`, `"Gompertz"`, `"GGompertz"`, `"Beard"`, `"Beard_Makeham"`, `"Quadratic"`. Default `"Kannisto"` if the highest age is at least 90, otherwise `"makeham"`.
+#' @param SRB numeric. the sex ratio at birth (boys / girls), default `1.05`
+#' @param a0rule character. Either `"ak"` (default) or `"cd"`.
+#' @param axmethod character. Either `"pas"` or `"un"`.
+#' @param Sex character. Either `"m"` for males, `"f"` for females (default).
+#' @return A single or abridged life table of data.frame format with corresponding columns:
+#' Age integer. Lower bound of abridged age class,
+#' AgeInt integer. Age class widths.
+#' nMx numeric. Age-specific central death rates.
+#' nAx numeric. Average time spent in interval by those deceased in interval.
+#' nqx numeric. Age-specific conditional death probabilities.
+#' lx numeric. Lifetable survivorship
+#' ndx numeric. Lifetable deaths distribution.
+#' nLx numeric. Lifetable exposure.
+#' Sx numeric. Survivor ratios in uniform 5-year age groups.
+#' Tx numeric. Lifetable total years left to live above age x.
+#' ex numeric. Age-specific remaining life expectancy.
+#' .id character A group indicator for which the results will be generated. In case of missing the .id columnwill return `all`
+#' @importFrom dplyr case_when reframe first
+#' @importFrom DemoTools is_single lt_abridged age2int lt_abridged2single lt_single_mx lt_single2abridged is_abridged
+#' @importFrom rlang .data
+#' @export
+#' @examples
+#' \dontrun{
+#' library(tibble)
+#' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
+#' 247473,223014,172260,149338,127242,105715,79614,53660,
+#' 31021,16805,8000,4000,2000,1000)
+#' 
+#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
+#'             1335,3257,2200,4023,2167,4578,2956,4212,
+#'             2887,2351,1500,900,500,300)
+#' 
+#' sex <- c("f", "m")
+#' 
+#' Age = c(0, 1, seq(5, 100, by = 5))
+#' data_in <- tibble(Age,Deaths,Exposures)
+#' dt <- rpois(n = 22, lambda = 1000)
+#' d1 <- rpois(n = 22, lambda = 100000)
+#' 
+#' data_in <- expand_grid(sex, data_in) %>% 
+#'   mutate(Deaths = ifelse(sex == "f", dt, Deaths),
+#'          Exposures = ifelse(sex == "f", d1, Exposures)) %>% 
+#'   mutate(.id = sex) %>% 
+#'    mutate(Sex = sex) %>% 
+#'   dplyr::select(-sex)
+#'
+#' 
+#' data_out <- smooth_flexible(
+#'   data_in, 
+#'   variable     = "Deaths", 
+#'   rough_method = "auto",
+#'   fine_method  = "pclm", 
+#'   constrain_infants = TRUE, 
+#'   age_out = "single", 
+#'   u5m     = .1
+#' )
+#' }
+lt_flexible <- function(data_in,
+                        OAnew      = 100,
+                        age_out    = "single",
+                        extrapFrom = 80,
+                        extrapFit  = NULL,  # Default NULL, computed later
+                        extrapLaw  = NULL,
+                        radix      = 1e+05,
+                        SRB        = 1.05,
+                        Sex        = "t",
+                        a0rule     = "Andreev-Kingkade",
+                        axmethod   = "UN (Greville)") {
+  
+  data_in <- data_in |>
+    mutate(Sex = substr(Sex, 1, 1),
+           Sex = ifelse(Sex == "t", "b", Sex)) |>
+    mutate(Mx_emp = Deaths / Exposures)
+  
+  if (!(".id" %in% colnames(data_in))) {
+    data_in <- data_in |>
+      mutate(.id = "all")
+  }
+  
+  # Set `extrapFit` here, avoiding circular reference in defaults
+  if (is.null(extrapFit)) {
+    extrapFit <- unique(data_in$Age)[unique(data_in$Age) >= 60]
+  }
+  
+  data_out <- data_in |>
+    reframe(
+      lt_flexible_chunk(data_in    = .data, 
+                        Sex        = first(Sex),  
+                        OAnew      = OAnew,  
+                        extrapFrom = extrapFrom,
+                        extrapFit  = extrapFit, 
+                        radix      = radix,
+                        extrapLaw  = extrapLaw,
+                        SRB        = SRB,
+                        a0rule     = a0rule,
+                        axmethod   = axmethod
+      ), .by = .id
+    )
+  
+  return(data_out)
+}
 
 # [ ] allow lx, nMx, nqx inputs
 # [ ] if data go up to 75+ we can't have jumpoff at 80, the value 80 needs
 #     to be dynamically determined
 
-#' lt_flexible
+#' lt_flexible_chunk
 #' @description Calculate an abridged-age or a single-age lifetable.
 #' @param data_in a `data.frame` or `tibble` with columns `Age``, `Deaths``, and `Exposures``
 #' @param OAnew integer. Desired open age group (5-year ages only). Default `100`. If higher then rates are extrapolated.
@@ -28,7 +138,7 @@
 #' Sx numeric. Survivor ratios in uniform 5-year age groups.
 #' Tx numeric. Lifetable total years left to live above age x.
 #' ex numeric. Age-specific remaining life expectancy.
-#' @importFrom dplyr case_when
+#' @importFrom dplyr case_when case_match mutate
 #' @importFrom DemoTools is_single lt_abridged age2int lt_abridged2single lt_single_mx lt_single2abridged is_abridged
 #' @export
 #' @examples
@@ -55,41 +165,35 @@
 #'               SRB       = 1.05,
 #'               a0rule    = "ak",
 #'               axmethod  = "un",
-#'               Sex       = "m")
+#'               Sex       = first(Sex))
 #' }
-lt_flexible <- function(data_in,
-                        # recall all of these are passed in from the app, which will contain
-                        # its own default values.
-                        OAnew      = 100,
-                        age_out    = "single", # CHECK! This is for option number 2 
-                        extrapFrom = 80,
-                        extrapFit  = Age[Age >= 60],
-                        extrapLaw  = NULL,
-                        radix      = 1e+05,
-                        SRB        = 1.05,
-                        a0rule     = "ak",
-                        axmethod   = "un",
-                        Sex        = "m") {
+lt_flexible_chunk <- function(
+    data_in,
+    Sex,
+    OAnew      = 100,
+    age_out    = "single", 
+    extrapFrom = 80,
+    extrapFit  = NULL,  # No circular references
+    extrapLaw  = NULL,
+    radix      = 1e+05,
+    SRB        = 1.05,
+    a0rule     = "Andreev-Kingkade",
+    axmethod   = "UN (Greville)") {
   
-  a0rule <- case_when(a0rule == "Andreev-Kingkade" ~ "ak",
-                      a0rule == "Coale-Demeny" ~ "cd",
-                      TRUE ~ a0rule)
-  axmethod <- case_when(axmethod == "UN (Greville)" ~ "un",
-                        axmethod == "PASEX" ~ "pas",
-                      TRUE ~ axmethod)
-  Sex <- substr(Sex, 1, 1) |> 
-    tolower()
-  Sex <- ifelse(Sex == "t", "b", Sex)
   
-  Deaths <- data_in$Deaths
-  Exposures <- data_in$Exposures
-  Mx_emp <- Deaths / Exposures
-  Age <- data_in$Age
-  # TR: no need to determine extrapLaw here, it happens
-  # natively in the lt functions.
-  age_in <- case_when(is_single(Age)  ~ "single",
+  a0rule <- case_match(a0rule,
+                       "Andreev-Kingkade"  ~ "ak",
+                       "Coale-Demeny"      ~ "cd",
+                       .default = a0rule)
+  
+  axmethod <- case_match(axmethod,
+                         "UN (Greville)" ~ "un",
+                         "PASEX"         ~ "pas",
+                         .default = axmethod)
+  
+  age_in <- case_when(is_single(Age)   ~ "single",
                       is_abridged(Age) ~ "abridged",
-                      TRUE ~ "problem")
+                      TRUE             ~ "problem")
   
   # TR: this can become the checker function I guess
   if (age_in == "problem"){
@@ -98,18 +202,18 @@ lt_flexible <- function(data_in,
     )
   }
   
-  # age_in and out_out both abridged
-  if(age_in == "abridged" & age_out == "abridged") {
+  if (age_in == "abridged" & age_out == "abridged") {
+    
     # TR possibly more args to pass, or different arg management;
     # for instance, construct a completed list of args
     # and execute the function using do.call()
     AgeInt <- age2int(Age)
     
-    data_out <- lt_abridged(Deaths  = Deaths,
+    data_out <- lt_abridged(Deaths     = Deaths,
                             Exposures  = Exposures,
                             Age        = Age,
                             AgeInt     = AgeInt,
-                            OAnew      = OAnew,  
+                            OAnew      = OAnew,
                             extrapFrom = extrapFrom,
                             extrapFit  = extrapFit,
                             radix      = radix,
@@ -120,13 +224,12 @@ lt_flexible <- function(data_in,
                             Sex        = Sex)
   }
   
-  # age_in abridged and age_out single
+  # Compute `data_out` based on age conditions
   if (age_in == "abridged" & age_out == "single") {
     
     data_out <- lt_abridged2single(Deaths     = Deaths,
                                    Exposures  = Exposures,
                                    Age        = Age,
-                                   # AgeInt     = AgeInt,
                                    OAnew      = OAnew,  
                                    extrapFrom = extrapFrom,
                                    extrapFit  = extrapFit,
@@ -138,12 +241,9 @@ lt_flexible <- function(data_in,
                                    Sex        = Sex)
   }
   
-  # age_in single, calculate no matter whether we 
-  # keep single ages or want abridged output; if single
-  # data_out doesn't change again
-  if (age_in == "single"){
+  if (age_in == "single") {
     # useful in case we use lt_single_mx()
-    # Don't check age_out yet here, because the abridge function requires a 
+    # Don't check age_out yet here, because the abridge function requires a
     # precalculated lifetable, see below
     # TR same story; arg management should be complete and strategic
     data_out <- lt_single_mx(nMx        = Mx_emp,
@@ -160,48 +260,77 @@ lt_flexible <- function(data_in,
     
   }
   
-  # final case, age_in single and age_out abridged,
-  # requires the precalculated single-age lifetable
   if (age_in == "single" & age_out == "abridged") {
     
-    data_out <- lt_single2abridged(lx  = data_out$lx, 
-                                   nLx = data_out$nLx, 
-                                   ex  = data_out$ex, 
+    data_out <- lt_single2abridged(lx  = data_out$lx,
+                                   nLx = data_out$nLx,
+                                   ex  = data_out$ex,
                                    Age = data_out$Age)
     
   }
   
-  # Add sex column to output
-  sex <- case_when(Sex == "m" ~ "Males",
-                   Sex == "f" ~ "Females",
-                   Sex == "b" ~ "Total")
-  data_out <- data_out |> 
-    mutate(Sex = sex, .before = 1)
+  Sex <- case_match(Sex,
+                    "m" ~ "Males",
+                    "f" ~ "Females",
+                    "b" ~ "Total")
+  # 
+  # # Add sex column to output
+  data_out <- data_out |>
+    mutate(Sex = Sex, .before = 1)
   
-
-  
-  # now all cases handled
   return(data_out)
-  
 }
 
 #' lt_plot
 #' @description Plot wrapper, created lifetable plot list previously returned by `lt_flexible()`
 #' @details This function should be run after `lt_flexible()`, so that you can pass both `data_in` and `data_out`. There is no fallback at this time to generate `data_out` on the fly if missing. We need to pass `extrapFrom` at this time indicate the jump-off in the plot. In the future this may be detected or passed in another way.
+#' @importFrom dplyr group_split mutate group_nest full_join
+#' @importFrom purrr map2 map
+#' @importFrom tidyr pivot_wider
 #' @export
-#' @param data_in a `data.frame` or `tibble` with columns `Age``, `Deaths``, and `Exposures``
+#' @param data_in a `data.frame` or `tibble` with columns `Age`, `Deaths`, and `Exposures` and `.id`
 #' @param data_out `tibble` as produced by `lt_flexible()`
 #' @param extrapFrom integer. Age from which to impute extrapolated mortality.
-lt_plot <- function(data_in, 
+lt_plot <- function(data_in,
                     data_out, 
                     extrapFrom = extrapFrom){
-
-  plots <- plot_lifetable(data_out)
+  
+  if (!(".id" %in% colnames(data_out))){
+    data_out <- data_out |>
+      mutate(.id = "all")
+  }
+  
+  if (!(".id" %in% colnames(data_in))){
+    data_in <- data_in |>
+      mutate(.id = "all")
+  }
+  
+  plots <- data_out |>
+    group_split(.id, .keep = TRUE)|>
+    map(~ plot_lifetable(.x))
   
   # sorry JC, forgot this!
-  plots$nMx <- plot_compare_rates(data_in, 
-                                  data_out, 
-                                  extrapFrom = extrapFrom)
+  d_in <-  data_in |>
+    mutate(type = "d_in") |>
+    mutate(id = .id) |>
+    group_nest(.id, type)
+  
+  d_out <- data_out |>
+    mutate(type = "d_out")|>
+    mutate(id = .id) |>
+    group_nest(.id, type)
+  
+  data <- d_in |>
+    full_join(d_out) |> 
+    pivot_wider(names_from  = type,
+                values_from = data) |>
+    mutate(new = map2(.x = d_out,
+                      .y = d_in, 
+                      ~ plot_compare_rates(data_in  = .y,
+                                           data_out = .x,
+                                           extrapFrom = extrapFrom)))
+  
+  plots$nMx <- data$new
   
   return(plots)
 }
@@ -228,7 +357,7 @@ lt_plot <- function(data_in,
 #' @importFrom tibble lst tibble
 #' @importFrom LifeIneq ineq_sd ineq_iqr ineq_quantile 
 #' @importFrom tidyr pivot_longer
-#' @importFrom dplyr everything
+#' @importFrom dplyr everything mutate reframe
 #' @export
 #' @examples
 #' \dontrun{
@@ -242,26 +371,36 @@ lt_plot <- function(data_in,
 #'
 #' Age = c(0, 1, seq(5, 100, by = 5))
 #' data_out <- 
-#'   lt_flexible(Deaths    = Deaths,
-#'               Exposures = Exposures,
-#'               Age       = Age,
+#'   lt_flexible(data_in,
 #'               OAnew     = 100,
-#'               age_out   = "single",
+#'               age_out   = "single",  
 #'               extrapFrom = 80,
-#'               extrapFit = Age[Age >= 60],
+#'               extrapFit = NULL, 
 #'               radix     = 1e+05,
 #'               extrapLaw = NULL,
 #'               SRB       = 1.05,
 #'               a0rule    = "ak",
-#'               axmethod  = "un",
-#'               Sex       = "m")
+#'               axmethod  = "un")
 #'               
 #' lt_summary(data_out)
 #' }
 #' 
+lt_summary <- function(data_out){
+  
+  if (!(".id" %in% colnames(data_out))){
+    data_out <- data_out |>
+      mutate(.id = "all")
+  }
+  
+  out <- data_out %>%
+    reframe(lt_summary_chunk(data_out = .data), .by = .id)
+  
+  return(out)
+}
+
 
 # TODO: add column called 'label'
-lt_summary <- function(data_out) { 
+lt_summary_chunk <- function(data_out) { 
   
   e0  <- data_out$ex[data_out$Age == 0]
   e65 <- data_out$ex[data_out$Age == 65]
@@ -317,9 +456,10 @@ lt_summary <- function(data_out) {
 # helper function that calculates the modal age at death
 #  Formula for mode from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3000019/ Appendix A, A2
 
-modal_age <- function(data_out) { 
+modal_age <- function(data_out) {
   
-  # we have to remove the data from the first age, since bunch of people die.
+  # we have to remove the data from the first age, since many 
+  # deaths are registered at this age.
   Age  <- data_out$Age[-1]
   dx   <- data_out$ndx[-1]
   
