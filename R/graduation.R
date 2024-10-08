@@ -1217,9 +1217,9 @@ plot_smooth_compare <- function(data_in, data_out, variable) {
       plot_y = !!sym(variable) / .data$AgeInt)
   
   figure <- ggplot() +
-    geom_line(data = data_in,  aes(x = data_in$age_mid, y = data_in$plot_y), color = "black") +
-    geom_point(data = data_in,  aes(x = data_in$age_mid, y = data_in$plot_y), color = "black") +
-    geom_line(data = data_out, aes(x = data_out$age_mid, y = data_out$plot_y), color = "red", linewidth = 1) +
+    geom_line(data = data_in,  aes(x = age_mid, y = plot_y), color = "black") +
+    geom_point(data = data_in,  aes(x = age_mid, y = plot_y), color = "black") +
+    geom_line(data = data_out, aes(x = age_mid, y = plot_y), color = "red", linewidth = 1) +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_continuous(breaks = pretty_breaks(), labels = comma) +
     theme_light() +
