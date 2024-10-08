@@ -92,9 +92,10 @@ create_groupid <- function(data, keys){
     group_by_at(keys) |> 
     mutate(
       .id = cur_group_id(),
-      `.id_label` = cur_group(),
+      `.id_label` = paste0(cur_group(), collapse = " - "),
       .before = 1
-    )
+    ) %>%
+    ungroup()
 }
 
 #' @title check_groupid
