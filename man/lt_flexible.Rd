@@ -61,7 +61,7 @@ Wrepper for calculation of abridged-age or a single-age lifetable.
 }
 \examples{
 \dontrun{
-library(tibble)
+library(tidyverse)
 Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
 247473,223014,172260,149338,127242,105715,79614,53660,
 31021,16805,8000,4000,2000,1000)
@@ -85,14 +85,8 @@ data_in <- expand_grid(sex, data_in) \%>\%
   dplyr::select(-sex)
 
 
-data_out <- smooth_flexible(
-  data_in, 
-  variable     = "Deaths", 
-  rough_method = "auto",
-  fine_method  = "pclm", 
-  constrain_infants = TRUE, 
-  age_out = "single", 
-  u5m     = .1
+data_out <- lt_flexible(
+  data_in = data_in
 )
 }
 }
