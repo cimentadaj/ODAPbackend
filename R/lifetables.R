@@ -53,9 +53,18 @@
 #'    mutate(Sex = sex) %>% 
 #'   dplyr::select(-sex)
 #'
-#' 
 #' data_out <- lt_flexible(
-#'   data_in = data_in
+#'   data_in = data_in,
+#'   OAnew      = 100,
+#'   age_out    = "single",
+#'   extrapFrom = 80,
+#'   extrapFit  = NULL,  # Default NULL, computed later
+#'   extrapLaw  = NULL,
+#'   radix      = 1e+05,
+#'   SRB        = 1.05,
+#'   a0rule     = "Andreev-Kingkade",
+#'   axmethod   = "UN (Greville)",
+#'   Sex = "t"
 #' )
 #' }
 lt_flexible <- function(data_in,
@@ -66,23 +75,27 @@ lt_flexible <- function(data_in,
                         extrapLaw  = NULL,
                         radix      = 1e+05,
                         SRB        = 1.05,
-                        Sex        = "t",
                         a0rule     = "Andreev-Kingkade",
-                        axmethod   = "UN (Greville)") {
+                        axmethod   = "UN (Greville)",
+                        Sex = "t") {
   
   data_in <- data_in |>
     mutate(Sex = substr(Sex, 1, 1),
            Sex = ifelse(Sex == "t", "b", Sex)) |>
     mutate(Mx_emp = .data$Deaths / .data$Exposures)
-  
+
   if (!(".id" %in% colnames(data_in))) {
     data_in <- data_in |>
       mutate(.id = "all")
   }
   
-  # Set `extrapFit` here, avoiding circular reference in defaults
+  # Set extrapFit here, avoiding circular reference in defaults
   if (is.null(extrapFit)) {
     extrapFit <- unique(data_in$Age)[unique(data_in$Age) >= 60]
+  }
+  
+  if (!"Sex" %in% colnames(data_in)){
+    data_in$Sex <- Sex
   }
   
   data_out <- data_in |>
@@ -149,7 +162,7 @@ lt_flexible <- function(data_in,
 #'Age = c(0, 1, seq(5, 100, by = 5))
 #'data_in <- tibble(Age,Deaths,Exposures, Sex = "f")
 #' data_out <- 
-#'   lt_flexible(data_in,
+#'   lt_flexible_chunk(data_in,
 #'               OAnew     = 100,
 #'               age_out   = "single",  
 #'               extrapFrom = 80,

@@ -31,26 +31,30 @@
 #' 
 #' 
 smooth_flexible <- function(data_in,
-                                  variable      = "Deaths",
-                                  age_out       = c("single", "abridged", "5-year"),
-                                  fine_method   = c("auto", "none", "sprague",
-                                                    "beers(ord)", "beers(mod)",
-                                                    "grabill", "pclm", "mono",
-                                                    "uniform"),
-                                  rough_method  = c("auto", "none", "Carrier-Farrag",
-                                                    "KKN", "Arriaga", "United Nations",
-                                                    "Strong", "Zigzag"),
-                                  u5m           = NULL,
-                                  constrain_infants = TRUE,
-                                  Sex) {
+                            variable      = "Deaths",
+                            age_out       = c("single", "abridged", "5-year"),
+                            fine_method   = c("auto", "none", "sprague",
+                                              "beers(ord)", "beers(mod)",
+                                              "grabill", "pclm", "mono",
+                                              "uniform"),
+                            rough_method  = c("auto", "none", "Carrier-Farrag",
+                                              "KKN", "Arriaga", "United Nations",
+                                              "Strong", "Zigzag"),
+                            u5m           = NULL,
+                            constrain_infants = TRUE,
+                            Sex = "t") {
   
   if (!(".id" %in% colnames(data_in))) {
     data_in <- data_in |>
       mutate(.id = "all")
   }
   
-  
   id <-  unique(data_in$.id)
+  # if there is a single subset then use sex and is defauдt for total
+  
+  if (!"Sex" %in% colnames(data_in)){
+    data_in$Sex <- Sex
+  }
   
   
   group_func <- function(group_data) {
@@ -89,16 +93,6 @@ smooth_flexible <- function(data_in,
 }
 
 
-
-# data_out <- smooth_flexible_chunk(
-#   data_in, 
-#   variable     = "Deaths", 
-#   rough_method = "auto",
-#   fine_method  = "pclm", 
-#   constrain_infants = TRUE, 
-#   age_out = "single", 
-#   u5m     = .1
-# )
 #' @title graduate_auto
 #' @description Smooth population or death counts with moving averages. The method was adopted from the "Method protocol for the evaluation of census population data by age and sex" paragraph 5.
 #' @param data_in tibble. A tibble with two numeric columns - population or death counts with supported names: `Pop`, `Population`, `Exp`, `Exposures` or `Deaths`, and corresponding `Age` - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1-4, 5-9 etc.
