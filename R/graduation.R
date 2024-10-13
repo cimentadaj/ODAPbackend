@@ -938,7 +938,8 @@ smooth_flexible_chunk <- function(data_in,
       mutate(age5 = .data$Age - .data$Age %% 5) |> 
       mutate(prop = !!sym(variable) / sum(!!sym(variable)), .by = "age5") |> 
       left_join(data5, by = join_by("age5")) |> 
-      mutate(!!variable := !!sym(variable) * .data$prop) |> 
+      mutate(!!variable := .data$value5 * .data$prop) |>
+      # mutate(!!variable := !!sym(variable) * .data$prop) |> 
       select("Age", !!sym(variable))
     
   }
