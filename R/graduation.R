@@ -44,7 +44,7 @@ smooth_flexible <- function(data_in,
                             rough_method  = c("auto", "none", "Carrier-Farrag",
                                               "KKN", "Arriaga", "United Nations",
                                               "Strong", "Zigzag"),
-                            u5m           = NULL,
+                            u5m               = NULL,
                             constrain_infants = TRUE,
                             Sex = "t") {
   
@@ -84,10 +84,12 @@ smooth_flexible <- function(data_in,
     group_split(.id, .keep = TRUE) |>
     map(~ group_func(.x))
   
+    smoothed_data <- map(results, "data") |>
+      set_names(id) |>
+      bind_rows(.id = ".id")
+    
+
   # Extract smoothed data and figures from each result
-  smoothed_data <- map(results, "data") |>
-    set_names(id) |>
-    bind_rows(.id = ".id")
   
   figures <- map(results, "figure") |>
     set_names(id)
@@ -759,7 +761,13 @@ smooth_flexible_chunk <- function(data_in,
     
     if(age_out == age_in) {
       
-      return(data_in)
+      figure <- plot_smooth_compare(data_in = data_orig,
+                                   data_out = data_in,
+                                   variable = variable)
+      
+      return(list(data      = data_orig,
+                  figure    = figure,
+                  arguments = f_args))
       
     } 
     
@@ -784,7 +792,13 @@ smooth_flexible_chunk <- function(data_in,
     data_out  <- tibble(Age = names2age(value_out),
                         !!variable := value_out)
     
-    return(data_out)
+    figure <- plot_smooth_compare(data_in = data_orig,
+                                  data_out = data_out,
+                                  variable = variable)
+    
+    return(list(data      = data_out,
+                figure    = figure,
+                arguments = f_args))
     
   }
   
@@ -821,6 +835,7 @@ smooth_flexible_chunk <- function(data_in,
   if(rough_method %in% c("Carrier-Farrag", "KKN", "Arriaga",
                          "United Nations", "Strong", "Zigzag")) {
     
+    # CHECK THIS
     data5 <- data5 |>
       mutate(!!variable := smooth_age_5(Value  = !!sym(variable),
                                         Age    = Age,
@@ -834,7 +849,13 @@ smooth_flexible_chunk <- function(data_in,
   
   if(fine_method == "none" & age_out == "5-year") {
     
-    return(data5)
+    figure <- plot_smooth_compare(data_in = data_orig,
+                                  data_out = data5,
+                                  variable = variable)
+    
+    return(list(data      = data5,
+                figure    = figure,
+                arguments = f_args))
     
   }
   
@@ -922,12 +943,14 @@ smooth_flexible_chunk <- function(data_in,
     
   }
   
+  # THIS ONE CHECK
   if(fine_method %in% c("sprague", "beers(ord)", "beers(mod)", 
                         "grabill", "pclm", "mono", "uniform")) {
     value  <- data5 |> 
       pull(!!sym(variable))
     age    <- data5 |> 
       pull(Age)
+    # THIS ONE DOES NOT WORK WITH NEGATIVES
     value1 <- graduate(Value  = value,
                        Age    = age,
                        method = fine_method,

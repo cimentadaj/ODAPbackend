@@ -80,13 +80,14 @@ read_data <- function(user_file, skip = 0) {
 #' @description Checks to make sure that key variables plus age result in one row per unique stratum.
 #' @param data a `data.frame` or `tibble`
 #' @param keys character vector of columns definining strata
-#' @importFrom dplyr cur_group_id mutate group_by_at
+#' @importFrom dplyr cur_group_id mutate group_by_at ungroup
 #' @export
 create_groupid <- function(data, keys) {
   
   data |> 
     group_by_at(keys) |> 
-    mutate(.id = cur_group_id(), .before = 1)
+    mutate(.id = cur_group_id(), .before = 1) |>
+    ungroup()
   
 }
 
@@ -109,3 +110,4 @@ check_groupid <- function(data){
   all(check$n == 1)
   
 }
+
