@@ -84,9 +84,18 @@ read_data <- function(user_file, skip = 0) {
 #' @importFrom dplyr cur_group_id mutate group_by_at
 #' @export
 create_groupid <- function(data, keys){
+  if (length(keys) == 0) {
+    data$`.id` <- 1
+    data$`.id_label` <- "All"
+  }
   data |> 
     group_by_at(keys) |> 
-    mutate(.id = cur_group_id(), .before = 1)
+    mutate(
+      .id = cur_group_id(),
+      `.id_label` = paste0(cur_group(), collapse = " - "),
+      .before = 1
+    ) %>%
+    ungroup()
 }
 
 #' @title check_groupid
