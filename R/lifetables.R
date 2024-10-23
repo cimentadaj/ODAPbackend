@@ -26,6 +26,7 @@
 #' .id character A group indicator for which the results will be generated. In case of missing the .id columnwill return `all`
 #' @importFrom dplyr case_when reframe first
 #' @importFrom purrr set_names
+#' @importFrom tidyselect all_of
 #' @importFrom DemoTools is_single lt_abridged age2int lt_abridged2single lt_single_mx lt_single2abridged is_abridged
 #' @importFrom rlang .data
 #' @export
@@ -109,6 +110,8 @@ lt_flexible <- function(data_in,
     data_in$Sex <- Sex
   }
   
+  by_args <- names(data_in)[!names(data_in) %in% c("Age", "Deaths", "Exposures", "Mx_emp")]
+  
   data_out <- data_in |>
     reframe(
       lt_flexible_chunk(data_in    = .data, 
@@ -121,9 +124,9 @@ lt_flexible <- function(data_in,
                         SRB        = SRB,
                         a0rule     = a0rule,
                         axmethod   = axmethod
-      ), .by = .id
+      ), .by = all_of(by_args)
     ) |>
-    set_names(c(".id", "data"))
+    set_names(c(by_args, "data"))
   
   return(list(data_out  = data_out,
               arguments = f_args))
