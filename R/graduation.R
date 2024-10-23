@@ -58,6 +58,7 @@ smooth_flexible <- function(data_in,
   }
   
   # id <-  unique(data_in$.id)
+
   # if there is a single subset then use sex and is defauдt for total
   
   if (!"Sex" %in% colnames(data_in)){
@@ -79,7 +80,7 @@ smooth_flexible <- function(data_in,
       constrain_infants = constrain_infants
     )
   }
-  
+
   by_args <- names(data_in)[!names(data_in) %in% c("Age", "Deaths", "Exposures", "Mx_emp", "Sex")]
   
   results <- data_in |>
@@ -857,6 +858,14 @@ smooth_flexible_chunk <- function(data_in,
                                         method = rough_method))
     
   }
+  
+  if(any(data5$Deaths < 0)) {
+    stop(
+      "Check your input data or consider changing the selected rough method. Current smoothing process is returning negative values."
+    )
+  }
+  
+  # HERE
   
   # NOTE: can't return 5-year output yet even if desired, because
   # some graduation methods shoft between 5-year age groups, and this

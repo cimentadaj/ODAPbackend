@@ -52,10 +52,10 @@ plot_compare_rates <- function(data_in, # raw mx to plot
     # TODO: Shall we call it Age-specific Mortality?
     mutate(
       `Age-specific Mortality` = round(.data$Deaths / .data$Exposures, 8),
-      AgeInt = age2int(.data$Age, OAG = FALSE),
-      single = is_single(.data$Age),
-      `Age Mid` = if_else(single, .data$Age, .data$Age + (.data$AgeInt / 2)),
-      age_label = case_when(
+      AgeInt                   = age2int(.data$Age, OAG = FALSE),
+      single                   = is_single(.data$Age),
+      `Age Mid`                = if_else(single, .data$Age, .data$Age + (.data$AgeInt / 2)),
+      age_label                = case_when(
         .data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
         TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")")
       )
@@ -73,14 +73,14 @@ plot_compare_rates <- function(data_in, # raw mx to plot
       mutate(.id = "all")
   }
   
-  id <- unique(pull(data_in_plot, .id))
+  id <- unique(pull(data_in_plot, .data$.id))
   
   data_out_plot <- data_out |>
     mutate(
-      AgeInt = age2int(.data$Age, OAG = FALSE),
-      single = is_single(.data$Age),
+      AgeInt    = age2int(.data$Age, OAG = FALSE),
+      single    = is_single(.data$Age),
       `Age Mid` = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
-      age_plot = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
+      age_plot  = if_else(.data$single, .data$Age, .data$Age + (.data$AgeInt / 2)),
       age_label = case_when(
         .data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
         TRUE ~ paste0("Ages between [", .data$Age, ",", .data$Age + .data$AgeInt, ")")
@@ -90,8 +90,10 @@ plot_compare_rates <- function(data_in, # raw mx to plot
   
   figure <-
     ggplot() +
-    geom_line(data = data_out_plot, aes(.data$`Age Mid`,y = .data$nMx), linewidth = 0.8) +
-    geom_line(data = data_out_plot, aes(.data$`Age Mid`,y = .data$nMx), linewidth = 0.8) +
+
+    geom_line(data = data_out_plot, aes(.data$`Age Mid`, y = .data$nMx), linewidth = 0.8) +
+    geom_line(data = data_out_plot, aes(.data$`Age Mid`, y = .data$nMx, text = .data$age_label), linewidth = 0.8) +
+
     geom_line(
       data = filter(data_in_plot, .data$Age >= min(extrapFrom, max(data_out$Age))),
       aes(
@@ -178,11 +180,13 @@ plot_compare_rates <- function(data_in, # raw mx to plot
 
 plot_lifetable <- function(data_out) {
   
+
   if (!(".id" %in% colnames(data_out))){
     data_out <- data_out |>
       mutate(.id = "all")
   }
   
+
   lx25 <- ineq_quantile_lower(age = data_out$Age, lx = data_out$lx, quantile = 0.25)
   lx50 <- ineq_quantile_lower(age = data_out$Age, lx = data_out$lx, quantile = 0.5)
   lx75 <- ineq_quantile_lower(age = data_out$Age, lx = data_out$lx, quantile = 0.75)
@@ -204,7 +208,9 @@ plot_lifetable <- function(data_out) {
   nMx_plot <- dt |>
     ggplot(aes(x = .data$age_plot, y = .data$nMx), col = "black") +
     geom_line() + # or geom_step()
+
     # geom_line(aes(text = age_label)) + # or geom_step()
+
     scale_y_log10() +
     theme_light() +
     theme(
@@ -226,7 +232,9 @@ plot_lifetable <- function(data_out) {
     mutate(lx = round(.data$lx, 8)) |>
     ggplot(aes(x = .data$age_plot, y = .data$lx), col = "black") +
     geom_line() + # or geom_step()
+
     # geom_line(aes(text = age_label)) + # or geom_step()
+
     theme_light() +
     theme(
       axis.text = element_text(color = "black"),
@@ -282,7 +290,9 @@ plot_lifetable <- function(data_out) {
     mutate(dx = round(.data$ndx / .data$AgeInt, 8)) |>
     ggplot(aes(x = .data$Age, y = .data$dx), col = "black") +
     geom_line() + # or geom_step()
+
     # geom_line(aes(text = age_label)) + # or geom_step()
+
     theme_light() +
     theme(
       axis.text = element_text(color = "black"),
@@ -332,10 +342,12 @@ plot_lifetable <- function(data_out) {
   
   nqx_plot <- 
     dt |>
-    mutate(nqx = round(nqx, 2)) |>
+    mutate(nqx = round(.data$nqx, 2)) |>
     ggplot(aes(x = .data$Age, y = .data$nqx), col = "black") +
     geom_line() +
+
     # geom_line(aes(text = age_label)) +
+
     scale_y_log10() +
     theme_light() +
     theme(
@@ -491,12 +503,12 @@ plot_input_rates <- function(data) {
   if(any(colnames(data) == "Sex")){
     
     p <- data |>
-      ggplot(aes(x = age_plot, y = nMx), linewidth = 0.8)
+      ggplot(aes(x = .data$age_plot, y = .data$nMx), linewidth = 0.8)
     
   } else {
     
     p <- data |>
-      ggplot(aes(x = age_plot, y = nMx), linewidth = 0.8)
+      ggplot(aes(x = .data$age_plot, y = .data$nMx), linewidth = 0.8)
     
   }
   
@@ -554,20 +566,20 @@ plot_histogram <- function(data, y) {
   
   if (! "AgeInt" %in% colnames(data)){
     data <- data |> 
-      mutate(AgeInt = age2int(Age, OAvalue = 1))
+      mutate(AgeInt = age2int(.data$Age, OAvalue = 1))
   }
   
   y_sym <- sym(y)
   
   data <- data |> 
-    mutate(y_plot = !!y_sym / AgeInt,
+    mutate(y_plot = !!y_sym / .data$AgeInt,
            age_label = case_when(Age == max(Age) ~ paste0(max(Age), "+"),
                                  TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")"))) |> 
-    select(Age, AgeInt, age_label, !!y_sym, y_plot) 
-  
+    dplyr::select(.data$Age, .data$AgeInt, .data$age_label, !!y_sym, .data$y_plot)
   
   figure <- data |> 
-    ggplot(aes(x = Age + AgeInt / 2, y = y_plot, width = AgeInt), color = "black") +
+    ggplot(aes(x = .data$Age + .data$AgeInt / 2, 
+               y = .data$y_plot, width = .data$AgeInt), color = "black") +
     geom_col() +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_continuous(
@@ -592,7 +604,7 @@ plot_histogram <- function(data, y) {
   return(
     lst(
       figure,
-      data = data |> select(Age, age_label, !!y_sym)
+      data = data |> select(.data$Age, .data$age_label, !!y_sym)
     )
   )
 }
@@ -675,11 +687,11 @@ plot_initial_single_sex <- function(data) {
   data <- 
     data |> 
     mutate(Mx_emp    = Deaths / Exposures,
-           AgeInt    = age2int(Age, OAG = FALSE),
-           single    = is_single(Age),
-           `Age Mid`   = if_else(single, Age, Age + (AgeInt / 2)),
-           age_label = case_when(Age == max(Age) ~ paste0(max(Age), "+"),
-                                 TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")"))) |> 
+           AgeInt    = age2int(.data$Age, OAG = FALSE),
+           single    = is_single(.data$Age),
+           `Age Mid` = if_else(single, .data$Age, .data$Age + (.data$AgeInt / 2)),
+           age_label = case_when(Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
+                                 TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")"))) |> 
     select(-"single")
   
   # ------------------ #
@@ -696,7 +708,7 @@ plot_initial_single_sex <- function(data) {
       data = dt,
       aes(
         y = Exposures,
-        text = age_label
+        text = .data$age_label
       )
     )
   # ------------------ #
@@ -714,7 +726,7 @@ plot_initial_single_sex <- function(data) {
       data = dt,
       aes(
         y = Deaths,
-        text = age_label
+        text = .data$age_label
       )
     )
   
@@ -733,7 +745,8 @@ plot_initial_single_sex <- function(data) {
     geom_line(
       data = dt,
       aes(
-        text = age_label
+        text = .data$age_label
+
       )
     )
   

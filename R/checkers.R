@@ -543,7 +543,9 @@ check_data <- function(data) {
   ch9 <- check_sex(data)
   
   # Combine all the check results
+
   result <- do.call(rbind, list(ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9))
+
   
   return(result)
 }

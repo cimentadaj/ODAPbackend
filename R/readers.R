@@ -89,6 +89,7 @@ create_groupid <- function(data, keys) {
     mutate(.id = cur_group_id(), .before = 1) |>
     ungroup()
   
+
 }
 
 #' @title check_groupid
@@ -100,11 +101,13 @@ create_groupid <- function(data, keys) {
 
 check_groupid <- function(data){
 
+
     stopifnot(".id" %in% colnames(data))
+
   
   check <-
     data |> 
-    group_by(.id, Age) |> 
+    group_by(.data$.id, .data$Age) |> 
     summarize(n = n(), .groups = "drop")
   
   all(check$n == 1)
