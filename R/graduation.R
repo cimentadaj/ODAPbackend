@@ -8,8 +8,10 @@
 #' @param u5m numeric. Under five mortality rate.
 #' @param age_out character. The desired age structure of the output file. Possible options include `single` - for sinle years, `5-year` - for 5-year data, and `abridged` - for abridged data, e.g 0, 1-4, 5-9, etc.
 #' @param Sex character. Either `"m"` for males, `"f"` for females, or `"t"` for total (defualt).
-#' @importFrom dplyr  mutate group_split first
+#' @importFrom dplyr  mutate group_nest first across pull
+#' @importFrom tidyr  unite 
 #' @importFrom purrr set_names map
+#' @importFrom tidyselect all_of everything
 #' @importFrom rlang .data
 #' @importFrom DemoTools age2int is_single is_abridged graduate_uniform names2age calcAgeAbr groupAges smooth_age_5 graduate
 #' @return data_out. A list of lists. For each sepate group specified by the .id column the function will generate a list that will contain 2 lists: data and figures. Data tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping and one character column indicating .id groups. And figures 2 dataframes - data_adjusted and data_orioginal correspodnign to the dataframes withpre and post old age mortality adjustment and a figure visualizing the corresponding differences.
@@ -55,7 +57,8 @@ smooth_flexible <- function(data_in,
       mutate(.id = "all")
   }
   
-  id <-  unique(data_in$.id)
+  # id <-  unique(data_in$.id)
+
   # if there is a single subset then use sex and is defauдt for total
   
   if (!"Sex" %in% colnames(data_in)){
@@ -77,22 +80,35 @@ smooth_flexible <- function(data_in,
       constrain_infants = constrain_infants
     )
   }
-  
-  # Process each group separately
-  results <- data_in |>
-    mutate(Sex = substr(Sex, 1, 1), Sex = tolower(Sex)) |>
-    group_split(.id, .keep = TRUE) |>
-    map(~ group_func(.x))
-  
-    smoothed_data <- map(results, "data") |>
-      set_names(id) |>
-      bind_rows(.id = ".id")
-    
 
-  # Extract smoothed data and figures from each result
+  by_args <- names(data_in)[!names(data_in) %in% c("Age", "Deaths", "Exposures", "Mx_emp", "Sex")]
   
-  figures <- map(results, "figure") |>
-    set_names(id)
+  results <- data_in |>
+      mutate(Sex = substr(Sex, 1, 1), 
+             Sex = tolower(Sex)) |>
+      group_nest(across(all_of(by_args))) |>  # Use across to group by multiple columns
+      mutate(result = map(data, ~ group_func(.x)))  # Apply function
+    
+  # Process each group separately
+  # results <- data_in |>
+  #   mutate(Sex = substr(Sex, 1, 1), Sex = tolower(Sex)) |>
+  #   group_split(.id, .keep = TRUE) |>
+  #   map(~ group_func(.x))
+  #
+  
+  nms <- results %>%
+    dplyr::select(all_of(by_args)) %>%
+    unite("one", everything(), sep = "_") %>%
+    pull(one)
+  
+  smoothed_data <- results %>%
+    mutate(data = map(result, ~ .x[["data"]])) %>%
+    dplyr::select(-result) %>%
+    unnest(data)
+  
+  figures <- results$result %>%
+    map("figure") %>%
+    set_names(nms)
   
   return(list(data_out  = smoothed_data, 
               figures   = figures,
