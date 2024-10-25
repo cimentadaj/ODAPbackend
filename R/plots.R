@@ -92,7 +92,7 @@ plot_compare_rates <- function(data_in, # raw mx to plot
     ggplot() +
 
     geom_line(data = data_out_plot, aes(.data$`Age Mid`, y = .data$nMx), linewidth = 0.8) +
-    geom_line(data = data_out_plot, aes(.data$`Age Mid`, y = .data$nMx, text = .data$age_label), linewidth = 0.8) +
+    geom_line(data = data_out_plot, aes(.data$`Age Mid`, y = .data$nMx), linewidth = 0.8) +
 
     geom_line(
       data = filter(data_in_plot, .data$Age >= min(extrapFrom, max(data_out$Age))),
