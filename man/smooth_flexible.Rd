@@ -14,7 +14,7 @@ smooth_flexible(
     "Strong", "Zigzag"),
   u5m = NULL,
   constrain_infants = TRUE,
-  Sex
+  Sex = "t"
 )
 }
 \arguments{

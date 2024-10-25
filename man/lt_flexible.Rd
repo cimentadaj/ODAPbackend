@@ -13,9 +13,9 @@ lt_flexible(
   extrapLaw = NULL,
   radix = 1e+05,
   SRB = 1.05,
-  Sex = "t",
   a0rule = "Andreev-Kingkade",
-  axmethod = "UN (Greville)"
+  axmethod = "UN (Greville)",
+  Sex = "t"
 )
 }
 \arguments{
@@ -35,11 +35,11 @@ lt_flexible(
 
 \item{SRB}{numeric. the sex ratio at birth (boys / girls), default \code{1.05}}
 
-\item{Sex}{character. Either \code{"m"} for males, \code{"f"} for females. This variable should be preswent in the dataframe. If there is more than pne sex in the data, then the lifetable will be calculazted for each sex present.}
-
 \item{a0rule}{character. Either \code{"ak"} (default) or \code{"cd"}.}
 
 \item{axmethod}{character. Either \code{"pas"} or \code{"un"}.}
+
+\item{Sex}{character. Either \code{"m"} for males, \code{"f"} for females. This variable should be preswent in the dataframe. If there is more than pne sex in the data, then the lifetable will be calculazted for each sex present.}
 }
 \value{
 A single or abridged life table of data.frame format with corresponding columns:
@@ -61,7 +61,7 @@ Wrepper for calculation of abridged-age or a single-age lifetable.
 }
 \examples{
 \dontrun{
-library(tibble)
+library(tidyverse)
 Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
 247473,223014,172260,149338,127242,105715,79614,53660,
 31021,16805,8000,4000,2000,1000)
@@ -84,15 +84,18 @@ data_in <- expand_grid(sex, data_in) \%>\%
    mutate(Sex = sex) \%>\% 
   dplyr::select(-sex)
 
-
-data_out <- smooth_flexible(
-  data_in, 
-  variable     = "Deaths", 
-  rough_method = "auto",
-  fine_method  = "pclm", 
-  constrain_infants = TRUE, 
-  age_out = "single", 
-  u5m     = .1
+data_out <- lt_flexible(
+  data_in = data_in,
+  OAnew      = 100,
+  age_out    = "single",
+  extrapFrom = 80,
+  extrapFit  = NULL,  # Default NULL, computed later
+  extrapLaw  = NULL,
+  radix      = 1e+05,
+  SRB        = 1.05,
+  a0rule     = "Andreev-Kingkade",
+  axmethod   = "UN (Greville)",
+  Sex = "t"
 )
 }
 }

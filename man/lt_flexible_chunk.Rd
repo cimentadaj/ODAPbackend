@@ -72,7 +72,7 @@ Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 Age = c(0, 1, seq(5, 100, by = 5))
 data_in <- tibble(Age,Deaths,Exposures, Sex = "f")
 data_out <- 
-  lt_flexible(data_in,
+  lt_flexible_chunk(data_in,
               OAnew     = 100,
               age_out   = "single",  
               extrapFrom = 80,
