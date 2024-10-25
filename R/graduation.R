@@ -48,7 +48,8 @@ smooth_flexible <- function(data_in,
                                               "Strong", "Zigzag"),
                             u5m               = NULL,
                             constrain_infants = TRUE,
-                            Sex = "t") {
+                            Sex = "t",
+                            by_args = NULL) {
   
   f_args <- capture_args()
   
@@ -81,13 +82,14 @@ smooth_flexible <- function(data_in,
     )
   }
 
-  by_args <- names(data_in)[!names(data_in) %in% c("Age", "Deaths", "Exposures", "Mx_emp", "Sex")]
+  # by_args <- names(data_in)[!names(data_in) %in% c("Age", "Deaths", "Exposures", "Mx_emp", "Sex")]
   
   results <- data_in |>
-      mutate(Sex = substr(Sex, 1, 1), 
-             Sex = tolower(Sex)) |>
-      group_nest(across(all_of(by_args))) |>  # Use across to group by multiple columns
-      mutate(result = map(data, ~ group_func(.x)))  # Apply function
+    mutate(Sex = substr(Sex, 1, 1),
+           Sex = tolower(Sex)) |>
+    # dplyr::select(all_of(c(".id", "Sex", "Age", variable, by_args))) |>
+    group_nest(across(all_of(c(".id", by_args)))) |>  # Use across to group by multiple columns
+    mutate(result = map(data, ~ group_func(.x)))  # Apply function
     
   # Process each group separately
   # results <- data_in |>
@@ -97,7 +99,7 @@ smooth_flexible <- function(data_in,
   #
   
   nms <- results %>%
-    dplyr::select(all_of(by_args)) %>%
+    dplyr::select(all_of(c(".id", by_args))) %>%
     unite("one", everything(), sep = "_") %>%
     pull(one)
   
@@ -859,7 +861,7 @@ smooth_flexible_chunk <- function(data_in,
     
   }
   
-  if(any(data5$Deaths < 0)) {
+  if(any(data5[, variable, drop = TRUE] < 0)) {
     stop(
       "Check your input data or consider changing the selected rough method. Current smoothing process is returning negative values."
     )
@@ -905,11 +907,12 @@ smooth_flexible_chunk <- function(data_in,
         rename(age5   = Age,
                value5 = !!sym(variable))
       
-      data1 <- data_in |> 
+      data1 <- data1 |> # data_in 
         mutate(age5 = .data$Age - .data$Age %% 5) |> 
         mutate(prop = !!sym(variable) / sum(!!sym(variable)), .by = "age5") |> 
         left_join(data5, by = join_by("age5")) |> 
-        mutate(!!variable := !!sym(variable) * .data$prop) |> 
+        mutate(!!variable := .data$value5 * .data$prop) |>
+        # mutate(!!variable := !!sym(variable) * .data$prop) |> 
         select("Age", !!sym(variable))
       
     }
@@ -956,14 +959,14 @@ smooth_flexible_chunk <- function(data_in,
     
     data5 <- data5 |> 
       rename(age5   = Age,
-             value5 = !!sym(variable) )
+             value5 = !!sym(variable))
     
     data1 <- data1 |> 
       mutate(age5 = .data$Age - .data$Age %% 5) |> 
       mutate(prop = !!sym(variable) / sum(!!sym(variable)), .by = "age5") |> 
       left_join(data5, by = join_by("age5")) |> 
       mutate(!!variable := .data$value5 * .data$prop) |>
-      # mutate(!!variable := !!sym(variable) * .data$prop) |> 
+      # mutate(!!variable := !!sym(variable) * .data$prop) |> # !!!!!!
       select("Age", !!sym(variable))
     
   }

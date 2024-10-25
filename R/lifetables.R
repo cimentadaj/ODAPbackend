@@ -62,7 +62,6 @@
 #' data_out <- lt_flexible(
 #'   data_in,
 #'   OAnew      = 100,
-#' OAnew      = 100,
 #' age_out    = "single",
 #' extrapFrom = 80,
 #' extrapFit  = NULL,  # Default NULL, computed later
@@ -91,7 +90,8 @@ lt_flexible <- function(data_in,
                         SRB        = 1.05,
                         a0rule     = "Andreev-Kingkade",
                         axmethod   = "UN (Greville)",
-                        Sex = "t") {
+                        Sex = "t",
+                        by_args = NULL) {
 
   
   f_args <- capture_args()
@@ -117,8 +117,9 @@ lt_flexible <- function(data_in,
   }
   
 
-  by_args <- names(data_in)[!names(data_in) %in% c("Age", "Deaths", "Exposures", "Mx_emp")]
-
+ # by_args <- names(data_in)[!names(data_in) %in% c("Age", "Deaths", "Exposures", 
+ #                                                   "Mx_emp", "Rates", "AgeInt")]
+ #  
   data_out <- data_in |>
     reframe(
       lt_flexible_chunk(data_in    = .data, 
@@ -132,9 +133,9 @@ lt_flexible <- function(data_in,
                         a0rule     = a0rule,
                         axmethod   = axmethod
 
-      ), .by = all_of(by_args)
+      ), .by = all_of(c(".id", by_args))
     ) |>
-    set_names(c(by_args, "data"))
+    set_names(c(".id", by_args, "data"))
 
   return(list(data_out  = data_out,
               arguments = f_args))
@@ -221,7 +222,7 @@ lt_flexible_chunk <- function(
   Deaths    <- data_in$Deaths
   Exposures <- data_in$Exposures
   Age       <- data_in$Age
-  
+  Mx_emp    <- Deaths / Exposures
   a0rule <- case_match(a0rule,
                        "Andreev-Kingkade"  ~ "ak",
                        "Coale-Demeny"      ~ "cd",
@@ -250,9 +251,9 @@ lt_flexible_chunk <- function(
     # and execute the function using do.call()
     AgeInt <- age2int(data_in$Age)
     
-    data_out <- lt_abridged(Deaths     = data_in$Deaths,
-                            Exposures  = data_in$Exposures,
-                            Age        = data_in$Age,
+    data_out <- lt_abridged(Deaths     = Deaths,
+                            Exposures  = Exposures,
+                            Age        = Age,
                             AgeInt     = AgeInt,
                             OAnew      = OAnew,
                             extrapFrom = extrapFrom,
@@ -268,9 +269,9 @@ lt_flexible_chunk <- function(
   # Compute `data_out` based on age conditions
   if (age_in == "abridged" & age_out == "single") {
     
-    data_out <- lt_abridged2single(Deaths     = data_in$Deaths,
-                                   Exposures  = data_in$Exposures,
-                                   Age        = data_in$Age,
+    data_out <- lt_abridged2single(Deaths     = Deaths,
+                                   Exposures  = Exposures,
+                                   Age        = Age,
                                    OAnew      = OAnew,  
                                    extrapFrom = extrapFrom,
                                    extrapFit  = extrapFit,
@@ -287,8 +288,8 @@ lt_flexible_chunk <- function(
     # Don't check age_out yet here, because the abridge function requires a
     # precalculated lifetable, see below
     # TR same story; arg management should be complete and strategic
-    data_out <- lt_single_mx(nMx        = data_in$Mx_emp,
-                             Age        = data_in$Age,
+    data_out <- lt_single_mx(nMx        = Mx_emp,
+                             Age        = Age,
                              OAnew      = OAnew,
                              extrapFrom = extrapFrom,
                              extrapFit  = extrapFit, # should we change it here too to 1 year intervals?
@@ -357,11 +358,9 @@ lt_plot <- function(data_in,
   id1 <- unique(data_in$.id)
   
   plots <- data_out |>
-
-    group_split(.id, .keep = TRUE)|>
+    group_split(.id, .keep = TRUE) |>
     map(~ plot_lifetable(.x)) %>% 
     set_names(id)
-
   
   # sorry JC, forgot this!
   d_in <-  data_in |>
