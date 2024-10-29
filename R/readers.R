@@ -1,11 +1,10 @@
-#' read_data
-#' @description Read the with supported file extension into the program. The file should contain at minimum 3 columns "Deaths", "Exposures","Age" named this way or positioned in a corresponding order.
+#' @title `read_data`
+#' @description Read the data with supported file extension into the program. The file should contain at minimum 3 columns "Deaths", "Exposures","Age" named this way or positioned in a corresponding order.
 #' @param user_file character. File name with corresponding extension e.g. `data.csv`.
 #' @param skip numeric. Number of rows to skip before reading the data. Defaults to `0`.
 #' @return A tibble with with 5 numeric columns: Deaths, Exposures, Age, AgeInt, Mx_emp.
 #' @importFrom dplyr mutate select
 #' @importFrom readr read_delim parse_number
-#' @importFrom magrittr %>% 
 #' @importFrom readxl read_excel
 #' @importFrom stringr str_detect 
 #' @importFrom DemoTools is_age_coherent is_age_sequential is_age_redundant
@@ -38,7 +37,6 @@ read_data <- function(user_file, skip = 0) {
     data_in <- 
       read_delim(file.path("inst/extdata", user_file), show_col_types = FALSE, skip = skip)
     
-    
   } else {
     # can handle both xls and xlsx data. 
     # we can use readxl if we want to hard code format
@@ -66,17 +64,17 @@ read_data <- function(user_file, skip = 0) {
   }
   
   # here we just guarantee that the 5 columns come in a given order and with a given name
-  data_in <- data_in %>% 
+  data_in <- data_in |>
     dplyr::select(matches("Deaths"), matches("Exposures"), matches("Age$"), matches("AgeInt$"), matches("Sex$"))
   
   # calculate empirical nmx
-  data_in <- data_in %>%
+  data_in <- data_in |>
     mutate(Mx_emp = .data$Deaths / .data$Exposures)
   # 
   return(data_in)
 }
 
-#' @title create_groupid
+#' @title `create_groupid`
 #' @description Checks to make sure that key variables plus age result in one row per unique stratum.
 #' @param data a `data.frame` or `tibble`
 #' @param keys character vector of columns definining strata
@@ -85,14 +83,13 @@ read_data <- function(user_file, skip = 0) {
 create_groupid <- function(data, keys) {
   
   data |> 
-    group_by_at(keys) |> 
+    group_by_at(keys) |>
     mutate(.id = cur_group_id(), .before = 1) |>
     ungroup()
   
-
 }
 
-#' @title check_groupid
+#' @title `check_groupid`
 #' @description Checks to make sure `.id` column plus `Age` indeed completely define all strata present in the data.
 #' @param data `data.frame`-like object
 #' @return logical TRUE if strata completely defined.
@@ -101,16 +98,12 @@ create_groupid <- function(data, keys) {
 
 check_groupid <- function(data){
 
-
     stopifnot(".id" %in% colnames(data))
-
   
-  check <-
-    data |> 
+  check <- data |> 
     group_by(.data$.id, .data$Age) |> 
     summarize(n = n(), .groups = "drop")
   
   all(check$n == 1)
   
 }
-

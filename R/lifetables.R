@@ -1,21 +1,27 @@
-#' lt_flexible
-#' @description Wrepper for calculation of abridged-age or a single-age lifetable.
-#' @param data_in a `data.frame` or `tibble` with columns `Age``, `Deaths``, and `Exposures``. Can have a `.id` column in which case the results will be generated for each group as specified by this column.
-#' @param OAnew integer. Desired open age group (5-year ages only). Default `100`. If higher then rates are extrapolated.
-#' @param age_out character. Indicates weather single or abridged lifetable output is desired. takes values `"single"`, `"abridged"`. Defaults to "single"
+#' @title `lt_flexible`
+#' @description Wrapper for calculation of abridged-age or single-age lifetable.
+#' @param data_in data.frame or tibble. Should contain numeric columns `Age`, `Deaths`, and `Exposures`. Can have a `.id` column in which case the results will be generated for each group as specified by this column.
+#' @param OAnew integer. Desired open age group (5-year ages only). Default to `100`. If higher, then rates will be extrapolated.
+#' @param age_out character. Indicates whether single or abridged lifetable output is desired. Takes values `single`, or `abridged`. Defaults to `single`.
 #' @param extrapFrom integer. Age from which to impute extrapolated mortality.
-#' @param extrapFit integer vector. Ages to include in model fitting. Defaults to all ages > =60.
-#' @param radix numeric. Lifetable radix, `l0`. Default `100000`.
-#' @param extrapLaw character. If extrapolating, which parametric mortality law should be invoked? Options include `"Kannisto"`, `"Kannisto_Makeham"`, `"Makeham"`, `"Gompertz"`, `"GGompertz"`, `"Beard"`, `"Beard_Makeham"`, `"Quadratic"`. Default `"Kannisto"` if the highest age is at least 90, otherwise `"makeham"`.
-#' @param SRB numeric. the sex ratio at birth (boys / girls), default `1.05`
-#' @param a0rule character. Either `"ak"` (default) or `"cd"`.
-#' @param axmethod character. Either `"pas"` or `"un"`.
-#' @param Sex character. Either `"m"` for males, `"f"` for females. This variable should be preswent in the dataframe. If there is more than pne sex in the data, then the lifetable will be calculazted for each sex present.
-#' @return A single or abridged life table of data.frame format with corresponding columns:
+#' @param extrapFit integer vector. Ages to include in model fitting. Defaults to all ages >= 60.
+#' @param radix numeric. Lifetable radix, `l(0)`. Defaults to `100000`.
+#' @param extrapLaw character. If extrapolating, which parametric mortality law should be invoked? Options include `"Kannisto"`, `"Kannisto_Makeham"`, `"Makeham"`, `"Gompertz"`, `"GGompertz"`, `"Beard"`, `"Beard_Makeham"`, `"Quadratic"`. Defaults to `Kannisto` if the highest age is at least 90, otherwise o `Makeham`.
+#' @param SRB numeric. The sex ratio at birth (boys/girls). Defaults to `1.05`.
+#' @param a0rule character. Rule for `a(x)` calculation Either `ak` (default) or `cd`.
+#' @param axmethod character. Method used for `a(x)` calculation. Either `pas` or `un`.
+#' @param Sex character. Either `m` for males, `f` for females or `t` for total. This variable defaults to `t`. If there is more than one sex in the data, then the lifetable will be calculated for each sex.
+#' @param by_args character. A vector of columns should be also included in the output. These columns are usually ones that are used for `.id` construction. Defaults to `NULL`. It is important to not include `Sex` in this vector.
+#' @importFrom dplyr mutate filter reframe first bind_rown
+#' @importFrom purrr map_lgl
+#' @importFrom tidyselect all_of
+#' @importFrom tidyr unnest
+#' @importFrom rlang set_names .data
+#' @return A list with 3 elements: `data_out` - single or abridged life table of data.frame format with corresponding columns:
 #' Age integer. Lower bound of abridged age class,
 #' AgeInt integer. Age class widths.
 #' nMx numeric. Age-specific central death rates.
-#' nAx numeric. Average time spent in interval by those deceased in interval.
+#' nAx numeric. Average time spent in the interval by those deceased.
 #' nqx numeric. Age-specific conditional death probabilities.
 #' lx numeric. Lifetable survivorship
 #' ndx numeric. Lifetable deaths distribution.
@@ -23,63 +29,35 @@
 #' Sx numeric. Survivor ratios in uniform 5-year age groups.
 #' Tx numeric. Lifetable total years left to live above age x.
 #' ex numeric. Age-specific remaining life expectancy.
-#' .id character A group indicator for which the results will be generated. In case of missing the .id columnwill return `all`
-#' @importFrom dplyr case_when reframe first
-#' @importFrom purrr set_names
-#' @importFrom tidyselect all_of
-#' @importFrom DemoTools is_single lt_abridged age2int lt_abridged2single lt_single_mx lt_single2abridged is_abridged
-#' @importFrom rlang .data
+#' .id character A group indicator for which the results will be generated. In case of missing the .id column will return `all`
+#' Sex - corresponding sex
+#' by_args - chosen additional arguments
+#' `arguments` - a list of arguments used in fitting `lt_flixible` function, `arguments2` - a list of arguments used for `lt_flexible_chunk` fitting. 
 #' @export
 #' @examples
-#' \dontrun{
-
-#' library(tidyr)
+#' library(readr)
 #' library(dplyr)
-#' Exposures <- c(100958, 466275, 624134, 559559, 446736, 370653, 301862,
-#'                249409, 247473, 223014, 172260, 149338, 127242, 105715,
-#'                79614,  53660,  31021,  16805,  8000,   4000,   2000, 
-#'                1000)
-
-#' 
-#' Deaths <- c(8674, 1592, 618,  411,  755,  1098, 1100, 1357,
-#'             1335, 3257, 2200, 4023, 2167, 4578, 2956, 4212,
-#'             2887, 2351, 1500, 900,  500,  300)
-#' 
-#' sex     <- c("f", "m")
-#' Age     <- c(0, 1, seq(5, 100, by = 5))
-#' data_in <- data.frame(Age, Deaths, Exposures)
-#' dt      <- rpois(n = 22, lambda = 1000)
-#' d1      <- rpois(n = 22, lambda = 100000)
-#' 
-#' data_in <- expand_grid(sex, data_in) |>
-#'   mutate(Deaths    = ifelse(sex == "f", dt, Deaths),
-#'          Exposures = ifelse(sex == "f", d1, Exposures)) |>
-#'   mutate(.id = sex) |>
-#'   mutate(Sex = sex) |>
-#'   dplyr::select(-sex)
-
+#' # single age data
+#' data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#'   dplyr::select(-1)
 #' 
 #' data_out <- lt_flexible(
 #'   data_in,
 #'   OAnew      = 100,
-#' age_out    = "single",
-#' extrapFrom = 80,
-#' extrapFit  = NULL,  # Default NULL, computed later
-#' extrapLaw  = NULL,
-#' radix      = 1e+05,
-#' SRB        = 1.05,
-#' a0rule     = "Andreev-Kingkade",
-#' axmethod   = "UN (Greville)",
-#' Sex = "t"
-
+#'   age_out    = "single",
+#'   extrapFrom = 80,
+#'   extrapFit  = NULL,  # Default NULL, computed later
+#'   extrapLaw  = NULL,
+#'   radix      = 1e+05,
+#'   SRB        = 1.05,
+#'   a0rule     = "Andreev-Kingkade",
+#'   axmethod   = "UN (Greville)",
+#'   Sex = "t"
 #' )
-#' 
-#' data_out$data
+#' data_out$data_out
+#' data_out$arguments2
 #' data_out$arguments
-#' data_out$figures$f
-#' data_out$figures$m
-#' 
-
+  
 lt_flexible <- function(data_in,
                         OAnew      = 100,
                         age_out    = "single",
@@ -96,10 +74,14 @@ lt_flexible <- function(data_in,
   
   f_args <- capture_args()
 
+  if (!"Sex" %in% colnames(data_in)){
+    data_in$Sex <- Sex
+  }
   
   data_in <- data_in |>
     mutate(Sex = substr(Sex, 1, 1),
-           Sex = ifelse(Sex == "t", "b", Sex)) |>
+           Sex = ifelse(Sex == "t", "b", Sex),
+           Sex = tolower(Sex)) |>
     mutate(Mx_emp = .data$Deaths / .data$Exposures)
 
   if (!(".id" %in% colnames(data_in))) {
@@ -112,11 +94,6 @@ lt_flexible <- function(data_in,
     extrapFit <- unique(data_in$Age)[unique(data_in$Age) >= 60]
   }
   
-  if (!"Sex" %in% colnames(data_in)){
-    data_in$Sex <- Sex
-  }
-  
-
  # by_args <- names(data_in)[!names(data_in) %in% c("Age", "Deaths", "Exposures", 
  #                                                   "Mx_emp", "Rates", "AgeInt")]
  #  
@@ -136,74 +113,79 @@ lt_flexible <- function(data_in,
       ), .by = all_of(c(".id", by_args))
     ) |>
     set_names(c(".id", by_args, "data"))
-
-  return(list(data_out  = data_out,
-              arguments = f_args))
+  
+  data <- data_out |>
+    filter(map_lgl(data, is.data.frame))|>
+    unnest(.data$data)
+  
+  args <- data_out |>
+    filter(map_lgl(data, ~ !is.data.frame(.))) |>
+    bind_rows(.id = ".id")
+  
+  return(list(data_out   = data,
+              arguments  = f_args,
+              arguments2 = args))
 }
 
 # [ ] allow lx, nMx, nqx inputs
 # [ ] if data go up to 75+ we can't have jumpoff at 80, the value 80 needs
 #     to be dynamically determined
 
-#' lt_flexible_chunk
-#' @description Calculate an abridged-age or a single-age lifetable.
-#' @param data_in a `data.frame` or `tibble` with columns `Age``, `Deaths``, and `Exposures``
+#' @title `lt_flexible_chunk`
+#' @description Calculate an abridged or a single-age lifetable.
+#' @param data_in a `data.frame` or `tibble`. 3 numeric columns `Age`, `Deaths`, and `Exposures`. Can optionally have columns `Sex` and `.id` in which case the table will be calculated for each level in these columns. Can also have an additional column.
 #' @param OAnew integer. Desired open age group (5-year ages only). Default `100`. If higher then rates are extrapolated.
-#' @param age_out character. Indicates weather single or abridged lifetable output is desired. takes values `"single"`, `"abridged"`. Defaults to "single"
-#' @param extrapFrom integer. Age from which to impute extrapolated mortality.
-#' @param extrapFit integer vector. Ages to include in model fitting. Defaults to all ages > =60.
-#' @param radix numeric. Lifetable radix, `l0`. Default `100000`.
-#' @param extrapLaw character. If extrapolating, which parametric mortality law should be invoked? Options include `"Kannisto"`, `"Kannisto_Makeham"`, `"Makeham"`, `"Gompertz"`, `"GGompertz"`, `"Beard"`, `"Beard_Makeham"`, `"Quadratic"`. Default `"Kannisto"` if the highest age is at least 90, otherwise `"makeham"`.
-#' @param SRB numeric. the sex ratio at birth (boys / girls), default `1.05`
-#' @param a0rule character. Either `"ak"` (default) or `"cd"`.
-#' @param axmethod character. Either `"pas"` or `"un"`.
-#' @param Sex character. Either `"m"` for males, `"f"` for females (default).
-#' @return A single or abridged life table iof data.frame format with corresponding columns:
+#' @param age_out character. Indicates whether single or abridged lifetable output is desired. takes values `single`, `abridged`. Defaults to `single`.
+#' @param extrapFrom integer. Age from which to impute extrapolated mortality. Defaults to `NULL`.
+#' @param extrapFit integer vector. Ages to include in model fitting. Defaults to all ages >= 60.
+#' @param radix numeric. Lifetable radix, `l(0)`. Default `100000`.
+#' @param extrapLaw character. If extrapolating, which parametric mortality law should be invoked? Options include `Kannisto`, `Kannisto_Makeham`, `Makeham`, `Gompertz`, `GGompertz`, `Beard`, `Beard_Makeham`, `Quadratic`. Defaults to `Kannisto` if the highest age is at least 90, otherwise to `Makeham`.
+#' @param SRB numeric. the sex ratio at birth (boys/girls). Defaults to `1.05`.
+#' @param a0rule character. An a(0) calculation rule. Either `ak` (default) or `cd`.
+#' @param axmethod character. A method used for a(0) calculation. Either `pas` or `un`.
+#' @param Sex character. Either `m` for males, `f` for females, or `t` for total (default).
+#' @return A list with two elements: A single or abridged life table of data.frame format with corresponding columns:
 #' Age integer. Lower bound of abridged age class,
 #' AgeInt integer. Age class widths.
 #' nMx numeric. Age-specific central death rates.
-#' nAx numeric. Average time spent in interval by those deceased in interval.
+#' nAx numeric. Average time spent in the interval by those deceased.
 #' nqx numeric. Age-specific conditional death probabilities.
-#' lx numeric. Lifetable survivorship
+#' lx numeric. Lifetable survivorship.
 #' ndx numeric. Lifetable deaths distribution.
 #' nLx numeric. Lifetable exposure.
 #' Sx numeric. Survivor ratios in uniform 5-year age groups.
 #' Tx numeric. Lifetable total years left to live above age x.
 #' ex numeric. Age-specific remaining life expectancy.
+#' Sex character. Sex.
 #' @importFrom dplyr case_when case_match mutate
 #' @importFrom DemoTools is_single lt_abridged age2int lt_abridged2single lt_single_mx lt_single2abridged is_abridged
+#' `arguments` - a list of arguments used in fitting.
 #' @export
 #' @examples
-#' \dontrun{
-#' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
-#' 247473,223014,172260,149338,127242,105715,79614,53660,
-#' 31021,16805,8000,4000,2000,1000)
+#' library(readr)
+#' library(dplyr)
+#' # single age data
+#' data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#'   dplyr::select(-1) |>
+#'   filter(.id == 1)
 #' 
-#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
-#'             1335,3257,2200,4023,2167,4578,2956,4212,
-#'             2887,2351,1500,900,500,300)
-#'
-
-#' Age = c(0, 1, seq(5, 100, by = 5))
-#' data_in <- data.frame(Age,Deaths,Exposures)
 #' data_out <-
 #'   lt_flexible_chunk(data_in,
 #'                     OAnew     = 100,
-#'                     age_out   = "single",
-#'                     extrapFrom = 80,
-#'                     extrapFit = Age[Age >= 60],
-#'                     radix     = 1e+05,
+#'                    age_out   = "abridged",
+#'                    extrapFrom = 80,
+#'                    # extrapFit = Age[Age >= 60],
+#'                    radix     = 1e+05,
 #'                     extrapLaw = NULL,
 #'                     SRB       = 1.05,
-#'                     a0rule    = "ak",
-#'                     axmethod  = "un",
-#'                     Sex       = "t")
-#' 
+#'                    a0rule    = "ak",
+#'                    axmethod  = "un",
+#'                    Sex       = "f")
 #' 
 #' data_out$data_out
-
-#' }
-
+#' data_out$arguments
+#' 
+#' 
 lt_flexible_chunk <- function(
     data_in,
     Sex,
@@ -217,8 +199,7 @@ lt_flexible_chunk <- function(
     a0rule     = "Andreev-Kingkade",
     axmethod   = "UN (Greville)") {
   
-  f_args <- capture_args()
-  
+  f_args    <- capture_args()
   Deaths    <- data_in$Deaths
   Exposures <- data_in$Exposures
   Age       <- data_in$Age
@@ -314,7 +295,8 @@ lt_flexible_chunk <- function(
   Sex <- case_match(Sex,
                     "m" ~ "Males",
                     "f" ~ "Females",
-                    "b" ~ "Total")
+                    "b" ~ "Total",
+                    "t" ~ "Total")
    
   # Add sex column to output
   data_out <- data_out |>
@@ -322,33 +304,56 @@ lt_flexible_chunk <- function(
   
   return(list(data_out  = data_out,
               arguments = f_args))
-  
-}
+  }
 
-#' lt_plot
-#' @description Plot wrapper, created lifetable plot list previously returned by `lt_flexible()`
-#' @details This function should be run after `lt_flexible()`, so that you can pass both `data_in` and `data_out`. There is no fallback at this time to generate `data_out` on the fly if missing. We need to pass `extrapFrom` at this time indicate the jump-off in the plot. In the future this may be detected or passed in another way.
+#' @ title `lt_plot`
+#' @description Plot wrapper, creates lifetable plot list returned by `lt_flexible()`
+#' @details This function should be run after `lt_flexible()`, so that you can pass both `data_in` and `data_out`. There is no fallback at this time to generate `data_out` on the fly if missing. `extrapFrom` should be passe dat this time to indicate the jump-off in the plot. In the future, this may be detected or passed in another way.
 #' @importFrom dplyr group_split mutate group_nest full_join
-#' @importFrom purrr map2 map set_names
-#' @importFrom tidyr pivot_wider
+#' @importFrom purrr map_lgl map2 map set_names
+#' @importFrom tidyr unnest pivot_wider 
 #' @export
 #' @param data_in a `data.frame` or `tibble` with columns `Age`, `Deaths`, and `Exposures` and `.id`
 #' @param data_out `tibble` as produced by `lt_flexible()`
 #' @param extrapFrom integer. Age from which to impute extrapolated mortality.
+#' library(readr)
+#' library(dplyr)
+#' # single age data
+#' data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#'   dplyr::select(-1) |>
+#'   filter(.id == 1)
+#' 
+#' data_out <- lt_flexible(
+#'   data_in,
+#'   OAnew      = 100,
+#'   age_out    = "single",
+#'   extrapFrom = 80,
+#'   extrapFit  = NULL,  # Default NULL, computed later
+#'   extrapLaw  = NULL,
+#'  radix      = 1e+05,
+#'   SRB        = 1.05,
+#'   a0rule     = "Andreev-Kingkade",
+#'   axmethod   = "UN (Greville)",
+#'   Sex = "t"
+#' )
+#' 
+#' ex1 <-  lt_plot(
+#'   data_in = data_in,
+#'   data_out = data_out,
+#'   extrapFrom = 80)
+#'   
+#' ex1$`1`$nMx
+#' ex1$`1`$lx
+#' ex1$`1`$ndx
+#' ex1$`1`$nqx
+#' ex1$nMx
+
 lt_plot <- function(data_in,
                     data_out, 
                     extrapFrom = extrapFrom){
   
-  data_out <- data_out$data_out %>%
-    mutate(ind = map_lgl(data, ~ is.data.frame(.x))) %>% 
-    filter(ind == TRUE) %>% 
-    dplyr::select(-ind) %>% 
-    unnest(data)
+  data_out <- data_out$data_out
   
-  if (!(".id" %in% colnames(data_out))){
-    data_out <- data_out |>
-      mutate(.id = "all")
-  }
   
   if (!(".id" %in% colnames(data_in))){
     data_in <- data_in |>
@@ -358,9 +363,9 @@ lt_plot <- function(data_in,
   id1 <- unique(data_in$.id)
   
   plots <- data_out |>
-    group_split(.id, .keep = TRUE) |>
-    map(~ plot_lifetable(.x)) %>% 
-    set_names(id)
+    group_split(.data$.id, .keep = TRUE) |>
+    map(~ plot_lifetable(.x)) |>
+    set_names(id1)
   
   # sorry JC, forgot this!
   d_in <-  data_in |>
@@ -394,10 +399,10 @@ lt_plot <- function(data_in,
 # DONE We have to think exactly what measures do we want here. The carcass is ready, changing it is a matter of minutes.
 # TODO: TO finish the roxxygen description after we decide which functions we keep and on the output
 
-#' lt_summary
+#' @title `lt_summary`
 #' @description Creates a table of useful summary statistics from the lifetable.
-#' @param data_out a data.frame. The data.frame output of the lt_flexible function.
-#' @return A list with 2 data.frames containing the information on the following usefull statistics
+#' @param data_out a data.frame or tibble. The data.frame output of the `lt_flexible` function.
+#' @return A  data.frame containing the information on the following useful lifetable statistics:
 #' e0 - life expectancy at birth
 #' e65 - life expectancy at age 65
 #' `S[1]` - The standard deviation in age at death from birth
@@ -413,32 +418,28 @@ lt_plot <- function(data_in,
 #' @importFrom dplyr everything mutate reframe
 #' @export
 #' @examples
-#' \dontrun{
-#' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
-#' 247473,223014,172260,149338,127242,105715,79614,53660,
-#' 31021,16805,8000,4000,2000,1000)
+#' library(readr)
+#' library(dplyr)
+#' # single age data
+#' data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#'   dplyr::select(-1) |>
+#'   filter(.id == 1)
 #' 
-#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
-#'             1335,3257,2200,4023,2167,4578,2956,4212,
-#'             2887,2351,1500,900,500,300)
-#' Age = c(0, 1, seq(5, 100, by = 5))
+#' data_out <- lt_flexible(
+#'   data_in,
+#'   OAnew      = 100,
+#'   age_out    = "single",
+#'   extrapFrom = 80,
+#'   extrapFit  = NULL,  # Default NULL, computed later
+#'   extrapLaw  = NULL,
+#'   radix      = 1e+05,
+#'   SRB        = 1.05,
+#'   a0rule     = "Andreev-Kingkade",
+#'   axmethod   = "UN (Greville)",
+#'   Sex = "t"
+#' )
 #' 
-#' data_in <- data.frame(Age, Deaths, Exposures)
-#' 
-#' data_out <-
-#'   lt_flexible(data_in,
-#'               OAnew     = 100,
-#'               age_out   = "single",
-#'               extrapFrom = 80,
-#'               extrapFit = NULL,
-#'               radix     = 1e+05,
-#'               extrapLaw = NULL,
-#'              SRB       = 1.05,
-#'               a0rule    = "ak",
-#'               axmethod  = "un")
-#' 
-#' lt_summary(data_out)
-#' }
+#' lt_summary(data_out$data_out)
 
 lt_summary <- function(data_out){
   
@@ -449,13 +450,56 @@ lt_summary <- function(data_out){
       mutate(.id = "all")
   }
   
-  out <- data_out %>%
-    reframe(lt_summary_chunk(data_out = .data), .by = .data$.id)
+  out <- data_out |>
+    reframe(lt_summary_chunk(data_out = .data), 
+            .by = .data$.id)
   
   return(out)
 }
 
+
 # TODO: add column called 'label'
+#' @title `lt_summary_chunk`
+#' @description Creates a table of useful summary statistics from the lifetable.
+#' @param data_out a data.frame or tibble. The data.frame output of the `lt_flexible` function.
+#' @return A  data.frame containing the information on the following useful lifetable statistics:
+#' e0 - life expectancy at birth
+#' e65 - life expectancy at age 65
+#' `S[1]` - The standard deviation in age at death from birth
+#' `S[11]` - The standard deviation in age at death from age 10
+#' IQR1 - interquartile range survivorship age from a lifetable
+#' IQR2 - interquartile range survivorship age from a lifetable
+#' IQR3 - interquartile range survivorship age from a lifetable
+#' mod_age - modal age at death
+#' q15_45 - probability that the person ages 54 will die at age 60
+#' @importFrom tibble lst tibble
+#' @importFrom LifeIneq ineq_sd ineq_iqr ineq_quantile 
+#' @importFrom tidyr pivot_longer
+#' @importFrom dplyr everything mutate reframe
+#' @export
+#' @examples
+#' library(readr)
+#' library(dplyr)
+#' # single age data
+#' data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#'   dplyr::select(-1) |>
+#'   filter(.id == 1)
+#' 
+#' data_out <- lt_flexible(
+#'   data_in,
+#'   OAnew      = 100,
+#'   age_out    = "single",
+#'   extrapFrom = 80,
+#'   extrapFit  = NULL,  # Default NULL, computed later
+#'   extrapLaw  = NULL,
+#'   radix      = 1e+05,
+#'   SRB        = 1.05,
+#'   a0rule     = "Andreev-Kingkade",
+#'   axmethod   = "UN (Greville)",
+#'   Sex = "t"
+#' )
+#' 
+#' lt_summary_chunk(data_out$data_out)
 lt_summary_chunk <- function(data_out) {
   
   e0  <- data_out$ex[data_out$Age == 0]
@@ -466,30 +510,24 @@ lt_summary_chunk <- function(data_out) {
                  ax  = data_out$nAx)
   
 
-  IQR        <- ineq_iqr(age = data_out$Age, lx = data_out$lx, lower = 0.25,  upper = 0.75)
-  
-
-  # TR: corrected this; you were using ndx before, we only need for age 0...
-  median_age <- ineq_quantile(age = data_out$Age, lx = data_out$lx, quantile = 0.5)[1]
-  mod_age    <- modal_age(data_out)
-  
-  # survived to age 45 AND died at age 60
-  # q15_45 <- (1 - data_out$nqx[data_out$Age == 45]) * data_out$nqx[data_out$Age == 60]
-  # TR: nope 45q15 means probability of dying before age 60, conditional
-  # on survival to age 15, often denoted as
-  # ${}_{45}q_{15}$, i.e. where 45 is N = interval width
-  # I switched it to 20 - 65 so 45q20
-  
-  l20     <- data_out$lx[data_out$Age == 20]
-  l65     <- data_out$lx[data_out$Age == 65]
-  p_20_65 <- l65 / l20
-  q_20_65 <- 1 - p_20_65
+  IQR        <- ineq_iqr(age   = data_out$Age, 
+                         lx    = data_out$lx, 
+                         lower = 0.25,  
+                         upper = 0.75)
+  median_age <- ineq_quantile(age      = data_out$Age, 
+                              lx       = data_out$lx, 
+                              quantile = 0.5)[1]
+  mod_age    <- modal_age(data_out)  
+  l20        <- data_out$lx[data_out$Age == 20]
+  l65        <- data_out$lx[data_out$Age == 65]
+  p_20_65    <- l65 / l20
+  q_20_65    <- 1 - p_20_65
   
   out <- tibble(e0, 
                 Median = median_age,
-                Mode = mod_age,
+                Mode   = mod_age,
                 e65, 
-                sd0 = S[1], 
+                sd0  = S[1], 
                 sd10 = S[11],
                 IQR,
                 q_20_65) |> 
