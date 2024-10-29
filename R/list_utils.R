@@ -1,6 +1,7 @@
 #' @title capture_args
-#' @description returns list of all arguments passed to a function, such that you could re-call the function using `do.call()`
+#' @description returns a list of all arguments passed to a function, such that you could re-call the function using `do.call()`
 #' @details If you pass in a `data.frame`, such as `data_in`, the whole thing is copied in the respective argument, which is returned. If you have an object in memory called `data_i`, defined as `data.frame(a=1:3,b=letters[1:3])` and you do `f(data_in = data_i)`, then the output is not `list()`
+#' @importFrom utils modifyList
 #' @return a list of arguments passed
 #' @export
 #' @examples
