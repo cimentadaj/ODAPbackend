@@ -12,7 +12,7 @@
 #' @param axmethod character. Method used for `a(x)` calculation. Either `pas` or `un`.
 #' @param Sex character. Either `m` for males, `f` for females or `t` for total. This variable defaults to `t`. If there is more than one sex in the data, then the lifetable will be calculated for each sex.
 #' @param by_args character. A vector of columns should be also included in the output. These columns are usually ones that are used for `.id` construction. Defaults to `NULL`. It is important to not include `Sex` in this vector.
-#' @importFrom dplyr mutate filter reframe first bind_row ungroup .data
+#' @importFrom dplyr mutate filter reframe first bind_rows ungroup .data
 #' @importFrom purrr map_lgl
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr unnest
