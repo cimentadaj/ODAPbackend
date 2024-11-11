@@ -98,9 +98,9 @@ x <- x %>%
 
 # lets see which names are resulting in problems
 # some of the rough_method
-# if no erros is empty and returns error
+# if no errors is empty
 z <- x %>%
-  keep(~ is.logical(.)) %>% 
+  keep(~ is.logical(.)) %>%  # empty
   names() %>% 
   as.data.frame() %>%
   separate_wider_delim('.', 
@@ -110,10 +110,5 @@ z <- x %>%
   set_names(c("element", names(argums)))
 
 
-x[[1]]$data_out %>% 
-  filter(map_lgl(data, is.data.frame)) %>%
-  unnest(data) %>% 
-  view()
 
-# in lifetables do the sex imputation
-# also allow for Mx usage in arguments
+
