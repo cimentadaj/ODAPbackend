@@ -73,7 +73,7 @@ lt_flexible <- function(data_in,
                         by_args = NULL) {
 
   
-  f_args <- capture_args()
+  ## f_args <- capture_args()
 
   if (!"Sex" %in% colnames(data_in)){
     data_in$Sex <- Sex
@@ -205,9 +205,10 @@ lt_flexible <- function(data_in,
     filter(map_lgl(data, ~ !is.data.frame(.))) |>
     bind_rows(.id = ".id")
   
-  return(list(data_out   = data,
-              arguments  = f_args,
-              arguments2 = args))
+  return(list(data_out   = data
+              ## arguments  = f_args,
+              ## arguments2 = args
+              ))
 }
 
 # [ ] allow lx, nMx, nqx inputs
@@ -282,7 +283,7 @@ lt_flexible_chunk <- function(
     a0rule     = "Andreev-Kingkade",
     axmethod   = "UN (Greville)") {
   
-  f_args <- capture_args()
+  ## f_args <- capture_args()
   Age    <- data_in$Age
   AgeInt <- age2int(Age, OAvalue = 5)
   Mx_emp <- data_in$Mx_emp
@@ -382,8 +383,9 @@ lt_flexible_chunk <- function(
   data_out <- data_out |>
     mutate(Sex = Sex, .before = 1)
   
-  return(list(data_out  = data_out,
-              arguments = f_args))
+  return(list(data_out  = data_out
+              ## arguments = f_args
+              ))
   }
 
 #' @ title `lt_plot`
@@ -431,8 +433,6 @@ lt_flexible_chunk <- function(
 lt_plot <- function(data_in,
                     data_out, 
                     extrapFrom = extrapFrom){
-  
-  data_out <- data_out$data_out
   
   
   if (!(".id" %in% colnames(data_in))){
@@ -522,8 +522,6 @@ lt_plot <- function(data_in,
 #' lt_summary(data_out$data_out)
 
 lt_summary <- function(data_out){
-  
-  data_out <- data_out$data_out
   
   if (!(".id" %in% colnames(data_out))){
     data_out <- data_out |>

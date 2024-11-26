@@ -80,13 +80,19 @@ read_data <- function(user_file, skip = 0) {
 #' @param keys character vector of columns definining strata
 #' @importFrom dplyr cur_group_id mutate group_by_at ungroup
 #' @export
-create_groupid <- function(data, keys) {
-  
+create_groupid <- function(data, keys){
+  if (length(keys) == 0) {
+    data$`.id` <- 1
+    data$`.id_label` <- "All"
+  }
   data |> 
-    group_by_at(keys) |>
-    mutate(.id = cur_group_id(), .before = 1) |>
+    group_by_at(keys) |> 
+    mutate(
+      .id = cur_group_id(),
+      `.id_label` = paste0(cur_group(), collapse = " - "),
+      .before = 1
+    ) %>%
     ungroup()
-  
 }
 
 #' @title `check_groupid`
