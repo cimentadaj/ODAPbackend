@@ -468,7 +468,7 @@ check_sex <- function(data) {
   if (any(str_detect("Sex", names(data)))) {
     lvls <- unique(data$Sex)
     
-    if (lvls %in% c("Male", "Female", "Total")) {
+    if (all(lvls %in% c("Male", "Female", "Total"))) {
       message <- NA_character_
       
     } else {
