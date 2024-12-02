@@ -92,6 +92,7 @@ smooth_flexible <- function(data_in,
 
   # by_args <- names(data_in)[!names(data_in) %in% c("Age", "Deaths", "Exposures", "Mx_emp", "Sex")]
   
+
   results <-
     data_in |>
     mutate(Sex = substr(Sex, 1, 1),
@@ -122,10 +123,10 @@ smooth_flexible <- function(data_in,
     set_names(nms)
   
   return(list(data_out  = smoothed_data, 
+              # arguments = f_args,
               figures   = figures
-              ## arguments = f_args
-              )
-         )
+              ))
+
 }
 
 #' @title `graduate_auto`
@@ -167,6 +168,7 @@ graduate_auto <- function(data_in,
                           Sex      = c("t", "f", "m"),
                           constrain_infants = TRUE) {
   
+
   ## f_args  <- capture_args()
   age_out <- match.arg(age_out, c("single", "abridged", "5-year"))
   Sex     <- match.arg(Sex,     c("t", "f", "m"))
@@ -502,7 +504,8 @@ graduate_auto <- function(data_in,
   }
   
   return(list(data_out = data_out
-              ## arguments = f_args
+              # arguments = f_args
+
               ))
   
 }
@@ -687,6 +690,7 @@ smooth_flexible_chunk <- function(data_in,
                                   Sex = c("t", "f", "m"),
                                   constrain_infants = TRUE) {
   
+
   ## f_args <- capture_args()
   
   data_orig <- data_in
@@ -796,9 +800,9 @@ smooth_flexible_chunk <- function(data_in,
                                    data_out = data_in,
                                    variable = variable)
       
+
       return(list(data      = data_orig,
                   figure    = figure
-                  ## arguments = f_args
                   ))
       
     } 
@@ -898,7 +902,8 @@ smooth_flexible_chunk <- function(data_in,
     
     return(list(data      = data5,
                 figure    = figure
-                ## arguments = f_args
+                # arguments = f_args
+
                 ))
     
   }
@@ -1194,7 +1199,8 @@ smooth_flexible_chunk <- function(data_in,
   
   return(list(data      = data_out,
               figure    = figure
-              ## arguments = f_args
+              # arguments = f_args
+
               ))
   
 }

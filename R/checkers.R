@@ -431,7 +431,7 @@ check_lower <- function(data) {
     
   }
   
-  res <- data.frame(check   = "check age redundancy", 
+  res <- data.frame(check   = "check lower age", 
                     message = message)
   
   res$pass <- ifelse(!is.na(message), "Fail", "Pass")
@@ -505,13 +505,13 @@ check_sex <- function(data) {
 #'            1335,3257,2200,4023,2167,4578,2956,4212,
 #'            2887,2351,1500,900,500,300)
 #'
-#'data <- tibble(Deaths = Deaths,
-#'                        Exposures = Exposures,
-#'                        Age = c(0, 1, seq(5, 100, by = 5)),
-#'                        AgeInt = c(diff(Age), NA))
-#'
-#' check_data(
-#'     data = data)
+# data <- tibble(Deaths = Deaths,
+#                        Exposures = Exposures,
+#                        Age = c(0, 1, seq(5, 100, by = 5)),
+#                        AgeInt = c(diff(Age), NA))
+# 
+# check_data(
+#     data = data)
 
 check_data <- function(data) {
   
@@ -524,24 +524,28 @@ check_data <- function(data) {
   id <- unique(data$.id)
   
   # Perform checks
-  ch1 <- check_numeric(data)
-  ch2 <- check_missing_cols(data)
+
   
   # Split data by '.id', apply checks, and combine results
   split_data <- split(data, data$.id)
   
+  ch1 <- do.call(rbind, lapply(split_data, check_numeric))
+  ch2 <- do.call(rbind, lapply(split_data, check_missing_cols))
   ch3 <- do.call(rbind, lapply(split_data, check_rows))
-  ch4 <- do.call(rbind, lapply(split_data, check_rows))
-  ch5 <- do.call(rbind, lapply(split_data, check_rows))
-  ch6 <- do.call(rbind, lapply(split_data, check_rows))
-  ch7 <- do.call(rbind, lapply(split_data, check_rows))
-  ch8 <- do.call(rbind, lapply(split_data, check_rows))
-  ch9 <- check_sex(data)
+  ch4 <- do.call(rbind, lapply(split_data, check_nas))
+  ch5 <- do.call(rbind, lapply(split_data, check_coherent))
+  ch6 <- do.call(rbind, lapply(split_data, check_sequential))
+  ch7 <- do.call(rbind, lapply(split_data, check_redundant))
+  ch8 <- do.call(rbind, lapply(split_data, check_lower))
+  ch9 <- do.call(rbind, lapply(split_data, check_sex))
   
   # Combine all the check results
 
-  result <- do.call(rbind, list(ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9))
+  result <- do.call(rbind, list(ch1, ch2, ch3, 
+                                ch4, ch5, ch6, 
+                                ch7, ch8, ch9))
 
   
   return(result)
 }
+
