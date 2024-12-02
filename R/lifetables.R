@@ -73,7 +73,6 @@ lt_flexible <- function(data_in,
                         by_args = NULL) {
 
   
-  # f_args <- capture_args()
 
   if (!"Sex" %in% colnames(data_in)){
     data_in$Sex <- Sex
@@ -206,8 +205,6 @@ lt_flexible <- function(data_in,
     bind_rows(.id = ".id")
   
   return(list(data_out   = data
-              # arguments  = f_args,
-              # arguments2 = args
               ))
 }
 
@@ -283,7 +280,6 @@ lt_flexible_chunk <- function(
     a0rule     = "Andreev-Kingkade",
     axmethod   = "UN (Greville)") {
   
-  # f_args <- capture_args()
   Age    <- data_in$Age
   AgeInt <- age2int(Age, OAvalue = 5)
   Mx_emp <- data_in$Mx_emp
@@ -384,7 +380,6 @@ lt_flexible_chunk <- function(
     mutate(Sex = Sex, .before = 1)
   
   return(list(data_out  = data_out
-              # arguments = f_args
               ))
   }
 
