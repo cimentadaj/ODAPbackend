@@ -82,9 +82,17 @@ read_data <- function(user_file, skip = 0) {
 #' @export
 create_groupid <- function(data, keys) {
   
-  data |> 
-    group_by_at(keys) |>
-    mutate(.id = cur_group_id(), .before = 1) |>
+  if (length(keys) == 0) {
+    data$`.id` <- 1
+    data$`.id_label` <- "All"
+  }
+  
+  group_by_at(keys) |> 
+    mutate(
+      .id = cur_group_id(),
+      `.id_label` = paste0(cur_group(), collapse = " - "),
+      .before = 1
+    ) |>
     ungroup()
   
 }
