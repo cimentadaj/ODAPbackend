@@ -2,7 +2,7 @@
 % Please edit documentation in R/lifetables.R
 \name{lt_flexible_chunk}
 \alias{lt_flexible_chunk}
-\title{lt_flexible_chunk}
+\title{\code{lt_flexible_chunk}}
 \usage{
 lt_flexible_chunk(
   data_in,
@@ -19,69 +19,69 @@ lt_flexible_chunk(
 )
 }
 \arguments{
-\item{data_in}{a \code{data.frame} or \code{tibble} with columns \verb{Age``, }Deaths\verb{, and `Exposures}}
+\item{data_in}{a \code{data.frame} or \code{tibble}. 3 numeric columns \code{Age}, \code{Deaths}, and \code{Exposures}, or \code{nMx} or any of the following lifetable functions: \code{nqx}, \code{npx}, \code{ndx}, \code{lx}. Can optionally have columns \code{Sex} and \code{.id} in which case the table will be calculated for each level in these columns. Can also have an additional column.}
 
-\item{Sex}{character. Either \code{"m"} for males, \code{"f"} for females (default).}
+\item{Sex}{character. Either \code{m} for males, \code{f} for females, or \code{t} for total (default).}
 
 \item{OAnew}{integer. Desired open age group (5-year ages only). Default \code{100}. If higher then rates are extrapolated.}
 
-\item{age_out}{character. Indicates weather single or abridged lifetable output is desired. takes values \code{"single"}, \code{"abridged"}. Defaults to "single"}
+\item{age_out}{character. Indicates whether single or abridged lifetable output is desired. Takes values \code{single}, or \code{abridged}. Defaults to \code{single}.}
 
-\item{extrapFrom}{integer. Age from which to impute extrapolated mortality.}
+\item{extrapFrom}{integer. Age from which to impute extrapolated mortality. Defaults to \code{NULL}.}
 
-\item{extrapFit}{integer vector. Ages to include in model fitting. Defaults to all ages > =60.}
+\item{extrapFit}{integer vector. Ages to include in model fitting. Defaults to all ages >= 60.}
 
-\item{extrapLaw}{character. If extrapolating, which parametric mortality law should be invoked? Options include \code{"Kannisto"}, \code{"Kannisto_Makeham"}, \code{"Makeham"}, \code{"Gompertz"}, \code{"GGompertz"}, \code{"Beard"}, \code{"Beard_Makeham"}, \code{"Quadratic"}. Default \code{"Kannisto"} if the highest age is at least 90, otherwise \code{"makeham"}.}
+\item{extrapLaw}{character. If extrapolating, which parametric mortality law should be invoked? Options include \code{Kannisto}, \code{Kannisto_Makeham}, \code{Makeham}, \code{Gompertz}, \code{GGompertz}, \code{Beard}, \code{Beard_Makeham}, \code{Quadratic}. Defaults to \code{Kannisto} if the highest age is at least 90, otherwise to \code{Makeham}.}
 
-\item{radix}{numeric. Lifetable radix, \code{l0}. Default \code{100000}.}
+\item{radix}{numeric. Lifetable radix, \code{l(0)}. Default \code{100000}.}
 
-\item{SRB}{numeric. the sex ratio at birth (boys / girls), default \code{1.05}}
+\item{SRB}{numeric. the sex ratio at birth (boys/girls). Defaults to \code{1.05}.}
 
-\item{a0rule}{character. Either \code{"ak"} (default) or \code{"cd"}.}
+\item{a0rule}{character. An a(0) calculation rule. Either \code{ak} (default) or \code{cd}.}
 
-\item{axmethod}{character. Either \code{"pas"} or \code{"un"}.}
+\item{axmethod}{character. A method used for a(0) calculation. Either \code{pas} or \code{un}.}
 }
 \value{
-A single or abridged life table iof data.frame format with corresponding columns:
+A list with two elements: A single or abridged life table of data.frame format with corresponding columns:
 Age integer. Lower bound of abridged age class,
 AgeInt integer. Age class widths.
 nMx numeric. Age-specific central death rates.
-nAx numeric. Average time spent in interval by those deceased in interval.
+nAx numeric. Average time spent in the interval by those deceased.
 nqx numeric. Age-specific conditional death probabilities.
-lx numeric. Lifetable survivorship
+lx numeric. Lifetable survivorship.
 ndx numeric. Lifetable deaths distribution.
 nLx numeric. Lifetable exposure.
 Sx numeric. Survivor ratios in uniform 5-year age groups.
 Tx numeric. Lifetable total years left to live above age x.
 ex numeric. Age-specific remaining life expectancy.
+Sex character. Sex.
 }
 \description{
-Calculate an abridged-age or a single-age lifetable.
+Calculate an abridged or a single-age lifetable.
 }
 \examples{
-\dontrun{
-library(tibble)
-Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
-247473,223014,172260,149338,127242,105715,79614,53660,
-31021,16805,8000,4000,2000,1000)
+library(readr)
+library(dplyr)
+# single age data
+data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+  dplyr::select(-1) |>
+  filter(.id == 1)
 
-Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
-            1335,3257,2200,4023,2167,4578,2956,4212,
-            2887,2351,1500,900,500,300)
-
-Age = c(0, 1, seq(5, 100, by = 5))
-data_in <- tibble(Age,Deaths,Exposures, Sex = "f")
-data_out <- 
+data_out <-
   lt_flexible_chunk(data_in,
-              OAnew     = 100,
-              age_out   = "single",  
-              extrapFrom = 80,
-              extrapFit = Age[Age >= 60], 
-              radix     = 1e+05,
-              extrapLaw = NULL,
-              SRB       = 1.05,
-              a0rule    = "ak",
-              axmethod  = "un",
-              Sex       = first(Sex))
-}
+                    OAnew     = 100,
+                   age_out   = "abridged",
+                   extrapFrom = 80,
+                   # extrapFit = Age[Age >= 60],
+                   radix     = 1e+05,
+                    extrapLaw = NULL,
+                    SRB       = 1.05,
+                   a0rule    = "ak",
+                   axmethod  = "un",
+                   Sex       = "f")
+
+data_out$data_out
+data_out$arguments
+
+
 }

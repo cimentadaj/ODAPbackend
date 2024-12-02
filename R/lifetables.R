@@ -190,7 +190,8 @@ lt_flexible <- function(data_in,
                         extrapLaw  = extrapLaw,
                         SRB        = SRB,
                         a0rule     = a0rule,
-                        axmethod   = axmethod
+                        axmethod   = axmethod,
+                        age_out = age_out
 
       ), .by = all_of(c(".id", by_args))
     ) |>
@@ -225,6 +226,7 @@ lt_flexible <- function(data_in,
 #' @param a0rule character. An a(0) calculation rule. Either `ak` (default) or `cd`.
 #' @param axmethod character. A method used for a(0) calculation. Either `pas` or `un`.
 #' @param Sex character. Either `m` for males, `f` for females, or `t` for total (default).
+#' @param age_out character. Indicates whether single or abridged lifetable output is desired. Takes values `single`, or `abridged`. Defaults to `single`.
 #' @return A list with two elements: A single or abridged life table of data.frame format with corresponding columns:
 #' Age integer. Lower bound of abridged age class,
 #' AgeInt integer. Age class widths.

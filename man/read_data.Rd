@@ -2,7 +2,7 @@
 % Please edit documentation in R/readers.R
 \name{read_data}
 \alias{read_data}
-\title{read_data}
+\title{\code{read_data}}
 \usage{
 read_data(user_file, skip = 0)
 }
@@ -15,7 +15,7 @@ read_data(user_file, skip = 0)
 A tibble with with 5 numeric columns: Deaths, Exposures, Age, AgeInt, Mx_emp.
 }
 \description{
-Read the with supported file extension into the program. The file should contain at minimum 3 columns "Deaths", "Exposures","Age" named this way or positioned in a corresponding order.
+Read the data with supported file extension into the program. The file should contain at minimum 3 columns "Deaths", "Exposures","Age" named this way or positioned in a corresponding order.
 }
 \examples{
 \dontrun{

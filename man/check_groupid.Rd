@@ -2,7 +2,7 @@
 % Please edit documentation in R/readers.R
 \name{check_groupid}
 \alias{check_groupid}
-\title{check_groupid}
+\title{\code{check_groupid}}
 \usage{
 check_groupid(data)
 }

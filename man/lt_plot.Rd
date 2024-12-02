@@ -2,7 +2,7 @@
 % Please edit documentation in R/lifetables.R
 \name{lt_plot}
 \alias{lt_plot}
-\title{lt_plot}
+\title{title \code{lt_plot}}
 \usage{
 lt_plot(data_in, data_out, extrapFrom = extrapFrom)
 }
@@ -11,11 +11,42 @@ lt_plot(data_in, data_out, extrapFrom = extrapFrom)
 
 \item{data_out}{\code{tibble} as produced by \code{lt_flexible()}}
 
-\item{extrapFrom}{integer. Age from which to impute extrapolated mortality.}
+\item{extrapFrom}{integer. Age from which to impute extrapolated mortality.
+library(readr)
+library(dplyr)single age data
+
+data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+dplyr::select(-1) |>
+filter(.id == 1)
+
+data_out <- lt_flexible(
+data_in,
+OAnew      = 100,
+age_out    = "single",
+extrapFrom = 80,
+extrapFit  = NULL,  # Default NULL, computed later
+extrapLaw  = NULL,
+radix      = 1e+05,
+SRB        = 1.05,
+a0rule     = "Andreev-Kingkade",
+axmethod   = "UN (Greville)",
+Sex = "t"
+)
+
+ex1 <-  lt_plot(
+data_in = data_in,
+data_out = data_out,
+extrapFrom = 80)
+
+ex1$\code{1}$nMx
+ex1$\code{1}$lx
+ex1$\code{1}$ndx
+ex1$\code{1}$nqx
+ex1$nMx}
 }
 \description{
-Plot wrapper, created lifetable plot list previously returned by \code{lt_flexible()}
+Plot wrapper, creates lifetable plot list returned by \code{lt_flexible()}
 }
 \details{
-This function should be run after \code{lt_flexible()}, so that you can pass both \code{data_in} and \code{data_out}. There is no fallback at this time to generate \code{data_out} on the fly if missing. We need to pass \code{extrapFrom} at this time indicate the jump-off in the plot. In the future this may be detected or passed in another way.
+This function should be run after \code{lt_flexible()}, so that you can pass both \code{data_in} and \code{data_out}. There is no fallback at this time to generate \code{data_out} on the fly if missing. \code{extrapFrom} should be passe dat this time to indicate the jump-off in the plot. In the future, this may be detected or passed in another way.
 }

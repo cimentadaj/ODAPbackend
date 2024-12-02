@@ -2,22 +2,35 @@
 % Please edit documentation in R/plots.R
 \name{plot_initial_data}
 \alias{plot_initial_data}
-\title{plot_initial_data}
+\title{\code{plot_initial_data}}
 \usage{
 plot_initial_data(data)
 }
 \arguments{
-\item{data}{tibble. Empirical data downloaded  with the \code{read_data} function}
+\item{data}{tibble. Empirical data that was downloaded with the \code{read_data} function.}
 }
 \value{
 A list with 3 corresponding plots for either one or two sex.
 }
 \description{
-Plots the corresponding 3 graphics for single sex or for both sex depending on data provided by the user.
+Plots the corresponding 3 graphics for single sex or both sexes depending on data provided by the user.
 }
 \examples{
-\dontrun{
-plot_initial_data(mutate(data, sex = "Female")
-)
-}
+Exposures <- c(100958, 466275, 624134, 559559, 446736, 370653, 301862,
+               249409, 247473, 223014, 172260, 149338, 127242, 105715,
+               79614,  53660,  31021,  16805,  8000,   4000,   2000,
+               1000)
+
+Deaths <- c(8674, 1592, 618,  411,  755,  1098, 1100, 1357,
+            1335, 3257, 2200, 4023, 2167, 4578, 2956, 4212,
+            2887, 2351, 1500, 900,  500,  300)
+
+Age     <- c(0, 1, seq(5, 100, by = 5))
+data_in <- data.frame(Age, Deaths, Exposures, AgeInt = c(diff(Age), NA))
+result <-plot_initial_data(data_in)
+
+result$Exposures$figure
+result$Deaths$figure
+result$`Empirical Mx`$figure
+
 }

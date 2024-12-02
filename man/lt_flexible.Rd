@@ -2,7 +2,7 @@
 % Please edit documentation in R/lifetables.R
 \name{lt_flexible}
 \alias{lt_flexible}
-\title{lt_flexible}
+\title{\code{lt_flexible}}
 \usage{
 lt_flexible(
   data_in,
@@ -15,38 +15,41 @@ lt_flexible(
   SRB = 1.05,
   a0rule = "Andreev-Kingkade",
   axmethod = "UN (Greville)",
-  Sex = "t"
+  Sex = "t",
+  by_args = NULL
 )
 }
 \arguments{
-\item{data_in}{a \code{data.frame} or \code{tibble} with columns \verb{Age``, }Deaths\verb{, and `Exposures}. Can have a \code{.id} column in which case the results will be generated for each group as specified by this column.}
+\item{data_in}{data.frame or tibble. Should contain numeric columns \code{Age}, \code{Deaths}, and \code{Exposures}, or \code{nMx} or any of the following lifetable functions: \code{nqx}, \code{npx}, \code{ndx}, \code{lx}. Can have a \code{.id} column in which case the results will be generated for each group as specified by this column.}
 
-\item{OAnew}{integer. Desired open age group (5-year ages only). Default \code{100}. If higher then rates are extrapolated.}
+\item{OAnew}{integer. Desired open age group (5-year ages only). Default to \code{100}. If higher, then rates will be extrapolated.}
 
-\item{age_out}{character. Indicates weather single or abridged lifetable output is desired. takes values \code{"single"}, \code{"abridged"}. Defaults to "single"}
+\item{age_out}{character. Indicates whether single or abridged lifetable output is desired. Takes values \code{single}, or \code{abridged}. Defaults to \code{single}.}
 
 \item{extrapFrom}{integer. Age from which to impute extrapolated mortality.}
 
-\item{extrapFit}{integer vector. Ages to include in model fitting. Defaults to all ages > =60.}
+\item{extrapFit}{integer vector. Ages to include in model fitting. Defaults to all ages >= 60.}
 
-\item{extrapLaw}{character. If extrapolating, which parametric mortality law should be invoked? Options include \code{"Kannisto"}, \code{"Kannisto_Makeham"}, \code{"Makeham"}, \code{"Gompertz"}, \code{"GGompertz"}, \code{"Beard"}, \code{"Beard_Makeham"}, \code{"Quadratic"}. Default \code{"Kannisto"} if the highest age is at least 90, otherwise \code{"makeham"}.}
+\item{extrapLaw}{character. If extrapolating, which parametric mortality law should be invoked? Options include \code{"Kannisto"}, \code{"Kannisto_Makeham"}, \code{"Makeham"}, \code{"Gompertz"}, \code{"GGompertz"}, \code{"Beard"}, \code{"Beard_Makeham"}, \code{"Quadratic"}. Defaults to \code{Kannisto} if the highest age is at least 90, otherwise o \code{Makeham}.}
 
-\item{radix}{numeric. Lifetable radix, \code{l0}. Default \code{100000}.}
+\item{radix}{numeric. Lifetable radix, \code{l(0)}. Defaults to \code{100000}.}
 
-\item{SRB}{numeric. the sex ratio at birth (boys / girls), default \code{1.05}}
+\item{SRB}{numeric. The sex ratio at birth (boys/girls). Defaults to \code{1.05}.}
 
-\item{a0rule}{character. Either \code{"ak"} (default) or \code{"cd"}.}
+\item{a0rule}{character. Rule for \code{a(x)} calculation Either \code{ak} (default) or \code{cd}.}
 
-\item{axmethod}{character. Either \code{"pas"} or \code{"un"}.}
+\item{axmethod}{character. Method used for \code{a(x)} calculation. Either \code{pas} or \code{un}.}
 
-\item{Sex}{character. Either \code{"m"} for males, \code{"f"} for females. This variable should be preswent in the dataframe. If there is more than pne sex in the data, then the lifetable will be calculazted for each sex present.}
+\item{Sex}{character. Either \code{m} for males, \code{f} for females or \code{t} for total. This variable defaults to \code{t}. If there is more than one sex in the data, then the lifetable will be calculated for each sex.}
+
+\item{by_args}{character. A vector of columns should be also included in the output. These columns are usually ones that are used for \code{.id} construction. Defaults to \code{NULL}. It is important to not include \code{Sex} in this vector.}
 }
 \value{
-A single or abridged life table of data.frame format with corresponding columns:
+A list with 3 elements: \code{data_out} - single or abridged life table of data.frame format with corresponding columns:
 Age integer. Lower bound of abridged age class,
 AgeInt integer. Age class widths.
 nMx numeric. Age-specific central death rates.
-nAx numeric. Average time spent in interval by those deceased in interval.
+nAx numeric. Average time spent in the interval by those deceased.
 nqx numeric. Age-specific conditional death probabilities.
 lx numeric. Lifetable survivorship
 ndx numeric. Lifetable deaths distribution.
@@ -54,38 +57,23 @@ nLx numeric. Lifetable exposure.
 Sx numeric. Survivor ratios in uniform 5-year age groups.
 Tx numeric. Lifetable total years left to live above age x.
 ex numeric. Age-specific remaining life expectancy.
-.id character A group indicator for which the results will be generated. In case of missing the .id columnwill return \code{all}
+.id character A group indicator for which the results will be generated. In case of missing the .id column will return \code{all}
+Sex - corresponding sex
+by_args - chosen additional arguments
+\code{arguments} - a list of arguments used in fitting \code{lt_flixible} function, \code{arguments2} - a list of arguments used for \code{lt_flexible_chunk} fitting.
 }
 \description{
-Wrepper for calculation of abridged-age or a single-age lifetable.
+Wrapper for calculation of abridged-age or single-age lifetable.
 }
 \examples{
-\dontrun{
-library(tidyverse)
-Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
-247473,223014,172260,149338,127242,105715,79614,53660,
-31021,16805,8000,4000,2000,1000)
-
-Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
-            1335,3257,2200,4023,2167,4578,2956,4212,
-            2887,2351,1500,900,500,300)
-
-sex <- c("f", "m")
-
-Age = c(0, 1, seq(5, 100, by = 5))
-data_in <- tibble(Age,Deaths,Exposures)
-dt <- rpois(n = 22, lambda = 1000)
-d1 <- rpois(n = 22, lambda = 100000)
-
-data_in <- expand_grid(sex, data_in) \%>\% 
-  mutate(Deaths = ifelse(sex == "f", dt, Deaths),
-         Exposures = ifelse(sex == "f", d1, Exposures)) \%>\% 
-  mutate(.id = sex) \%>\% 
-   mutate(Sex = sex) \%>\% 
-  dplyr::select(-sex)
+library(readr)
+library(dplyr)
+# single age data
+data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+  dplyr::select(-1)
 
 data_out <- lt_flexible(
-  data_in = data_in,
+  data_in,
   OAnew      = 100,
   age_out    = "single",
   extrapFrom = 80,
@@ -97,5 +85,7 @@ data_out <- lt_flexible(
   axmethod   = "UN (Greville)",
   Sex = "t"
 )
-}
+data_out$data_out
+data_out$arguments2
+data_out$arguments
 }

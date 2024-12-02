@@ -2,7 +2,7 @@
 % Please edit documentation in R/graduation.R
 \name{smooth_flexible}
 \alias{smooth_flexible}
-\title{smooth_flexible wrapper aroung smooth_flexible_chunk allows to work with .id variable and create the output for groups.}
+\title{\code{smooth_flexible}}
 \usage{
 smooth_flexible(
   data_in,
@@ -14,46 +14,59 @@ smooth_flexible(
     "Strong", "Zigzag"),
   u5m = NULL,
   constrain_infants = TRUE,
-  Sex = "t"
+  Sex = "t",
+  by_args = NULL
 )
 }
 \arguments{
-\item{data_in}{tibble. A tibble with two numeric columns - population or death counts with supported names: \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}, and corresponding \code{Age} - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1-4, 5-9 etc.}
+\item{data_in}{tibble or data.frame. A tibble with two numeric columns - population or death counts with supported names: \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}, and corresponding numeric \code{Age} - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1, 5, etc.}
 
-\item{variable}{character. A scalar with the variable name which is to be graduated. The list of possible options include \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}.}
+\item{variable}{character. A scalar with the variable name which is to be graduated. The list of possible options includes \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}.}
 
-\item{age_out}{character. The desired age structure of the output file. Possible options include \code{single} - for sinle years, \code{5-year} - for 5-year data, and \code{abridged} - for abridged data, e.g 0, 1-4, 5-9, etc.}
+\item{age_out}{character. The desired age structure of the output file. Possible options include \code{single} - for single years, \code{5-year} - for 5-year data, and \code{abridged} - for abridged data, e.g. 0, 1, 5, etc.}
 
-\item{fine_method}{the \code{method} argument of \code{graduate()} function from DemoTools that graduates grouped data. Possible options include  \code{auto}, \code{none}, \code{sprague}, \code{beers(ord)}, \code{beers(mod)}, \code{grabill}, \code{pclm}, \code{mono}, \code{uniform}}
+\item{fine_method}{the \code{method} argument of \code{graduate()} function from \code{DemoTools} that graduates grouped data. Possible options include  \code{auto}, \code{none}, \code{sprague}, \code{beers(ord)}, \code{beers(mod)}, \code{grabill}, \code{pclm}, \code{mono}, \code{uniform}.}
 
-\item{rough_method}{the \code{method} argument of \code{smooth_age_5()} function from DemoTools that Smoothes populations in 5-year age groups using various methods. Possible options include \code{auto}, \code{none}, \code{Carrier-Farrag}, \code{KKN}, \code{Arriaga}, \verb{United Nations}, \code{Strong}, \code{Zigzag}.}
+\item{rough_method}{the \code{method} argument of \code{smooth_age_5()} function from \code{DemoTools} that smoothes populations in 5-year age groups using various methods. Possible options include \code{auto}, \code{none}, \code{Carrier-Farrag}, \code{KKN}, \code{Arriaga}, \verb{United Nations}, \code{Strong}, \code{Zigzag}.}
 
-\item{u5m}{numeric. Under five mortality rate.}
+\item{u5m}{numeric. Under-five mortality rate. Defaults to \code{NULL}.}
 
-\item{constrain_infants}{logical, if age 0 is a separate age class, shall we constrain its proportion within the age group 0-5 in the output? Default \code{TRUE}.}
+\item{constrain_infants}{logical, if age 0 is a separate age class, shall we constrain its proportion within the age group 0-5 in the output? Default to \code{TRUE}.}
 
-\item{Sex}{character. Either \code{"m"} for males, \code{"f"} for females, or \code{"t"}. This variable should exist in the dataframe. If more than 1 sex is present, then graduation will be done for all the sexes present in the data}
+\item{Sex}{character. Either \code{m} for males, \code{f} for females, or \code{t} for total (default). Please note that in case this parameter is not explicitly provided, the function will scan the data for the column with the corresponding name and use its levels automatically.}
+
+\item{by_args}{character. A vector of columns should be also included in the output. These columns are usually ones that are used for \code{.id} construction. Defaults to \code{NULL}. It is important to not include \code{Sex} in this vector.}
 }
 \value{
-data_out. A list of lists. For each sepate group specified by the .id column the function will generate a list that will contain 2 lists: data and figures. Data tibble with two numeric columns - smoothed counts for the chosen variable and \code{Age} - chosen age grouping and one character column indicating .id groups. And figures 2 dataframes - data_adjusted and data_orioginal correspodnign to the dataframes withpre and post old age mortality adjustment and a figure visualizing the corresponding differences.
+data_out. A list of lists. For each separate group specified by the \code{.id} column, the function will generate a list that contains 2 lists: data and figures. Data tibble with two numeric columns - smoothed counts for the chosen \code{variable} and \code{Age} - chosen age grouping and one character column indicating \code{.id} groups. May optionally include the columns identified in \code{by_args}. And two figures data.frames - \code{data_adjusted} and \code{data_original} corresponding to the data.frames with pre and post-old age mortality adjustment and a \code{ggplot2} figure visualizing the corresponding differences.
 }
 \description{
-Smoothes population or death counts using the variaety of methods from DemoTools packgae and "Method protocol for the evaluation of census population data by age and sex" paragraph 5.
+This is a wrapper around \code{smooth_flexible_chunk} that allows us to work with \code{.id} variable and create the output for corresponding groups. Smoothes population or death counts using various methods from the \code{DemoTools} package and paragraph five from "Method protocol for evaluating census population data by age and sex".
 }
 \examples{
-data(pop1m_ind, package = "DemoTools")
-data_in <- data.frame(Exposures = pop1m_ind,
-                      Age       = 0:100,
-                      Sex = "f")
-                      
+library(readr)
+library(dplyr)
+# single age data
+data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+  dplyr::select(-1)
 ex1 <- smooth_flexible(
-data_in, 
-variable     = "Exposures",
-rough_method = "auto",
-fine_method  = "none", 
-constrain_infants = TRUE, 
-age_out = "abridged", 
-u5m     = NULL)
+ data_in,
+ variable     = "Exposures",
+ rough_method = "auto",
+ fine_method  = "auto",
+ age_out      = "abridged",
+ u5m          = NULL,
+ Sex          = "t",
+ constrain_infants = TRUE,
+ by_args      = "Year"
+)
 
-
+# data
+ex1$data_out
+# arguments
+ex1$arguments
+# figures
+ex1$figures$`1_2012`$figure
+ex1$figures$`2_2012`$figure
+ex1$figures$`3_2012`$figure
 }

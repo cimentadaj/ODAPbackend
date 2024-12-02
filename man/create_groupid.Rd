@@ -2,7 +2,7 @@
 % Please edit documentation in R/readers.R
 \name{create_groupid}
 \alias{create_groupid}
-\title{create_groupid}
+\title{\code{create_groupid}}
 \usage{
 create_groupid(data, keys)
 }
