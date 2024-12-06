@@ -2,7 +2,7 @@
 % Please edit documentation in R/checkers.R
 \name{extension_check}
 \alias{extension_check}
-\title{extension_check}
+\title{\code{extension_check}}
 \usage{
 extension_check(user_file)
 }

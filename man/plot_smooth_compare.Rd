@@ -2,36 +2,50 @@
 % Please edit documentation in R/graduation.R
 \name{plot_smooth_compare}
 \alias{plot_smooth_compare}
-\title{plot_smooth_compare compares the original and smoothed counts over the chosen age ranges}
+\title{\code{plot_smooth_compare}}
 \usage{
 plot_smooth_compare(data_in, data_out, variable)
 }
 \arguments{
-\item{data_in}{tibble. A tibble with two numeric columns - population or death counts - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1-4, 5-9 etc.}
+\item{data_in}{tibble or data.frame. A tibble with two numeric columns - population or death counts - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1, 5 etc, and corresponding Age \code{column}.}
 
-\item{data_out}{A tibble with two numeric columns - smoothed counts for the chosen variable and \code{Age} - chosen age grouping. The output from the \code{smooth_flexible} function.}
+\item{data_out}{A tibble with two numeric columns - smoothed counts for the chosen variable as produced by the \code{smooth_flexible}, or \code{smooth_flexible_chunk}, and \code{Age} - corresponding Age column.}
 
-\item{variable}{character. A scalar with the variable name which is to be graduated. The list of possible options include \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}.}
+\item{variable}{character. A scalar with the \code{variable} name which is to be plotted. The list of possible options includes \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}.}
 }
 \value{
-list. A named list with 3 elements: \code{figure} - plot of original versus adjusted data and \code{data_adjusted} - and \code{data_original}, the plotted data.
-#' @examples
-This is just test settings used for light live coding.
-data(pop1m_ind, package = "DemoTools")
-data_in <- data.frame(Exposures = pop1m_ind,
-Age = 0:100)
-
-data_out <- smooth_flexible(
-data_in,
-variable     = "Exposures",
-rough_method = "auto",
-fine_method  ="pclm",
-constrain_infants = TRUE,
-age_out = "5-year",
-u5m     = .1,
-Sex     = "t")
-print(data_out$figure$figure)
+list. A named list with 3 elements: \code{figure} - a plot of original versus adjusted data, \code{data_adjusted} - and \code{data_original}.
 }
 \description{
-Plots the original counts and the smoothed counts over the chocosen age ranges for ease of comparison.
+Plots the original counts and the smoothed counts over the chosen age range for ease of comparison.
+}
+\examples{
+library(readr)
+library(dplyr)
+# single age data
+data_in <- read_csv("inst/extdata/abridged_hmd_spain.csv") |>
+  dplyr::select(-1) |>
+  filter(.id == 1)
+
+data_out <- smooth_flexible_chunk(
+  data_in,
+  variable     = "Exposures",
+  rough_method = "auto",
+  fine_method  = "auto",
+  constrain_infants = TRUE,
+  age_out      = "single",
+  u5m          = NULL,
+  Sex          = "t"
+)
+
+results <- plot_smooth_compare(data_in,
+                               data_out$data,
+                               variable = "Exposures")
+
+# smoothed data
+results$data_adjusted
+# original data
+results$data_original
+# figure
+results$figure
 }

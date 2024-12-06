@@ -2,31 +2,38 @@
 % Please edit documentation in R/plots.R
 \name{pyramid}
 \alias{pyramid}
-\title{pyramid}
+\title{\code{pyramid}}
 \usage{
 pyramid(data, y)
 }
 \arguments{
-\item{data}{tibble. Empirical data downloaded  with the \code{read_data} function. Should contain the Exposures, Deaths}
+\item{data}{tibble. Empirical data was downloaded with the \code{read_data} function. Should contain the Exposures, Deaths}
 
-\item{y}{character. This argument indicating weather the \code{Exposures} or \code{Deaths} should be plotted.}
+\item{y}{character. This argument indicates weather the \code{Exposures} or \code{Deaths} should be plotted.}
 }
 \value{
 A pyramid for either Deaths or Exposures
 }
 \description{
-Generate a population pyramid from the user data. WARNING contains some tidy evaluation
+Generate a population pyramid from the user data.
 }
 \examples{
-\dontrun{
-data1 <- data
-data1$Sex <- "Female"
-data1$Exposures <- data1$Exposures
-data1$Deaths <- data1$Deaths
-data <- data \%>\%
-  full_join(data1) \%>\%
-  mutate(Deaths = ifelse(Sex == "Female", Deaths + rpois(22, lambda = 50), Deaths))
+Exposures <- c(100958, 466275, 624134, 559559, 446736, 370653, 301862,
+               249409, 247473, 223014, 172260, 149338, 127242, 105715,
+               79614,  53660,  31021,  16805,  8000,   4000,   2000,
+               1000)
 
-pyramid(data = data, y = "Deaths")
-}
+Deaths <- c(8674, 1592, 618,  411,  755,  1098, 1100, 1357,
+            1335, 3257, 2200, 4023, 2167, 4578, 2956, 4212,
+            2887, 2351, 1500, 900,  500,  300)
+
+sex     <- c("Female")
+Age     <- c(0, 1, seq(5, 100, by = 5))
+data_in <- data.frame(Age, 
+                      Deaths, 
+                     Exposures,
+                     AgeInt = c(diff(Age), NA),
+                     Sex = sex)
+pyramid(data_in, "Deaths")
+
 }

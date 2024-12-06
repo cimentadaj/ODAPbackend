@@ -2,32 +2,51 @@
 % Please edit documentation in R/plots.R
 \name{plot_compare_rates}
 \alias{plot_compare_rates}
-\title{plot_compare_rates}
+\title{\code{plot_compare_rates}}
 \usage{
 plot_compare_rates(data_in, data_out, extrapFrom)
 }
 \arguments{
-\item{data_in}{tibble. Empirical numeric Mx value to be plotted and and numeric Age values to be plotted.}
+\item{data_in}{tibble or data.frame. Should contain the empirical numeric Mx value to be plotted and numeric \code{Age} values.}
 
-\item{data_out}{tibble. Modelled numeric Mx value to be plotted and and numeric Age values to be plotted.}
+\item{data_out}{tibble or data.frame. Modelled numeric Mx value to be plotted and numeric Age values.}
 
-\item{extrapFrom}{numeric. extrapFrom an age interval from which the lifetable was extrapolated.}
+\item{extrapFrom}{numeric. \code{extrapFrom} is an age interval from which the lifetable was extrapolated.}
 }
 \value{
-A line graph with black line corresponding to empirical Mx data and red line corresponding to modelled Mx data from the  chosen extrapFrom value for each group specified by .id column.
+A line graph with a black line corresponding to empirical Mx data and a red line corresponding to modelled Mx data from the chosen extrapFrom value for each group specified by \code{.id} column.
 }
 \description{
-Plots a line graph of the log10 transformed empirical mortality rate (Mx) data and a fitted data from a chosen age. Can work with .id argument indicating groups
+Makes a line graph of the log10 transformed empirical mortality rate (Mx) data and fitted data from a chosen age. Can work with .id argument indicating groups
 }
 \examples{
-\dontrun{
-library(readr)
-fpath <- system.file("extdata", "abridged_data.csv", package = "ODAPbackend")
-data_in <- read_csv(fpath)
-plot_compare_rates(
-  data_in = data_in,
-  data_out = data_out,
-  extrapFrom = 60
+Exposures <- c(100958, 466275, 624134, 559559, 446736, 370653, 301862,
+               249409, 247473, 223014, 172260, 149338, 127242, 105715,
+               79614,  53660,  31021,  16805,  8000,   4000,   2000,
+               1000)
+
+Deaths <- c(8674, 1592, 618,  411,  755,  1098, 1100, 1357,
+            1335, 3257, 2200, 4023, 2167, 4578, 2956, 4212,
+            2887, 2351, 1500, 900,  500,  300)
+
+sex     <- c("f")
+Age     <- c(0, 1, seq(5, 100, by = 5))
+data_in <- data.frame(Age, Deaths, Exposures)
+
+data_out <- lt_flexible(
+  data_in,
+  OAnew      = 100,
+  age_out    = "single",
+  extrapFrom = 80,
+  extrapFit  = NULL,
+  # Default NULL, computed later
+  extrapLaw  = NULL,
+  radix      = 1e+05,
+  SRB        = 1.05,
+  a0rule     = "Andreev-Kingkade",
+  axmethod   = "UN (Greville)",
+  Sex = "t"
 )
-}
+
+plot_compare_rates(data_in, data_out$data_out, 80)#' 
 }

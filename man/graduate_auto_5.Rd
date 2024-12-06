@@ -2,20 +2,30 @@
 % Please edit documentation in R/graduation.R
 \name{graduate_auto_5}
 \alias{graduate_auto_5}
-\title{graduate_auto_5}
+\title{\code{graduate_auto_5}}
 \usage{
 graduate_auto_5(dat_5, variable)
 }
 \arguments{
-\item{dat_5}{tibble. A tibble with two columns - \code{Pop} - or any other chosen variable in 5-year age groups with counts to be graduated and corresponding \code{Age} column (lower bound of age group).}
+\item{dat_5}{tibble or data.frame. A tibble with two columns - \code{Population} - or any other chosen numeric variable that comes in 5-year age groups with counts to be graduated and corresponding numeric \code{Age} column (lower bound of age group).}
 
-\item{variable}{character. A scalar with the variable name which is to be graduated. Supported variable names are \code{Pop}, \code{Population}, \code{Exposures}, \code{Exp}, or \code{Death}}
+\item{variable}{character. A scalar with the \code{variable} name which is to be graduated. Supported variable names are \code{Pop}, \code{Population}, \code{Exposures}, \code{Exp}, or \code{Death}.}
 }
 \value{
 A tibble with 2 columns - your chosen \code{variable} with graduated and smoothed counts and \code{Age}
 
-data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and \code{Age} - chosen age grouping
+data_out. A tibble with two numeric columns - smoothed counts for the chosen \code{variable} and \code{Age} - chosen age grouping
 }
 \description{
-Implements the method protocol procedure for data with 5-year age groups.
+Implements the graduation with method protocol procedure for data with 5-year age groups.
+}
+\examples{
+library(readr)
+library(dplyr)
+# single age data
+data_in <- read_csv("inst/extdata/five_hmd_spain.csv") |>
+  dplyr::select(-1) |>
+  filter(.id == 1)
+
+graduate_auto_5(data_in, "Exposures")$Exposures
 }

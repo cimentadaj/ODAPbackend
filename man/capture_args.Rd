@@ -10,7 +10,7 @@ capture_args()
 a list of arguments passed
 }
 \description{
-returns list of all arguments passed to a function, such that you could re-call the function using \code{do.call()}
+returns a list of all arguments passed to a function, such that you could re-call the function using \code{do.call()}
 }
 \details{
 If you pass in a \code{data.frame}, such as \code{data_in}, the whole thing is copied in the respective argument, which is returned. If you have an object in memory called \code{data_i}, defined as \code{data.frame(a=1:3,b=letters[1:3])} and you do \code{f(data_in = data_i)}, then the output is not \code{list()}

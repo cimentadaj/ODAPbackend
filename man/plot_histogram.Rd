@@ -2,23 +2,33 @@
 % Please edit documentation in R/plots.R
 \name{plot_histogram}
 \alias{plot_histogram}
-\title{plot_histogram}
+\title{\code{plot_histogram}}
 \usage{
 plot_histogram(data, y)
 }
 \arguments{
 \item{data}{tibble. Empirical data downloaded  with the \code{read_data} function}
 
-\item{y}{character. This argument indicats weather the \code{Exposures} or \code{Deaths} should be plotted.}
+\item{y}{character. This argument indicates whether the \code{Exposures} or \code{Deaths} should be plotted.}
 }
 \value{
-A histogramm for either Deaths or Exposures
+A histogram for either Deaths or Exposures
 }
 \description{
-Plots a histogram of population or death, depending on the user choice.
+Plots a histogram of population or death, depending on the user's choice.
 }
 \examples{
-\dontrun{
-plot_histogram(data = mutate(data, Sex = "Female"), y = "Deaths")
-}
+Exposures <- c(100958, 466275, 624134, 559559, 446736, 370653, 301862,
+               249409, 247473, 223014, 172260, 149338, 127242, 105715,
+               79614,  53660,  31021,  16805,  8000,   4000,   2000,
+               1000)
+
+Deaths <- c(8674, 1592, 618,  411,  755,  1098, 1100, 1357,
+            1335, 3257, 2200, 4023, 2167, 4578, 2956, 4212,
+            2887, 2351, 1500, 900,  500,  300)
+
+Age     <- c(0, 1, seq(5, 100, by = 5))
+data_in <- data.frame(Age, Deaths, Exposures, AgeInt = c(diff(Age), NA))
+plot_histogram(data_in, "Deaths")
+
 }

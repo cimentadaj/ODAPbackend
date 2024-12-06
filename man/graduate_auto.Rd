@@ -2,7 +2,7 @@
 % Please edit documentation in R/graduation.R
 \name{graduate_auto}
 \alias{graduate_auto}
-\title{graduate_auto}
+\title{\code{graduate_auto}}
 \usage{
 graduate_auto(
   data_in,
@@ -14,54 +14,39 @@ graduate_auto(
 )
 }
 \arguments{
-\item{data_in}{tibble. A tibble with two numeric columns - population or death counts with supported names: \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}, and corresponding \code{Age} - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1-4, 5-9 etc.}
+\item{data_in}{tibble or data.frame. A tibble with two numeric columns - population or death counts with supported names: \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}, and corresponding \code{Age} - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1, 5, etc.}
 
-\item{age_out}{character. A scalar with the desired age grouping output. Includes 3 possible options - \code{"single"} for single ages, \code{"5-year"} - for 5-year age groups, and \code{"abridged"} - for abridged data.}
+\item{age_out}{character. A scalar with the desired age grouping output. Includes three possible options - \code{single} for single ages, \code{5-year} - for 5-year age groups, and \code{abridged} - for abridged data.}
 
-\item{variable}{character. A scalar with the variable name which is to be graduated. The list of possible options include \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}.}
+\item{variable}{character. A scalar with the variable name which is to be graduated. The list of possible options includes \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}.}
 
-\item{u5m}{numeric. Under five mortality rate.}
+\item{u5m}{numeric. Under-five mortality rate. Defaults to NULL.}
 
-\item{Sex}{character. Either \code{"m"} for males, \code{"f"} for females, or \code{"t"} for total (defualt).}
+\item{Sex}{character. Either \code{m} for males, \code{f} for females, or \code{t} for total (default). Please note that in case this parameter is not explicitly provided, the function will scan the data for the column with the corresponding name and use its levels automatically.}
 
-\item{constrain_infants}{logical. A scalar indicating weather the infant proportions should be constrained or left as is.}
+\item{constrain_infants}{logical. A scalar that indicates whether the infant proportions should be constrained or left as is. Defaults to \code{TRUE}.}
 }
 \value{
-data_out. A tibble with two numeric columns - smoothed counts for the chosen variable and \code{Age} - chosen age grouping
+data_out. A list with two elements: \code{data_out} - a tibble with two numeric columns - smoothed counts for the chosen variable and \code{Age} - chosen age grouping, and \code{arguments} - a list of arguments used in the function.
 }
 \description{
-Smooth population or death counts with moving averages. The method was adopted from the "Method protocol for the evaluation of census population data by age and sex" paragraph 5.
+Smoothed population or death counts with moving averages. The method was adopted from paragraph five of the "Method protocol for evaluating census population data by age and sex".
 }
 \examples{
-fpath <- system.file("extdata",
-"dat_heap_smooth.csv",
-package = "ODAPbackend")
+library(readr)
+library(dplyr)
+# 5-year age data
+data_in <- read_csv("inst/extdata/five_hmd_spain.csv") |>
+  dplyr::select(-1) |>
+  filter(.id == 1)
 
-data_in <- read.csv(fpath)
+ex1 <- graduate_auto(data_in,
+                     age_out  = "single",
+                     variable = "Deaths",
+                     constrain_infants = TRUE)
 
-ex1 <- graduate_auto(
-data_in,
-age_out  = "5-year",
-variable = "Deaths",
-u5m      = NULL,
-Sex      = "t",
-constrain_infants = FALSE)
-
-ex2 <- graduate_auto(
-data_in,
-age_out  = "abridged",
-variable = "Exposures",
-u5m      = NULL,
-Sex      = "t",
-constrain_infants = FALSE
-)
-
-ex3 <- graduate_auto(
-data_in,
-age_out  = "single",
-variable = "Exposures",
-u5m      = NULL,
-Sex      = "t",
-constrain_infants = TRUE
-)
+# data
+ex1$data_out
+# arguments
+ex1$arguments
 }
