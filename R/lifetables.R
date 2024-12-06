@@ -1,6 +1,6 @@
 #' @title `lt_flexible`
 #' @description Wrapper for calculation of abridged-age or single-age lifetable.
-#' @param data_in data.frame or tibble. Should contain numeric columns `Age`, `Deaths`, and `Exposures`, or `nMx` or any of the following lifetable functions: `nqx`, `npx`, `ndx`, `lx`. Can have a `.id` column in which case the results will be generated for each group as specified by this column.
+#' @param data_in data.frame or tibble. Should contain numeric columns `Age`, `Deaths`, and `Exposures`, or `nMx` or any of the following lifetable functions: `nqx`, `ndx`, `lx`. Can have a `.id` column in which case the results will be generated for each group as specified by this column.
 #' @param OAnew integer. Desired open age group (5-year ages only). Default to `100`. If higher, then rates will be extrapolated.
 #' @param age_out character. Indicates whether single or abridged lifetable output is desired. Takes values `single`, or `abridged`. Defaults to `single`.
 #' @param extrapFrom integer. Age from which to impute extrapolated mortality.
@@ -12,7 +12,7 @@
 #' @param axmethod character. Method used for `a(x)` calculation. Either `pas` or `un`.
 #' @param Sex character. Either `m` for males, `f` for females or `t` for total. This variable defaults to `t`. If there is more than one sex in the data, then the lifetable will be calculated for each sex.
 #' @param by_args character. A vector of columns should be also included in the output. These columns are usually ones that are used for `.id` construction. Defaults to `NULL`. It is important to not include `Sex` in this vector.
-#' @importFrom dplyr mutate filter reframe first bind_rows ungroup .data
+#' @importFrom dplyr mutate filter reframe first bind_rows ungroup .data case_match
 #' @importFrom purrr map_lgl
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr unnest
@@ -39,25 +39,25 @@
 #' library(readr)
 #' library(dplyr)
 #' # single age data
-#' data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
-#'   dplyr::select(-1)
-#' 
-#' data_out <- lt_flexible(
-#'   data_in,
-#'   OAnew      = 100,
-#'   age_out    = "single",
-#'   extrapFrom = 80,
-#'   extrapFit  = NULL,  # Default NULL, computed later
-#'   extrapLaw  = NULL,
-#'   radix      = 1e+05,
-#'   SRB        = 1.05,
-#'   a0rule     = "Andreev-Kingkade",
-#'   axmethod   = "UN (Greville)",
-#'   Sex = "t"
-#' )
-#' data_out$data_out
-#' data_out$arguments2
-#' data_out$arguments
+# data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#   dplyr::select(-1)
+# 
+# data_out <- lt_flexible(
+#   data_in,
+#   OAnew      = 100,
+#   age_out    = "single",
+#   extrapFrom = 80,
+#   extrapFit  = NULL,  # Default NULL, computed later
+#   extrapLaw  = NULL,
+#   radix      = 1e+05,
+#   SRB        = 1.05,
+#   a0rule     = "Andreev-Kingkade",
+#   axmethod   = "UN (Greville)",
+#   Sex = "t"
+# )
+# data_out$data_out
+# data_out$arguments2
+# data_out$arguments
   
 lt_flexible <- function(data_in,
                         OAnew      = 100,
@@ -71,9 +71,7 @@ lt_flexible <- function(data_in,
                         axmethod   = "UN (Greville)",
                         Sex = "t",
                         by_args = NULL) {
-
   
-
   if (!"Sex" %in% colnames(data_in)){
     data_in$Sex <- Sex
   }
@@ -110,7 +108,7 @@ lt_flexible <- function(data_in,
     extrapFit <- unique(data_in$Age)[unique(data_in$Age) >= 60]
   }
   
- # by_args <- names(data_in)[!names(data_in) %in% c("Age", "Deaths", "Exposures", 
+ # by_args <- names(data_in)[!names(data_in) %in% c("Age", "Deaths", "Exposures",
  #                                                   "Mx_emp", "Rates", "AgeInt")]
 
  # simplest case - build from existing nMx
@@ -122,7 +120,7 @@ lt_flexible <- function(data_in,
   } 
   
   # if both deaths and Exposures are present calculate nMx and build LT
-  if(all(c("Deaths", "Exposures") %in% names(data_in))) { 
+  if(!"nMx" %in% names(data_in) & all(c("Deaths", "Exposures") %in% names(data_in))) { 
     
     data_in <- data_in |>
       mutate(Mx_emp = .data$Deaths / .data$Exposures)
@@ -131,51 +129,42 @@ lt_flexible <- function(data_in,
   
   # calculate nMx from nqx
   # All other functions first turn LT function into nqx and then use the formula for nqx to nMx
-  if("nqx" %in% names(data_in)) {
-    
-    data_in <- data_in |> 
-      group_by(.data$.id) |>
-      mutate(
-        AgeInt = age2int(.data$Age, OAvalue = 5),
-        Mx_emp = .data$nqx / (.data$AgeInt - .data$nqx * (.data$AgeInt / 2))
-        )
-  } 
+  # if("nqx" %in% names(data_in)) {
+  #   
+  #   data_in <- data_in |> 
+  #     group_by(.data$.id) |>
+  #     mutate(
+  #       AgeInt = age2int(.data$Age, OAvalue = 5),
+  #       Mx_emp = .data$nqx / (.data$AgeInt - .data$nqx * (.data$AgeInt / 2))
+  #       )
+  # } 
   
   # from survival probabilities
-  if("npx" %in% names(data_in)) {
-    
-    data_in <- data_in |> 
-      group_by(.data$.id) |>
-      mutate(AgeInt = age2int(.data$Age, OAvalue = 5),
-             nqx    =  1 - .data$nqx,
-             Mx_emp = .data$nqx / (.data$AgeInt - .data$nqx * (.data$AgeInt / 2))
-             )
-  } 
-  
+  # if("npx" %in% names(data_in)) {
+  #   
+  #   data_in <- data_in |> 
+  #     group_by(.data$.id) |>
+  #     mutate(AgeInt = age2int(.data$Age, OAvalue = 5),
+  #            nqx    =  1 - .data$nqx,
+  #            Mx_emp = .data$nqx / (.data$AgeInt - .data$nqx * (.data$AgeInt / 2))
+  #            )
+  # } 
+  # 
   # from ndx - decrement
-  if("ndx" %in% names(data_in)) {
+  if("ndx" %in% names(data_in) & !"nMx" %in% names(data_in) & all(c("Deaths", "Exposures") %in% names(data_in))) {
     
     data_in <-  data_in |> 
       group_by(.data$.id) |>
-      mutate(
-        AgeInt = age2int(.data$Age, OAvalue = 5),
-        nqx    = lt_id_d_q(.data$ndx),
-        Mx_emp = .data$nqx / (.data$AgeInt - .data$nqx * (.data$AgeInt / 2))
-        )
-    
+      mutate(nqx = lt_id_d_q(.data$ndx))
     
   } 
   
   # from survaval function
-  if("lx" %in% names(data_in)) {
+  if("lx" %in% names(data_in) & !"ndx" %in% names(data_in) & !"nMx" %in% names(data_in) & all(c("Deaths", "Exposures") %in% names(data_in))) {
     
     data_in <-  data_in |> 
       group_by(.data$.id) |>
-      mutate(
-        AgeInt = age2int(.data$Age, OAvalue = 5),    
-        nqx    = lt_id_l_q(.data$lx),
-        Mx_emp = .data$nqx / (.data$AgeInt - .data$nqx * (.data$AgeInt / 2))
-        )
+      mutate(nqx = lt_id_l_q(.data$lx))
   }
   
   data_out <- data_in |>
@@ -191,9 +180,9 @@ lt_flexible <- function(data_in,
                         SRB        = SRB,
                         a0rule     = a0rule,
                         axmethod   = axmethod,
-                        age_out = age_out
+                        age_out    = age_out
 
-      ), .by = all_of(c(".id", by_args))
+      ), .by = all_of(c(".id"))
     ) |>
     set_names(c(".id", by_args, "data"))
   
@@ -205,8 +194,7 @@ lt_flexible <- function(data_in,
     filter(map_lgl(data, ~ !is.data.frame(.))) |>
     bind_rows(.id = ".id")
   
-  return(list(data_out   = data
-              ))
+  return(list(data_out   = data))
 }
 
 # [ ] allow lx, nMx, nqx inputs
@@ -284,7 +272,20 @@ lt_flexible_chunk <- function(
   
   Age    <- data_in$Age
   AgeInt <- age2int(Age, OAvalue = 5)
-  Mx_emp <- data_in$Mx_emp
+  # Mx_emp <- data_in$Mx_emp
+  existsMx_emp <- !is.null(tryCatch(data_in$Mx_emp, error = function(e) NULL))
+  
+  if(existsMx_emp) {
+    
+    Mx_emp <- data_in$Mx_emp
+    nqx    <- NULL
+    
+  } else {
+    
+    Mx_emp <- NULL
+    nqx    <- data_in$nqx
+    
+  }
   
   a0rule <- case_match(a0rule,
                        "Andreev-Kingkade"  ~ "ak",
@@ -301,7 +302,7 @@ lt_flexible_chunk <- function(
                       TRUE             ~ "problem")
   
   # TR: this can become the checker function I guess
-  if (age_in == "problem"){
+  if (age_in == "problem") {
     stop(
       "Age groups appear irregular. Only single or standard abrdiged ages are supported now"
     )
@@ -312,8 +313,9 @@ lt_flexible_chunk <- function(
     # TR possibly more args to pass, or different arg management;
     # for instance, construct a completed list of args
     # and execute the function using do.call()
-
+    
     data_out <- lt_abridged(nMx        = Mx_emp,
+                            nqx        = nqx,
                             Age        = Age,
                             AgeInt     = AgeInt,
                             OAnew      = OAnew,
@@ -331,6 +333,7 @@ lt_flexible_chunk <- function(
   if (age_in == "abridged" & age_out == "single") {
     
     data_out <- lt_abridged2single(nMx        = Mx_emp,
+                                   nqx        = nqx,
                                    Age        = Age,
                                    OAnew      = OAnew,  
                                    extrapFrom = extrapFrom,
@@ -343,7 +346,10 @@ lt_flexible_chunk <- function(
                                    Sex        = Sex)
   }
   
-  if (age_in == "single") {
+  if(age_in == "single") {
+    
+    if(!is.null(Mx_emp)) {
+      
     # useful in case we use lt_single_mx()
     # Don't check age_out yet here, because the abridge function requires a
     # precalculated lifetable, see below
@@ -360,9 +366,26 @@ lt_flexible_chunk <- function(
                              axmethod   = axmethod,
                              Sex        = Sex)
     
+    } 
+    
+    if(!is.null(nqx)) {
+      
+      data_out <- lt_single_qx(
+                           nqx        = nqx,
+                           Age        = Age,
+                           OAnew      = OAnew,
+                           extrapFrom = extrapFrom,
+                           extrapFit  = extrapFit, # should we change it here too to 1 year intervals?
+                           extrapLaw  = extrapLaw,
+                           radix      = radix,
+                           SRB        = SRB,
+                           a0rule     = a0rule,
+                           axmethod   = axmethod,
+                           Sex        = "m")
+    }
   }
   
-  if (age_in == "single" & age_out == "abridged") {
+  if(age_in == "single" & age_out == "abridged") {
     
     data_out <- lt_single2abridged(lx  = data_out$lx,
                                    nLx = data_out$nLx,
@@ -381,8 +404,8 @@ lt_flexible_chunk <- function(
   data_out <- data_out |>
     mutate(Sex = Sex, .before = 1)
   
-  return(list(data_out  = data_out
-              ))
+  return(list(data_out  = data_out))
+  
   }
 
 #' @ title `lt_plot`
