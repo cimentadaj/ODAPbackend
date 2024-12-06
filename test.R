@@ -392,4 +392,43 @@ z$nMx[[1]][[1]]
 # data
 z$nMx[[1]][[2]]
 
+library(devtools)
+load_all()
+library(DemoTools)
+library(tidyverse)
+dataIn <- read_csv("/home/tim/Desktop/abridged_data.csv") |> 
+  ODAPbackend::create_groupid(c())
+dataIn <-
+  dataIn |> 
+  mutate(Age = if_else(Age == 12,10,Age))
+lt_flexible(
+  data_in = dataIn,
+  OAnew = 100,
+  age_out = "single",
+  extrapFrom = 80,
+  extrapFit = seq(60, 100, by = 5),
+  extrapLaw = "Kannisto",
+  radix = 100000,
+  SRB = 1.05,
+  a0rule = "Andreev-Kingkade",
+  axmethod = "UN (Greville)",
+  Sex = "Total"
+)
+
+
+# TODO
+
+#[ ] for lt comparisons, also give numerical deviations for large
+#    datasets
+#[ ] some scatterplots
+#
+#
+#
+
+
+
+
+
+
+
 
