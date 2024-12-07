@@ -16,11 +16,11 @@ interpolate(
 )
 }
 \arguments{
-\item{data_in}{data.frame or tibble. Should contain numeric volumns for x and y, although the names may be different than x and y, which you can control using the \code{xname} and \code{yname} arguments. x is the time variable, and y is the thing to interpolate. Methods allowed include nearest neighbor (\code{"nearest"}), Piecewise Cubic Hermite Interpolating Polynomial (\code{"pchip"}), cubic interpolation from four nearest neighbours (\code{"cubic"}), and \code{"spline"} interpolation using  assorted methods available in \code{stats::splinefun()}. \code{"linear"},"\code{logarithmic}",\code{"geometric"}, and \code{"logit"} interpolation are also possible based on linear interpolations of y transforms.}
+\item{data_in}{data.frame or tibble. Should contain numeric volumns for x and y, although the names may be different than x and y, which you can control using the \code{xname} and \code{yname} arguments. x is the time variable, and y is the thing to interpolate.}
 
 \item{xout}{vector of x values we want interpolated values for. Default is the original x coordinates, meaning you get the same y values back unless you change this variable.}
 
-\item{method}{character. options \code{"nearest"}, \code{"linear"}, \code{"pchip"}, \code{"cubic"}, \code{"spline_fmm"}, \code{"spline_periodic"}, \code{"spline_natural"}, \code{"spline_monoH.FC"}, \code{"spline_hyman"}.}
+\item{method}{character. options \code{"nearest"}, \code{"linear"}, \code{"logarithmic"}, \code{"geometric"}, \code{"logit"}, \code{"pchip"}, \code{"cubic"}, \code{"spline_fmm"}, \code{"spline_periodic"}, \code{"spline_natural"}, \code{"spline_monoH.FC"}, \code{"spline_hyman"}.}
 
 \item{xname}{the name of the column holding the time variable}
 
@@ -31,7 +31,7 @@ interpolate(
 \item{...}{extra args potentially passed to \code{splinefun}}
 }
 \description{
-Several univariate interpolation methods
+Several univariate interpolation methods. Methods allowed include nearest neighbor (\code{"nearest"}), Piecewise Cubic Hermite Interpolating Polynomial (\code{"pchip"}), cubic interpolation from four nearest neighbours (\code{"cubic"}), and \code{"spline"} interpolation using  assorted methods available in \code{stats::splinefun()}. \code{"linear"},"\code{logarithmic}",\code{"geometric"}, and \code{"logit"} interpolation are also possible based on linear interpolations of y transforms.
 }
 \details{
 Logarithmic interpolation requires all values by greater than 0, geometric requires non-negative values, and logit requires all values to be between 0 and 1.

@@ -674,7 +674,7 @@ modal_age <- function(data_out) {
 #' @importFrom readr read_csv
 #' @importFrom cowplot plot_grid
 #' @importFrom ggplot2 ggplot geom_point theme_minimal aes theme element_blank element_text scale_x_continuous scale_y_continuous scale_color_discrete labs
-#' @importfrom stats na.omit
+#' @importFrom stats na.omit
 #' @export
 #' @examples
 #' library(readr)

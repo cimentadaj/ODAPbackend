@@ -1,5 +1,13 @@
-#' @param data_in
-#' @param 
+#' @title smooth1d
+#' @description
+#' Smooth a univariate time series, optionally using `weights.` Choose between the super-smoother (`"supsmu"`) method, loess  (`"lowess"` or `"loess"`) , smoothing splines (`"cubicsplines"`), thin-plate splines (`"gam-tp"`), or p-splines  (`"gam-ps"`). Input data may have multiple observations per x coordinate. Output can be for arbitrary x-coordinates (`xout`).
+#' @details `"supsmu"` method takes a `smoothing_par` between 0 and 10. `"lowess"` and 
+#' @param data_in `data.frame` with x and y coordinates to fit to. Optionally with `weights`
+#' @param method character. Smoothing method desired. options `"supsmu"` (default),`"lowess"`,`"loess"`,`"cubicspline"`,`"gam-tp"`,`"gam-ps"`
+#' @param smoothing_par smoothing parameter, interpretation varies by method, but higher always means smoother.Default 1
+#' @param xout numeric vector of coordinates to predict for. Defaults to original unique coordinates.
+#' @param xname name of variable containing x coordinate, default `x`
+#' @param yname name of variable containing y coordinate, default `y`
 #' @importFrom stats supsmu smooth.spline loess
 #' @importFrom dplyr case_when
 #' @importFrom signal interp1
