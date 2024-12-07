@@ -665,7 +665,7 @@ modal_age <- function(data_out) {
   
 }
 
-#' @title `check_e0`
+#' @title `check_data`
 #' @description Creates a plot of `e(0)` values from Human Mortality Database and compare it with those obtained by user.
 #' @param data_out a data.frame or tibble. The data.frame output of the `lt_flexible` function.
 #' @return A  figure where the users `e(0)` values would be indicated in color and HMD values would be black:
