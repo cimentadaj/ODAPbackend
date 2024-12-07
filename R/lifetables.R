@@ -230,7 +230,6 @@ lt_flexible <- function(data_in,
 #' Sex character. Sex.
 #' @importFrom dplyr case_when case_match mutate
 #' @importFrom DemoTools is_single lt_abridged age2int lt_abridged2single lt_single_mx lt_single2abridged is_abridged lt_id_d_q lt_id_l_q
-#' `arguments` - a list of arguments used in fitting.
 #' @export
 #' @examples
 #' library(readr)
@@ -418,6 +417,7 @@ lt_flexible_chunk <- function(
 #' @param data_in a `data.frame` or `tibble` with columns `Age`, `Deaths`, and `Exposures` and `.id`
 #' @param data_out `tibble` as produced by `lt_flexible()`
 #' @param extrapFrom integer. Age from which to impute extrapolated mortality.
+#' @examples
 #' library(readr)
 #' library(dplyr)
 #' # single age data
@@ -674,7 +674,7 @@ modal_age <- function(data_out) {
 #' @importFrom tidyr pivot_longer
 #' @importFrom readr read_csv 
 #' @importFrom ggplot2 ggplot geom_jitter geom_point theme_light geom_hline aes theme element_blank
-#' @importfrom stats na.omit
+#' @importFrom stats na.omit
 #' @export
 #' @examples
 #' library(readr)
