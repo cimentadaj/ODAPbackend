@@ -1,9 +1,9 @@
 
 #' @title `interpolate`
-#' @description Several univariate interpolation methods
-#' @param data_in data.frame or tibble. Should contain numeric volumns for x and y, although the names may be different than x and y, which you can control using the `xname` and `yname` arguments. x is the time variable, and y is the thing to interpolate. Methods allowed include nearest neighbor (`"nearest"`), Piecewise Cubic Hermite Interpolating Polynomial (`"pchip"`), cubic interpolation from four nearest neighbours (`"cubic"`), and `"spline"` interpolation using  assorted methods available in `stats::splinefun()`. `"linear"`,"`logarithmic`",`"geometric"`, and `"logit"` interpolation are also possible based on linear interpolations of y transforms.
+#' @description Several univariate interpolation methods. Methods allowed include nearest neighbor (`"nearest"`), Piecewise Cubic Hermite Interpolating Polynomial (`"pchip"`), cubic interpolation from four nearest neighbours (`"cubic"`), and `"spline"` interpolation using  assorted methods available in `stats::splinefun()`. `"linear"`,"`logarithmic`",`"geometric"`, and `"logit"` interpolation are also possible based on linear interpolations of y transforms.
+#' @param data_in data.frame or tibble. Should contain numeric volumns for x and y, although the names may be different than x and y, which you can control using the `xname` and `yname` arguments. x is the time variable, and y is the thing to interpolate. 
 #' @details Logarithmic interpolation requires all values by greater than 0, geometric requires non-negative values, and logit requires all values to be between 0 and 1.
-#' @param method character. options `"nearest"`, `"linear"`, `"pchip"`, `"cubic"`, `"spline_fmm"`, `"spline_periodic"`, `"spline_natural"`, `"spline_monoH.FC"`, `"spline_hyman"`.
+#' @param method character. options `"nearest"`, `"linear"`, `"logarithmic"`, `"geometric"`, `"logit"`, `"pchip"`, `"cubic"`, `"spline_fmm"`, `"spline_periodic"`, `"spline_natural"`, `"spline_monoH.FC"`, `"spline_hyman"`.
 #' @param xout vector of x values we want interpolated values for. Default is the original x coordinates, meaning you get the same y values back unless you change this variable.
 #' @param xname the name of the column holding the time variable
 #' @param yname the name of the column holding the variable to interpolate
