@@ -665,104 +665,171 @@ modal_age <- function(data_out) {
   
 }
 
-#' @title `check_e0`
+#' @title `check_data`
 #' @description Creates a plot of `e(0)` values from Human Mortality Database and compare it with those obtained by user.
 #' @param data_out a data.frame or tibble. The data.frame output of the `lt_flexible` function.
 #' @return A  figure where the users `e(0)` values would be indicated in color and HMD values would be black:
 #' @importFrom tibble lst tibble
-#' @importFrom dplyr bind_rows mutate filter pull select
-#' @importFrom tidyr pivot_longer
-#' @importFrom readr read_csv 
-#' @importFrom ggplot2 ggplot geom_jitter geom_point theme_light geom_hline aes theme element_blank
+#' @importFrom dplyr group_by select summarise group_by
+#' @importFrom readr read_csv
+#' @importFrom cowplot plot_grid
+#' @importFrom ggplot2 ggplot geom_point theme_minimal aes theme element_blank element_text scale_x_continuous scale_y_continuous scale_color_discrete labs
 #' @importfrom stats na.omit
 #' @export
 #' @examples
 #' library(readr)
 #' library(dplyr)
 #' # single age data
-#' data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
-#'   dplyr::select(-1)
-#' 
-#' data_out <- lt_flexible(
-#'   data_in,
-#'   OAnew      = 100,
-#'   age_out    = "single",
-#'   extrapFrom = 80,
-#'   extrapFit  = NULL,  # Default NULL, computed later
-#'   extrapLaw  = NULL,
-#'   radix      = 1e+05,
-#'   SRB        = 1.05,
-#'   a0rule     = "Andreev-Kingkade",
-#'   axmethod   = "UN (Greville)",
-#'   Sex = "t"
-#' )
-#' 
-#' check_e0(data_out)
+# data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#   dplyr::select(-1)
+# 
+# data_out <- lt_flexible(
+#   data_in,
+#   OAnew      = 100,
+#   age_out    = "single",
+#   extrapFrom = 80,
+#   extrapFit  = NULL,  # Default NULL, computed later
+#   extrapLaw  = NULL,
+#   radix      = 1e+05,
+#   SRB        = 1.05,
+#   a0rule     = "Andreev-Kingkade",
+#   axmethod   = "UN (Greville)",
+#   Sex = "t"
+# )
+# 
+# check_data(data_out)
 #' 
 
-check_e0 <- function(data_out) {
+# check_e0 <- function(data_out) {
+#   
+#   # hmd e0 values
+#   e0 <- read_csv("inst/extdata/e0.csv")
+#   
+#   # our e0 values
+#   res <- data_out$data_out |>
+#     filter(.data$Age == 0) |>
+#     pull(.data$ex)
+#   
+#   # text comparison 
+#   # names(res) <- unique(x[[1]]$data_out$.id)
+#   # 
+#   # # option one
+#   # dat <- e0 %>% 
+#   #   na.omit() %>% 
+#   #   pivot_longer(-c(country, Year),
+#   #                names_to  = "sex",
+#   #                values_to = "val") %>%
+#   #   pull(val) %>% 
+#   #   quantile()
+#   # 
+#   # dat <- c(dat, res)
+#   # as.data.frame(dat,
+#   #               row.names = names(dat))
+#   
+#   # option 2
+#   
+#   # hmd data
+#   hmd <- e0 |>
+#     na.omit() |>
+#     pivot_longer(-c(.data$country, .data$Year), 
+#                  names_to  = "sex", 
+#                  values_to = "e(0)")
+#   
+#   # empirical e(0)
+#   emp <- data_out$data_out |> 
+#     filter(.data$Age == 0) |>
+#     dplyr::select(.data$.id, .data$ex) |>
+#     mutate(.id = as.factor(.data$.id))
+#   
+#   # resulting figure
+#   # just a cloud of points with our values in color
+#   fig <-  ggplot() +
+#     geom_jitter(data = hmd, 
+#                 aes(x = 1, 
+#                     y = .data$`e(0)`), alpha = 0.3) +
+#     geom_point( data = emp, 
+#                 aes(x = 1, 
+#                     y = .data$ex, color = .data$.id), 
+#                 size = 3) +
+#     theme_light() +
+#     geom_hline(yintercept = 16,
+#                color      = "black",
+#                linetype   = "dashed") +
+#     geom_hline(yintercept = 90,
+#                color      = "black",
+#                linetype   = "dashed") +
+#     theme(
+#       legend.position = "bottom",
+#       axis.title.x    = element_blank(),
+#       axis.text.x     = element_blank()
+#     )
+#   
+#   return(fig)
+#   
+# }
+
+check_data <- function(data_out) {
+  # read hmd data
+  zz <- read_csv("inst/extdata/hmd_qx_ex.csv")
   
-  # hmd e0 values
-  e0 <- read_csv("inst/extdata/e0.csv")
+  # how values were calculated
+  # zz <- zz |>
+  #   group_by(.id, Year, Sex) |>
+  #   summarise(q0 = qx[Age == 0],
+  #             e0 = ex[Age == 0],
+  #             q45_60 = 1 - prod(1 - qx[Age %in% c(45:60)])) |>
+  #   ungroup() |>
+  #   dplyr::select(-c(.id, Year, Sex))
   
-  # our e0 values
-  res <- data_out$data_out |>
-    filter(.data$Age == 0) |>
-    pull(.data$ex)
+  # This is our data_out
+  z <- data_out$data_out |>
+    group_by(.id, Sex) |>
+    summarise(q0 = nqx[Age == 0],
+              e0 = ex[Age == 0],
+              q45_60 = 1 - prod(1 - nqx[Age %in% c(45:60)])) |>
+    ungroup() |>
+    select(-Sex)
   
-  # text comparison 
-  # names(res) <- unique(x[[1]]$data_out$.id)
-  # 
-  # # option one
-  # dat <- e0 %>% 
-  #   na.omit() %>% 
-  #   pivot_longer(-c(country, Year),
-  #                names_to  = "sex",
-  #                values_to = "val") %>%
-  #   pull(val) %>% 
-  #   quantile()
-  # 
-  # dat <- c(dat, res)
-  # as.data.frame(dat,
-  #               row.names = names(dat))
-  
-  # option 2
-  
-  # hmd data
-  hmd <- e0 |>
-    na.omit() |>
-    pivot_longer(-c(.data$country, .data$Year), 
-                 names_to  = "sex", 
-                 values_to = "e(0)")
-  
-  # empirical e(0)
-  emp <- data_out$data_out |> 
-    filter(.data$Age == 0) |>
-    dplyr::select(.data$.id, .data$ex) |>
-    mutate(.id = as.factor(.data$.id))
-  
-  # resulting figure
-  # just a cloud of points with our values in color
-  fig <-  ggplot() +
-    geom_jitter(data = hmd, 
-                aes(x = 1, 
-                    y = .data$`e(0)`), alpha = 0.3) +
-    geom_point( data = emp, 
-                aes(x = 1, 
-                    y = .data$ex, color = .data$.id), 
-                size = 3) +
-    theme_light() +
-    geom_hline(yintercept = 16,
-               color      = "black",
-               linetype   = "dashed") +
-    geom_hline(yintercept = 90,
-               color      = "black",
-               linetype   = "dashed") +
+  a <- ggplot() +
+    geom_point(data = na.omit(zz), aes(x = q0, y = e0), alpha = 0.3) +
+    geom_point(data = z,
+               aes(
+                 x = q0,
+                 y = e0,
+                 color = as.factor(.id)
+               ),
+               size = 2) +
+    theme_minimal() +
+    labs(title = "Relationship between q0 and e0", x = "q0 (Infant Mortality Rate)", y = "e0 (Life Expectancy at Birth)") +
+    scale_color_discrete(name = ".id column levels") +
+    scale_y_continuous(breaks = pretty_breaks()) +
+    scale_x_continuous(breaks = pretty_breaks()) +
     theme(
       legend.position = "bottom",
-      axis.title.x    = element_blank(),
-      axis.text.x     = element_blank()
+      legend.title    = element_text(face = "bold"),
+      axis.text       = element_text(color = "black")
     )
+  
+  b <- ggplot() +
+    geom_point(data = na.omit(zz), aes(x = q45_60, y = e0), alpha = 0.3) +
+    geom_point(data = z,
+               aes(
+                 x = q45_60,
+                 y = e0,
+                 color = as.factor(.id)
+               ),
+               size = 2) +
+    theme_minimal() +
+    labs(title = "Relationship between q0 and 45q60", x = "q0 (Infant Mortality Rate)", y = "45q60 (Probability of survivaving to 60\n conditional on surviving to 45)") +
+    scale_color_discrete(name = ".id column levels") +
+    scale_y_continuous(breaks = pretty_breaks()) +
+    scale_x_continuous(breaks = pretty_breaks()) +
+    theme(
+      legend.position = "bottom",
+      legend.title    = element_text(face = "bold"),
+      axis.text       = element_text(color = "black")
+    )
+  fig <- plot_grid(a, b, nrow = 2)
   
   return(fig)
   
