@@ -147,7 +147,10 @@ smooth_flexible <- function(data_in,
 #' library(readr)
 #' library(dplyr)
 #' # 5-year age data
-#' data_in <- read_csv("inst/extdata/five_hmd_spain.csv") |>
+#' fpath <- system.file("extdata", 
+#' "five_hmd_spain.csv", 
+#' package = "ODAPbackend")
+#' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
 #'   filter(.id == 1)
 #' 
@@ -524,8 +527,10 @@ graduate_auto <- function(data_in,
 #' @examples
 #' library(readr)
 #' library(dplyr)
-#' # single age data
-#' data_in <- read_csv("inst/extdata/five_hmd_spain.csv") |>
+#' fpath <- system.file("extdata", 
+#' "five_hmd_spain.csv", 
+#' package = "ODAPbackend")
+#' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
 #'   filter(.id == 1)
 #' 

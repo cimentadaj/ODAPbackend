@@ -33,6 +33,7 @@ Smooth a univariate time series, optionally using \code{weights.} Choose between
 \code{"supsmu"} method takes a \code{smoothing_par} between 0 and 10. \code{"lowess"} and
 }
 \examples{
+library(tibble)
 x = c(1950.77104722793, 1951.77104722793, 1952.77104722793, 1952.77104722793, 
       1953.77104722793, 1954.77104722793, 1955.77104722793, 1956.77104722793, 
       1957.77104722793, 1957.77104722793, 1958.77104722793, 1959.77104722793, 

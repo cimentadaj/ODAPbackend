@@ -63,9 +63,14 @@ Calculate an abridged or a single-age lifetable.
 library(readr)
 library(dplyr)
 # single age data
-data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+fpath <- system.file("extdata", 
+"single_hmd_spain.csv", 
+package = "ODAPbackend")
+data_in <- read_csv(fpath) |>
   dplyr::select(-1) |>
-  filter(.id == 1)
+  filter(.id == 1)|> 
+  # This step happens in lt_flexible...
+  mutate(Mx_emp = Deaths / Exposures)
 
 data_out <-
   lt_flexible_chunk(data_in,
@@ -81,7 +86,6 @@ data_out <-
                    Sex       = "f")
 
 data_out$data_out
-data_out$arguments
 
 
 }

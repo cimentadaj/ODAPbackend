@@ -11,6 +11,7 @@
 #' @importFrom signal interp1
 #' @importFrom stats splinefun
 #' @examples
+#' library(tibble)
 #' x <- c(18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 
 #'        63, 66, 69, 72)
 #' y <- c(1, 2267, 7914, 14540, 21261, 28700, 36647, 43381, 49306, 54509, 

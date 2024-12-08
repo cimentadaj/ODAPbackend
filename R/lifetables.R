@@ -120,38 +120,15 @@ lt_flexible <- function(data_in,
   } 
   
   # if both deaths and Exposures are present calculate nMx and build LT
-  if(!"nMx" %in% names(data_in) & all(c("Deaths", "Exposures") %in% names(data_in))) { 
+  if ((!"nMx" %in% names(data_in)) & (all(c("Deaths", "Exposures") %in% names(data_in)))) { 
     
     data_in <- data_in |>
       mutate(Mx_emp = .data$Deaths / .data$Exposures)
     
   }
   
-  # calculate nMx from nqx
-  # All other functions first turn LT function into nqx and then use the formula for nqx to nMx
-  # if("nqx" %in% names(data_in)) {
-  #   
-  #   data_in <- data_in |> 
-  #     group_by(.data$.id) |>
-  #     mutate(
-  #       AgeInt = age2int(.data$Age, OAvalue = 5),
-  #       Mx_emp = .data$nqx / (.data$AgeInt - .data$nqx * (.data$AgeInt / 2))
-  #       )
-  # } 
-  
-  # from survival probabilities
-  # if("npx" %in% names(data_in)) {
-  #   
-  #   data_in <- data_in |> 
-  #     group_by(.data$.id) |>
-  #     mutate(AgeInt = age2int(.data$Age, OAvalue = 5),
-  #            nqx    =  1 - .data$nqx,
-  #            Mx_emp = .data$nqx / (.data$AgeInt - .data$nqx * (.data$AgeInt / 2))
-  #            )
-  # } 
-  # 
   # from ndx - decrement
-  if("ndx" %in% names(data_in) & !"nMx" %in% names(data_in) & all(c("Deaths", "Exposures") %in% names(data_in))) {
+  if(("ndx" %in% names(data_in)) & (!"Mx_emp" %in% names(data_in)) & (!"nqx" %in% names(data_in))) {
     
     data_in <-  data_in |> 
       group_by(.data$.id) |>
@@ -160,7 +137,7 @@ lt_flexible <- function(data_in,
   } 
   
   # from survaval function
-  if("lx" %in% names(data_in) & !"ndx" %in% names(data_in) & !"nMx" %in% names(data_in) & all(c("Deaths", "Exposures") %in% names(data_in))) {
+  if(("lx" %in% names(data_in)) & (!"Mx_emp" %in% names(data_in)) & (!"nqx" %in% names(data_in))) {
     
     data_in <-  data_in |> 
       group_by(.data$.id) |>
@@ -235,9 +212,14 @@ lt_flexible <- function(data_in,
 #' library(readr)
 #' library(dplyr)
 #' # single age data
-#' data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#' fpath <- system.file("extdata", 
+#' "single_hmd_spain.csv", 
+#' package = "ODAPbackend")
+#' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
-#'   filter(.id == 1)
+#'   filter(.id == 1)|> 
+#'   # This step happens in lt_flexible...
+#'   mutate(Mx_emp = Deaths / Exposures)
 #' 
 #' data_out <-
 #'   lt_flexible_chunk(data_in,
@@ -253,7 +235,6 @@ lt_flexible <- function(data_in,
 #'                    Sex       = "f")
 #' 
 #' data_out$data_out
-#' data_out$arguments
 #' 
 #' 
 lt_flexible_chunk <- function(
@@ -272,18 +253,18 @@ lt_flexible_chunk <- function(
   Age    <- data_in$Age
   AgeInt <- age2int(Age, OAvalue = 5)
   # Mx_emp <- data_in$Mx_emp
-  existsMx_emp <- !is.null(tryCatch(data_in$Mx_emp, error = function(e) NULL))
+  useMx_emp <- "Mx_emp" %in% colnames(data_in)
+ # existsMx_emp <- !is.null(tryCatch(data_in$Mx_emp, error = function(e) NULL))
   
-  if(existsMx_emp) {
-    
-    Mx_emp <- data_in$Mx_emp
-    nqx    <- NULL
-    
-  } else {
-    
+  # TR: note if dx or lx were given, then direct conversion to nqx
+  # already happened in lt_flexible, which calls this function
+  if (useMx_emp) {
+    Mx_emp <- data_in[["Mx_emp"]]
+    nqx <- NULL
+  } 
+  if (!useMx_emp){
+    nqx    <-  data_in[["nqx"]]
     Mx_emp <- NULL
-    nqx    <- data_in$nqx
-    
   }
   
   a0rule <- case_match(a0rule,
@@ -345,9 +326,9 @@ lt_flexible_chunk <- function(
                                    Sex        = Sex)
   }
   
-  if(age_in == "single") {
+  if (age_in == "single") {
     
-    if(!is.null(Mx_emp)) {
+    if (useMx_emp) {
       
       # useful in case we use lt_single_mx()
       # Don't check age_out yet here, because the abridge function requires a
@@ -367,7 +348,7 @@ lt_flexible_chunk <- function(
       
     } 
     
-    if(!is.null(nqx)) {
+    if (!useMx_emp) {
       
       data_out <- lt_single_qx(
         nqx        = nqx,
@@ -380,7 +361,7 @@ lt_flexible_chunk <- function(
         SRB        = SRB,
         a0rule     = a0rule,
         axmethod   = axmethod,
-        Sex        = "m")
+        Sex        = Sex)
     }
   }
   
@@ -421,7 +402,10 @@ lt_flexible_chunk <- function(
 #' library(readr)
 #' library(dplyr)
 #' # single age data
-#' data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#' fpath <- system.file("extdata", 
+#' "single_hmd_spain.csv", 
+#' package = "ODAPbackend")
+#' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
 #'   filter(.id == 1)
 #' 
@@ -579,7 +563,10 @@ lt_summary <- function(data_out){
 #' library(readr)
 #' library(dplyr)
 #' # single age data
-#' data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#' fpath <- system.file("extdata", 
+#' "single_hmd_spain.csv", 
+#' package = "ODAPbackend")
+#' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
 #'   filter(.id == 1)
 #' 
@@ -680,7 +667,10 @@ modal_age <- function(data_out) {
 #' library(readr)
 #' library(dplyr)
 #' # single age data
-# data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#' fpath <- system.file("extdata", 
+#' "single_hmd_spain.csv", 
+#' package = "ODAPbackend")
+# data_in <- read_csv(fpath) |>
 #   dplyr::select(-1)
 # 
 # data_out <- lt_flexible(

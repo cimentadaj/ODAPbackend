@@ -34,5 +34,8 @@ Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 library(readr)
 library(dplyr)
 # single age data
+fpath <- system.file("extdata", 
+"single_hmd_spain.csv", 
+package = "ODAPbackend")
 
 }

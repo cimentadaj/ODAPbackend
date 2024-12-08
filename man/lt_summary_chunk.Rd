@@ -28,7 +28,10 @@ Creates a table of useful summary statistics from the lifetable.
 library(readr)
 library(dplyr)
 # single age data
-data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+fpath <- system.file("extdata", 
+"single_hmd_spain.csv", 
+package = "ODAPbackend")
+data_in <- read_csv(fpath) |>
   dplyr::select(-1) |>
   filter(.id == 1)
 
