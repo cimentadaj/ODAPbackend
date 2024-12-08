@@ -8,16 +8,18 @@
 #' @param xout numeric vector of coordinates to predict for. Defaults to original unique coordinates.
 #' @param xname name of variable containing x coordinate, default `x`
 #' @param yname name of variable containing y coordinate, default `y`
-#' @importFrom stats supsmu smooth.spline loess
+#' @importFrom stats supsmu smooth.spline loess predict loess.control
 #' @importFrom dplyr case_when
 #' @importFrom signal interp1
 #' @importFrom mgcv gam
-
+#' @export
 smooth1d_chunk <- function(data_in., 
                      method = c("supsmu","lowess","loess",
                                 "cubicspline","gam-tp","gam-ps")[1],
                      smoothing_par = 1,
-                     xout = data_in.[["x"]]){
+                     xout = data_in.[["x"]],
+                     xname = "x",
+                     yname = "y"){
   
   x <- data_in.[[xname]]
   y <- data_in.[[yname]]
@@ -67,7 +69,7 @@ smooth1d_chunk <- function(data_in.,
   }
   
   
-  if (setup$Method=="cubicspline") {
+  if (method == "cubicspline") {
     if (is.numeric(smoothing_par)){
       fit  <- smooth.spline(x = x, 
                             y = y, 
@@ -115,10 +117,6 @@ smooth1d_chunk <- function(data_in.,
 #' @param xout numeric vector of coordinates to predict for. Defaults to original unique coordinates.
 #' @param xname name of variable containing x coordinate, default `x`
 #' @param yname name of variable containing y coordinate, default `y`
-#' @importFrom stats supsmu smooth.spline loess
-#' @importFrom dplyr case_when
-#' @importFrom signal interp1
-#' @importFrom mgcv gam
 #' @importFrom dplyr mutate filter reframe bind_rows ungroup .data
 #' @importFrom purrr map_lgl
 #' @importFrom tidyselect all_of
@@ -192,7 +190,8 @@ smooth1d <- function(data_in,
                                 "cubicspline","gam-tp","gam-ps")[1],
                      smoothing_par = 1,
                      xout = data_in[["x"]] |> unique(),
-                     by_args = NULL){
+                     xname = "x",
+                     yname = "y"){
   
   if (!(".id" %in% colnames(data_in))) {
     data_in <- data_in |>
@@ -209,7 +208,9 @@ smooth1d <- function(data_in,
       smooth1d_chunk(data_in. = .data, 
                      method = method,
                      smoothing_par = smoothing_par,
-                     xout = xout), 
+                     xout = xout,
+                     xname = xname,
+                     yname = yname), 
       .by = all_of(c(".id"))
     ) #|>
     #set_names(c(".id", by_args, "data"))

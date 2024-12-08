@@ -8,7 +8,9 @@ smooth1d_chunk(
   data_in.,
   method = c("supsmu", "lowess", "loess", "cubicspline", "gam-tp", "gam-ps")[1],
   smoothing_par = 1,
-  xout = data_in.[["x"]]
+  xout = data_in.[["x"]],
+  xname = "x",
+  yname = "y"
 )
 }
 \arguments{

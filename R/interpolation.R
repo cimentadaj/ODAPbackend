@@ -8,7 +8,6 @@
 #' @param xname the name of the column holding the time variable
 #' @param yname the name of the column holding the variable to interpolate
 #' @param extrap logical, default `TRUE.` If `xout` exceeds the range of `x`
-#' @param ... extra args potentially passed to `splinefun`
 #' @importFrom signal interp1
 #' @importFrom stats splinefun
 #' @examples
@@ -25,7 +24,7 @@
 #' lines(interpolate(data_in, method = "spline_monoH.FC", xout = 10:80), 
 #'       col = "blue", lty = "28")
 #' }
-
+#' @export
 interpolate <- function(data_in, 
                         xout = data_in[[xname]], 
                         method = c("nearest", "linear", "pchip", "cubic", "logarithmic","geometric","logit", "spline_fmm", "spline_periodic", "spline_natural", "spline_monoH.FC", "spline_hyman")[1], 

@@ -9,7 +9,8 @@ smooth1d(
   method = c("supsmu", "lowess", "loess", "cubicspline", "gam-tp", "gam-ps")[1],
   smoothing_par = 1,
   xout = unique(data_in[["x"]]),
-  by_args = NULL
+  xname = "x",
+  yname = "y"
 )
 }
 \arguments{

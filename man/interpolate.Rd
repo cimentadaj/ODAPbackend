@@ -27,8 +27,6 @@ interpolate(
 \item{yname}{the name of the column holding the variable to interpolate}
 
 \item{extrap}{logical, default \code{TRUE.} If \code{xout} exceeds the range of \code{x}}
-
-\item{...}{extra args potentially passed to \code{splinefun}}
 }
 \description{
 Several univariate interpolation methods. Methods allowed include nearest neighbor (\code{"nearest"}), Piecewise Cubic Hermite Interpolating Polynomial (\code{"pchip"}), cubic interpolation from four nearest neighbours (\code{"cubic"}), and \code{"spline"} interpolation using  assorted methods available in \code{stats::splinefun()}. \code{"linear"},"\code{logarithmic}",\code{"geometric"}, and \code{"logit"} interpolation are also possible based on linear interpolations of y transforms.

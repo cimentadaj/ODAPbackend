@@ -16,6 +16,7 @@ A data.frame with 3 columns: message - \code{check} - the name of the test, \cod
 Check number of rows in the data. NOTE: only using the following columns: (\code{Deaths}, \code{Exposures}, \code{Age}, and \code{AgeInt}).
 }
 \examples{
+ library(tibble)
 Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
               247473,223014,172260,149338,127242,105715,79614,53660,
               31021,16805,8000,4000,2000,1000)

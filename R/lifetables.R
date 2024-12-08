@@ -229,7 +229,7 @@ lt_flexible <- function(data_in,
 #' ex numeric. Age-specific remaining life expectancy.
 #' Sex character. Sex.
 #' @importFrom dplyr case_when case_match mutate
-#' @importFrom DemoTools is_single lt_abridged age2int lt_abridged2single lt_single_mx lt_single2abridged is_abridged lt_id_d_q lt_id_l_q
+#' @importFrom DemoTools is_single lt_abridged age2int lt_abridged2single lt_single_mx lt_single_qx lt_single2abridged is_abridged lt_id_d_q lt_id_l_q
 #' @export
 #' @examples
 #' library(readr)
