@@ -5,7 +5,7 @@
 \title{\code{lt_flexible_chunk}}
 \usage{
 lt_flexible_chunk(
-  data_in,
+  data_in.,
   Sex,
   OAnew = 100,
   age_out = "single",
@@ -19,7 +19,7 @@ lt_flexible_chunk(
 )
 }
 \arguments{
-\item{data_in}{a \code{data.frame} or \code{tibble}. 3 numeric columns \code{Age}, \code{Deaths}, and \code{Exposures}, or \code{nMx} or any of the following lifetable functions: \code{nqx}, \code{npx}, \code{ndx}, \code{lx}. Can optionally have columns \code{Sex} and \code{.id} in which case the table will be calculated for each level in these columns. Can also have an additional column.}
+\item{data_in.}{a \code{data.frame} or \code{tibble}. 3 numeric columns \code{Age}, \code{Deaths}, and \code{Exposures}, or \code{nMx} or any of the following lifetable functions: \code{nqx}, \code{npx}, \code{ndx}, \code{lx}. Can optionally have columns \code{Sex} and \code{.id} in which case the table will be calculated for each level in these columns. Can also have an additional column.}
 
 \item{Sex}{character. Either \code{m} for males, \code{f} for females, or \code{t} for total (default).}
 

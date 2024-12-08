@@ -42,8 +42,7 @@ data_out <- lt_flexible(
   radix      = 1e+05,
   SRB        = 1.05,
   a0rule     = "Andreev-Kingkade",
-  axmethod   = "UN (Greville)",
-  Sex = "t"
+  axmethod   = "UN (Greville)"
 )
 
 lt_summary(data_out$data_out)

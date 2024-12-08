@@ -39,25 +39,24 @@
 #' library(readr)
 #' library(dplyr)
 #' # single age data
-# data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
-#   dplyr::select(-1)
-# 
-# data_out <- lt_flexible(
-#   data_in,
-#   OAnew      = 100,
-#   age_out    = "single",
-#   extrapFrom = 80,
-#   extrapFit  = NULL,  # Default NULL, computed later
-#   extrapLaw  = NULL,
-#   radix      = 1e+05,
-#   SRB        = 1.05,
-#   a0rule     = "Andreev-Kingkade",
-#   axmethod   = "UN (Greville)",
-#   Sex = "t"
-# )
-# data_out$data_out
-# data_out$arguments2
-# data_out$arguments
+#' fpath <- system.file("extdata", 
+#' "single_hmd_spain.csv", 
+#' package = "ODAPbackend")
+#' data_in <- read_csv(fpath) |>
+#'   dplyr::select(-1)
+#' 
+#' data_out <- lt_flexible(
+#'   data_in,
+#'   OAnew      = 100,
+#'   age_out    = "single",
+#'   extrapFrom = 80,
+#'   extrapFit  = NULL,  # Default NULL, computed later
+#'   extrapLaw  = NULL,
+#'   radix      = 1e+05,
+#'   SRB        = 1.05,
+#'   a0rule     = "Andreev-Kingkade",
+#'   axmethod   = "UN (Greville)"
+#' )
 
 lt_flexible <- function(data_in,
                         OAnew      = 100,
@@ -147,7 +146,7 @@ lt_flexible <- function(data_in,
   data_out <- data_in |>
     ungroup() |> 
     reframe(
-      lt_flexible_chunk(data_in    = .data, 
+      lt_flexible_chunk(data_in.    = .data, 
                         Sex        = first(Sex),  
                         OAnew      = OAnew,  
                         extrapFrom = extrapFrom,
@@ -160,8 +159,7 @@ lt_flexible <- function(data_in,
                         age_out    = age_out
                         
       ), .by = all_of(c(".id"))
-    ) |>
-    set_names(c(".id", by_args, "data"))
+    )
   
   data <- data_out |>
     filter(map_lgl(data, is.data.frame))|>
@@ -180,7 +178,7 @@ lt_flexible <- function(data_in,
 
 #' @title `lt_flexible_chunk`
 #' @description Calculate an abridged or a single-age lifetable.
-#' @param data_in a `data.frame` or `tibble`. 3 numeric columns `Age`, `Deaths`, and `Exposures`, or `nMx` or any of the following lifetable functions: `nqx`, `npx`, `ndx`, `lx`. Can optionally have columns `Sex` and `.id` in which case the table will be calculated for each level in these columns. Can also have an additional column.
+#' @param data_in. a `data.frame` or `tibble`. 3 numeric columns `Age`, `Deaths`, and `Exposures`, or `nMx` or any of the following lifetable functions: `nqx`, `npx`, `ndx`, `lx`. Can optionally have columns `Sex` and `.id` in which case the table will be calculated for each level in these columns. Can also have an additional column.
 #' @param OAnew integer. Desired open age group (5-year ages only). Default `100`. If higher then rates are extrapolated.
 #' @param age_out character. Indicates whether single or abridged lifetable output is desired. takes values `single`, `abridged`. Defaults to `single`.
 #' @param extrapFrom integer. Age from which to impute extrapolated mortality. Defaults to `NULL`.
@@ -238,7 +236,7 @@ lt_flexible <- function(data_in,
 #' 
 #' 
 lt_flexible_chunk <- function(
-    data_in,
+    data_in.,
     Sex,
     OAnew      = 100,
     age_out    = "single", 
@@ -253,17 +251,17 @@ lt_flexible_chunk <- function(
   Age    <- data_in$Age
   AgeInt <- age2int(Age, OAvalue = 5)
   # Mx_emp <- data_in$Mx_emp
-  useMx_emp <- "Mx_emp" %in% colnames(data_in)
+  useMx_emp <- "Mx_emp" %in% colnames(data_in.)
  # existsMx_emp <- !is.null(tryCatch(data_in$Mx_emp, error = function(e) NULL))
   
   # TR: note if dx or lx were given, then direct conversion to nqx
   # already happened in lt_flexible, which calls this function
   if (useMx_emp) {
-    Mx_emp <- data_in[["Mx_emp"]]
+    Mx_emp <- data_in.[["Mx_emp"]]
     nqx <- NULL
   } 
   if (!useMx_emp){
-    nqx    <-  data_in[["nqx"]]
+    nqx    <-  data_in.[["nqx"]]
     Mx_emp <- NULL
   }
   
@@ -419,8 +417,7 @@ lt_flexible_chunk <- function(
 #'  radix      = 1e+05,
 #'   SRB        = 1.05,
 #'   a0rule     = "Andreev-Kingkade",
-#'   axmethod   = "UN (Greville)",
-#'   Sex = "t"
+#'   axmethod   = "UN (Greville)"
 #' )
 #' 
 #' ex1 <-  lt_plot(
@@ -519,8 +516,7 @@ lt_plot <- function(data_in,
 #'   radix      = 1e+05,
 #'   SRB        = 1.05,
 #'   a0rule     = "Andreev-Kingkade",
-#'   axmethod   = "UN (Greville)",
-#'   Sex = "t"
+#'   axmethod   = "UN (Greville)"
 #' )
 #' 
 #' lt_summary(data_out$data_out)
@@ -580,8 +576,7 @@ lt_summary <- function(data_out){
 #'   radix      = 1e+05,
 #'   SRB        = 1.05,
 #'   a0rule     = "Andreev-Kingkade",
-#'   axmethod   = "UN (Greville)",
-#'   Sex = "t"
+#'   axmethod   = "UN (Greville)"
 #' )
 #' 
 #' lt_summary_chunk(data_out$data_out)
@@ -683,8 +678,7 @@ modal_age <- function(data_out) {
 #   radix      = 1e+05,
 #   SRB        = 1.05,
 #   a0rule     = "Andreev-Kingkade",
-#   axmethod   = "UN (Greville)",
-#   Sex = "t"
+#   axmethod   = "UN (Greville)"
 # )
 # 
 # check_data(data_out)
