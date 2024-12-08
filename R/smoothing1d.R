@@ -2,7 +2,7 @@
 #' @description
 #' Smooth a univariate time series, optionally using `weights.` Choose between the super-smoother (`"supsmu"`) method, loess  (`"lowess"` or `"loess"`) , smoothing splines (`"cubicsplines"`), thin-plate splines (`"gam-tp"`), or p-splines  (`"gam-ps"`). Input data may have multiple observations per x coordinate. Output can be for arbitrary x-coordinates (`xout`).
 #' @details `"supsmu"` method takes a `smoothing_par` between 0 and 10. `"lowess"` and 
-#' @param data_in `data.frame` with x and y coordinates to fit to. Optionally with `weights`
+#' @param data_in. `data.frame` with x and y coordinates to fit to. Optionally with `weights`. Should refer to a single subset of data.
 #' @param method character. Smoothing method desired. options `"supsmu"` (default),`"lowess"`,`"loess"`,`"cubicspline"`,`"gam-tp"`,`"gam-ps"`
 #' @param smoothing_par smoothing parameter, interpretation varies by method, but higher always means smoother.Default 1
 #' @param xout numeric vector of coordinates to predict for. Defaults to original unique coordinates.
@@ -17,14 +17,7 @@ smooth1d_chunk <- function(data_in.,
                      method = c("supsmu","lowess","loess",
                                 "cubicspline","gam-tp","gam-ps")[1],
                      smoothing_par = 1,
-                     xout = data_in[["x"]]){
-  
-
-  
-  if (!"weights" %in% colnames(data_in.)){
-    data_in. <- data_in. |> 
-      mutate(weights = 1)
-  }
+                     xout = data_in.[["x"]]){
   
   x <- data_in.[[xname]]
   y <- data_in.[[yname]]
@@ -205,6 +198,10 @@ smooth1d <- function(data_in,
     data_in <- data_in |>
       mutate(.id = "all")
   }
+  if (!"weights" %in% colnames(data_in)){
+    data_in <- data_in |> 
+      mutate(weights = 1)
+  }
   
   data_out <- data_in |>
     ungroup() |> 
@@ -214,12 +211,12 @@ smooth1d <- function(data_in,
                      smoothing_par = smoothing_par,
                      xout = xout), 
       .by = all_of(c(".id"))
-    ) |>
-    set_names(c(".id", by_args, "data"))
+    ) #|>
+    #set_names(c(".id", by_args, "data"))
   
-  data_out <- data_out |>
-    filter(map_lgl(data, is.data.frame))|>
-    unnest(.data$data)
+  # data_out <- data_out |>
+  #   filter(map_lgl(data, is.data.frame))|>
+  #   unnest(.data$data)
 
 return(data_out)
 }
