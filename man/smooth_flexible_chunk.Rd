@@ -47,6 +47,7 @@ library(dplyr)
 fpath <- system.file("extdata", 
 "abridged_hmd_spain.csv", 
  package = "ODAPbackend")
+data_in <- read_csv(fpath) |>
   dplyr::select(-1) |>
   filter(.id == 1)
 
