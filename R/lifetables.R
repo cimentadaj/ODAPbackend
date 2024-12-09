@@ -12,7 +12,7 @@
 #' @param axmethod character. Method used for `a(x)` calculation. Either `pas` or `un`.
 #' @param Sex character. Either `m` for males, `f` for females or `t` for total. This variable defaults to `t`. If there is more than one sex in the data, then the lifetable will be calculated for each sex.
 #' @param by_args character. A vector of columns should be also included in the output. These columns are usually ones that are used for `.id` construction. Defaults to `NULL`. It is important to not include `Sex` in this vector.
-#' @importFrom dplyr mutate filter reframe first bind_rows ungroup .data case_match
+#' @importFrom dplyr mutate filter group_modify first bind_rows group_by ungroup .data case_match arrange
 #' @importFrom purrr map_lgl
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr unnest
@@ -76,9 +76,9 @@ lt_flexible <- function(data_in,
   }
   
   data_in <- data_in |>
-    mutate(Sex = substr(Sex, 1, 1),
-           Sex = ifelse(Sex == "t", "b", Sex),
-           Sex = tolower(Sex))
+    mutate(Sex = substr(.data$Sex, 1, 1),
+           Sex = ifelse(.data$Sex == "t", "b", .data$Sex),
+           Sex = tolower(.data$Sex))
   
   # match potential names. In case raw data is supplied
   nms <- case_match(
@@ -145,9 +145,11 @@ lt_flexible <- function(data_in,
   
   data_out <- data_in |>
     ungroup() |> 
-    reframe(
-      lt_flexible_chunk(data_in.    = .data, 
-                        Sex        = first(Sex),  
+    arrange(.data$.id, .data$Age) |> 
+    group_by(.data$.id) |> 
+    group_modify(
+      ~lt_flexible_chunk(.x, 
+                        Sex        = NULL,  
                         OAnew      = OAnew,  
                         extrapFrom = extrapFrom,
                         extrapFit  = extrapFit, 
@@ -156,29 +158,18 @@ lt_flexible <- function(data_in,
                         SRB        = SRB,
                         a0rule     = a0rule,
                         axmethod   = axmethod,
-                        age_out    = age_out
-                        
-      ), .by = all_of(c(".id"))
-    )
+                        age_out    = age_out)) |> 
+    ungroup()
   
-  data <- data_out |>
-    filter(map_lgl(data, is.data.frame))|>
-    unnest(.data$data)
-  
-  args <- data_out |>
-    filter(map_lgl(data, ~ !is.data.frame(.))) |>
-    bind_rows(.id = ".id")
-  
-  return(list(data_out   = data))
+  return(data_out)
 }
 
-# [ ] allow lx, nMx, nqx inputs
-# [ ] if data go up to 75+ we can't have jumpoff at 80, the value 80 needs
-#     to be dynamically determined
+
+
 
 #' @title `lt_flexible_chunk`
 #' @description Calculate an abridged or a single-age lifetable.
-#' @param data_in. a `data.frame` or `tibble`. 3 numeric columns `Age`, `Deaths`, and `Exposures`, or `nMx` or any of the following lifetable functions: `nqx`, `npx`, `ndx`, `lx`. Can optionally have columns `Sex` and `.id` in which case the table will be calculated for each level in these columns. Can also have an additional column.
+#' @param data_in_chunk a `data.frame` or `tibble`. 3 numeric columns `Age`, `Deaths`, and `Exposures`, or `nMx` or any of the following lifetable functions: `nqx`, `npx`, `ndx`, `lx`. Can optionally have columns `Sex` and `.id` in which case the table will be calculated for each level in these columns. Can also have an additional column.
 #' @param OAnew integer. Desired open age group (5-year ages only). Default `100`. If higher then rates are extrapolated.
 #' @param age_out character. Indicates whether single or abridged lifetable output is desired. takes values `single`, `abridged`. Defaults to `single`.
 #' @param extrapFrom integer. Age from which to impute extrapolated mortality. Defaults to `NULL`.
@@ -217,7 +208,8 @@ lt_flexible <- function(data_in,
 #'   dplyr::select(-1) |>
 #'   filter(.id == 1)|> 
 #'   # This step happens in lt_flexible...
-#'   mutate(Mx_emp = Deaths / Exposures)
+#'   mutate(Mx_emp = Deaths / Exposures,
+#'   Sex = substr(Sex,1,1) |> tolower())
 #' 
 #' data_out <-
 #'   lt_flexible_chunk(data_in,
@@ -229,15 +221,14 @@ lt_flexible <- function(data_in,
 #'                     extrapLaw = NULL,
 #'                     SRB       = 1.05,
 #'                    a0rule    = "ak",
-#'                    axmethod  = "un",
-#'                    Sex       = "f")
+#'                    axmethod  = "un")
 #' 
-#' data_out$data_out
+#' data_out
 #' 
 #' 
 lt_flexible_chunk <- function(
-    data_in.,
-    Sex,
+    data_in_chunk,
+    Sex = NULL,
     OAnew      = 100,
     age_out    = "single", 
     extrapFrom = 80,
@@ -248,20 +239,23 @@ lt_flexible_chunk <- function(
     a0rule     = "Andreev-Kingkade",
     axmethod   = "UN (Greville)") {
   
-  Age    <- data_in$Age
-  AgeInt <- age2int(Age, OAvalue = 5)
-  # Mx_emp <- data_in$Mx_emp
-  useMx_emp <- "Mx_emp" %in% colnames(data_in.)
- # existsMx_emp <- !is.null(tryCatch(data_in$Mx_emp, error = function(e) NULL))
+  if (is.null(Sex)){
+    Sex <- data_in_chunk[["Sex"]][1]
+  }
+
   
+  Age    <- data_in_chunk$Age
+  AgeInt <- age2int(Age, OAvalue = 5)
+  useMx_emp <- any(grepl("Mx_emp", colnames(data_in_chunk)))
+
   # TR: note if dx or lx were given, then direct conversion to nqx
   # already happened in lt_flexible, which calls this function
   if (useMx_emp) {
-    Mx_emp <- data_in.[["Mx_emp"]]
+    Mx_emp <- data_in_chunk[["Mx_emp"]]
     nqx <- NULL
   } 
   if (!useMx_emp){
-    nqx    <-  data_in.[["nqx"]]
+    nqx    <-  data_in_chunk[["nqx"]]
     Mx_emp <- NULL
   }
   
@@ -382,7 +376,7 @@ lt_flexible_chunk <- function(
   data_out <- data_out |>
     mutate(Sex = Sex, .before = 1)
   
-  return(list(data_out  = data_out))
+  return(data_out)
   
 }
 
@@ -460,7 +454,8 @@ lt_plot <- function(data_in,
     group_nest(.data$.id, .data$type)
   
   data <- d_in |>
-    full_join(d_out) |> 
+    full_join(d_out, 
+              by = c(".id", "type", "data")) |> 
     pivot_wider(names_from  = .data$type,
                 values_from = .data$data) |>
     mutate(new = map2(.x = d_out,
@@ -502,7 +497,10 @@ lt_plot <- function(data_in,
 #' library(readr)
 #' library(dplyr)
 #' # single age data
-#' data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#' fpath <- system.file("extdata", 
+#' "single_hmd_spain.csv", 
+#' package = "ODAPbackend")
+#' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
 #'   filter(.id == 1)
 #' 
@@ -519,7 +517,7 @@ lt_plot <- function(data_in,
 #'   axmethod   = "UN (Greville)"
 #' )
 #' 
-#' lt_summary(data_out$data_out)
+#' lt_summary(data_out)
 
 lt_summary <- function(data_out){
   
@@ -579,7 +577,7 @@ lt_summary <- function(data_out){
 #'   axmethod   = "UN (Greville)"
 #' )
 #' 
-#' lt_summary_chunk(data_out$data_out)
+#' lt_summary_chunk(data_out)
 lt_summary_chunk <- function(data_out) {
   
   e0  <- data_out$ex[data_out$Age == 0]
@@ -684,77 +682,13 @@ modal_age <- function(data_out) {
 # check_data(data_out)
 #' 
 
-# check_e0 <- function(data_out) {
-#   
-#   # hmd e0 values
-#   e0 <- read_csv("inst/extdata/e0.csv")
-#   
-#   # our e0 values
-#   res <- data_out$data_out |>
-#     filter(.data$Age == 0) |>
-#     pull(.data$ex)
-#   
-#   # text comparison
-#   # names(res) <- unique(x[[1]]$data_out$.id)
-#   #
-#   # # option one
-#   # dat <- e0 %>%
-#   #   na.omit() %>%
-#   #   pivot_longer(-c(country, Year),
-#   #                names_to  = "sex",
-#   #                values_to = "val") %>%
-#   #   pull(val) %>%
-#   #   quantile()
-#   #
-#   # dat <- c(dat, res)
-#   # as.data.frame(dat,
-#   #               row.names = names(dat))
-#   
-#   # option 2
-#   
-#   # hmd data
-#   hmd <- e0 |>
-#     na.omit() |>
-#     pivot_longer(-c(.data$country, .data$Year),
-#                  names_to  = "sex",
-#                  values_to = "e(0)")
-#   
-#   # empirical e(0)
-#   emp <- data_out$data_out |>
-#     filter(.data$Age == 0) |>
-#     dplyr::select(.data$.id, .data$ex) |>
-#     mutate(.id = as.factor(.data$.id))
-#   
-#   # resulting figure
-#   # just a cloud of points with our values in color
-#   fig <-  ggplot() +
-#     geom_jitter(data = hmd,
-#                 aes(x = 1,
-#                     y = .data$`e(0)`), alpha = 0.3) +
-#     geom_point( data = emp,
-#                 aes(x = 1,
-#                     y = .data$ex, color = .data$.id),
-#                 size = 3) +
-#     theme_light() +
-#     geom_hline(yintercept = 16,
-#                color      = "black",
-#                linetype   = "dashed") +
-#     geom_hline(yintercept = 90,
-#                color      = "black",
-#                linetype   = "dashed") +
-#     theme(
-#       legend.position = "bottom",
-#       axis.title.x    = element_blank(),
-#       axis.text.x     = element_blank()
-#     )
-#   
-#   return(fig)
-#   
-# }
-
 check_data <- function(data_out) {
   # read hmd data
-  zz <- read_csv("inst/extdata/hmd_qx_ex.csv")
+   fpath <- system.file("extdata", 
+   "hmd_qx_ex.csv", 
+   package = "ODAPbackend")
+
+  zz <- read_csv(fpath, show_col_types = FALSE)
   
   # how values were calculated
   # zz <- zz |>
@@ -766,7 +700,7 @@ check_data <- function(data_out) {
   #   dplyr::select(-c(.id, Year, Sex))
   
   # This is our data_out
-  z <- data_out$data_out |>
+  z <- data_out |>
     group_by(.id, Sex) |>
     summarise(q0 = nqx[Age == 0],
               e0 = ex[Age == 0],

@@ -21,7 +21,10 @@
 #' library(readr)
 #' library(dplyr)
 #' # single age data
-#' data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+#' fpath <- system.file("extdata", 
+#' "single_hmd_spain.csv", 
+#' package = "ODAPbackend")
+#' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1)
 #' ex1 <- smooth_flexible(
 #'  data_in,
@@ -663,7 +666,10 @@ graduate_auto_5 <- function(dat_5,
 #' library(readr)
 #' library(dplyr)
 #' # single age data
-#' data_in <- read_csv("inst/extdata/abridged_hmd_spain.csv") |>
+#' fpath <- system.file("extdata", 
+#' "abridged_hmd_spain.csv", 
+#'  package = "ODAPbackend")
+# data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
 #'   filter(.id == 1)
 #' 
@@ -1224,7 +1230,10 @@ smooth_flexible_chunk <- function(data_in,
 #' library(readr)
 #' library(dplyr)
 #' # single age data
-#' data_in <- read_csv("inst/extdata/abridged_hmd_spain.csv") |>
+#' fpath <- system.file("extdata", 
+#' "abridged_hmd_spain.csv", 
+#'  package = "ODAPbackend")
+# data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
 #'   filter(.id == 1)
 #' 

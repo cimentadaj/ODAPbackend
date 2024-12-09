@@ -5,8 +5,8 @@
 \title{\code{lt_flexible_chunk}}
 \usage{
 lt_flexible_chunk(
-  data_in.,
-  Sex,
+  data_in_chunk,
+  Sex = NULL,
   OAnew = 100,
   age_out = "single",
   extrapFrom = 80,
@@ -19,7 +19,7 @@ lt_flexible_chunk(
 )
 }
 \arguments{
-\item{data_in.}{a \code{data.frame} or \code{tibble}. 3 numeric columns \code{Age}, \code{Deaths}, and \code{Exposures}, or \code{nMx} or any of the following lifetable functions: \code{nqx}, \code{npx}, \code{ndx}, \code{lx}. Can optionally have columns \code{Sex} and \code{.id} in which case the table will be calculated for each level in these columns. Can also have an additional column.}
+\item{data_in_chunk}{a \code{data.frame} or \code{tibble}. 3 numeric columns \code{Age}, \code{Deaths}, and \code{Exposures}, or \code{nMx} or any of the following lifetable functions: \code{nqx}, \code{npx}, \code{ndx}, \code{lx}. Can optionally have columns \code{Sex} and \code{.id} in which case the table will be calculated for each level in these columns. Can also have an additional column.}
 
 \item{Sex}{character. Either \code{m} for males, \code{f} for females, or \code{t} for total (default).}
 
@@ -70,7 +70,8 @@ data_in <- read_csv(fpath) |>
   dplyr::select(-1) |>
   filter(.id == 1)|> 
   # This step happens in lt_flexible...
-  mutate(Mx_emp = Deaths / Exposures)
+  mutate(Mx_emp = Deaths / Exposures,
+  Sex = substr(Sex,1,1) |> tolower())
 
 data_out <-
   lt_flexible_chunk(data_in,
@@ -82,10 +83,9 @@ data_out <-
                     extrapLaw = NULL,
                     SRB       = 1.05,
                    a0rule    = "ak",
-                   axmethod  = "un",
-                   Sex       = "f")
+                   axmethod  = "un")
 
-data_out$data_out
+data_out
 
 
 }

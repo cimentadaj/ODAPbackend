@@ -48,5 +48,5 @@ data_out <- lt_flexible(
   axmethod   = "UN (Greville)"
 )
 
-lt_summary_chunk(data_out$data_out)
+lt_summary_chunk(data_out)
 }

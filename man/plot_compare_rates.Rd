@@ -48,5 +48,5 @@ data_out <- lt_flexible(
   Sex = "t"
 )
 
-plot_compare_rates(data_in, data_out$data_out, 80)#' 
+plot_compare_rates(data_in, data_out, 80)#' 
 }

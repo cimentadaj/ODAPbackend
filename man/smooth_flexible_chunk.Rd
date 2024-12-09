@@ -44,7 +44,9 @@ Smoothes population or death counts using a variety of methods from the \code{De
 library(readr)
 library(dplyr)
 # single age data
-data_in <- read_csv("inst/extdata/abridged_hmd_spain.csv") |>
+fpath <- system.file("extdata", 
+"abridged_hmd_spain.csv", 
+ package = "ODAPbackend")
   dplyr::select(-1) |>
   filter(.id == 1)
 
