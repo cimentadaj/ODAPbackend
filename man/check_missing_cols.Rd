@@ -16,6 +16,7 @@ A data.frame with 3 columns: message - \code{check} - the name of the test, \cod
 Check if any of the crucial columns are missing from the data: (\code{Deaths}, \code{Exposures}, \code{Age}).
 }
 \examples{
+ library(tibble)
 Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
               247473,223014,172260,149338,127242,105715,79614,53660,
               31021,16805,8000,4000,2000,1000)

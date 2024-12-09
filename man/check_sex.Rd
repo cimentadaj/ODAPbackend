@@ -16,6 +16,7 @@ A data.frame with 3 columns: \code{check} - the name of the test, \code{message}
 Checks the data on sex provided by the user. We expect it ot be provided and contain information on either Males or Females or both. So that the column sex has either one, or two levels.
 }
 \examples{
+ library(tibble)
 Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
               247473,223014,172260,149338,127242,105715,79614,53660,
               31021,16805,8000,4000,2000,1000)

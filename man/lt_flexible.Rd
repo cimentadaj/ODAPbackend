@@ -20,7 +20,7 @@ lt_flexible(
 )
 }
 \arguments{
-\item{data_in}{data.frame or tibble. Should contain numeric columns \code{Age}, \code{Deaths}, and \code{Exposures}, or \code{nMx} or any of the following lifetable functions: \code{nqx}, \code{npx}, \code{ndx}, \code{lx}. Can have a \code{.id} column in which case the results will be generated for each group as specified by this column.}
+\item{data_in}{data.frame or tibble. Should contain numeric columns \code{Age}, \code{Deaths}, and \code{Exposures}, or \code{nMx} or any of the following lifetable functions: \code{nqx}, \code{ndx}, \code{lx}. Can have a \code{.id} column in which case the results will be generated for each group as specified by this column.}
 
 \item{OAnew}{integer. Desired open age group (5-year ages only). Default to \code{100}. If higher, then rates will be extrapolated.}
 
@@ -69,7 +69,10 @@ Wrapper for calculation of abridged-age or single-age lifetable.
 library(readr)
 library(dplyr)
 # single age data
-data_in <- read_csv("inst/extdata/single_hmd_spain.csv") |>
+fpath <- system.file("extdata", 
+"single_hmd_spain.csv", 
+package = "ODAPbackend")
+data_in <- read_csv(fpath) |>
   dplyr::select(-1)
 
 data_out <- lt_flexible(
@@ -82,10 +85,6 @@ data_out <- lt_flexible(
   radix      = 1e+05,
   SRB        = 1.05,
   a0rule     = "Andreev-Kingkade",
-  axmethod   = "UN (Greville)",
-  Sex = "t"
+  axmethod   = "UN (Greville)"
 )
-data_out$data_out
-data_out$arguments2
-data_out$arguments
 }

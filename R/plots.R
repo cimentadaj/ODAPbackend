@@ -38,7 +38,7 @@
 #'   Sex = "t"
 #' )
 #' 
-#' plot_compare_rates(data_in, data_out$data_out, 80)#' 
+#' plot_compare_rates(data_in, data_out, 80)#' 
 
 plot_compare_rates <- function(data_in, # raw mx to plot
                                data_out, # the data from lt
@@ -166,7 +166,7 @@ plot_compare_rates <- function(data_in, # raw mx to plot
 #'     axmethod = "un",
 #'     Sex = "m"
 #'   )
-#' result <- plot_lifetable(data_out$data_out)
+#' result <- plot_lifetable(data_out)
 #' result$nMx$nMx_plot
 #' result$lx$lx_plot
 #' result$ndx$ndx_plot

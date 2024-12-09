@@ -23,9 +23,12 @@ Plots the original counts and the smoothed counts over the chosen age range for 
 library(readr)
 library(dplyr)
 # single age data
-data_in <- read_csv("inst/extdata/abridged_hmd_spain.csv") |>
+fpath <- system.file("extdata", 
+"abridged_hmd_spain.csv", 
+ package = "ODAPbackend")
+data_in <- read_csv(fpath, show_col_types = FALSE) |>
   dplyr::select(-1) |>
-  filter(.id == 1)
+  dplyr::filter(.id == 1)
 
 data_out <- smooth_flexible_chunk(
   data_in,

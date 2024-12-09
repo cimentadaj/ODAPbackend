@@ -1,17 +1,17 @@
 
 #' @title `interpolate`
-#' @description Several univariate interpolation methods
-#' @param data_in data.frame or tibble. Should contain numeric volumns for x and y, although the names may be different than x and y, which you can control using the `xname` and `yname` arguments. x is the time variable, and y is the thing to interpolate. Methods allowed include nearest neighbor (`"nearest"`), Piecewise Cubic Hermite Interpolating Polynomial (`"pchip"`), cubic interpolation from four nearest neighbours (`"cubic"`), and `"spline"` interpolation using  assorted methods available in `stats::splinefun()`. `"linear"`,"`logarithmic`",`"geometric"`, and `"logit"` interpolation are also possible based on linear interpolations of y transforms.
+#' @description Several univariate interpolation methods. Methods allowed include nearest neighbor (`"nearest"`), Piecewise Cubic Hermite Interpolating Polynomial (`"pchip"`), cubic interpolation from four nearest neighbours (`"cubic"`), and `"spline"` interpolation using  assorted methods available in `stats::splinefun()`. `"linear"`,"`logarithmic`",`"geometric"`, and `"logit"` interpolation are also possible based on linear interpolations of y transforms.
+#' @param data_in data.frame or tibble. Should contain numeric volumns for x and y, although the names may be different than x and y, which you can control using the `xname` and `yname` arguments. x is the time variable, and y is the thing to interpolate. 
 #' @details Logarithmic interpolation requires all values by greater than 0, geometric requires non-negative values, and logit requires all values to be between 0 and 1.
-#' @param method character. options `"nearest"`, `"linear"`, `"pchip"`, `"cubic"`, `"spline_fmm"`, `"spline_periodic"`, `"spline_natural"`, `"spline_monoH.FC"`, `"spline_hyman"`.
+#' @param method character. options `"nearest"`, `"linear"`, `"logarithmic"`, `"geometric"`, `"logit"`, `"pchip"`, `"cubic"`, `"spline_fmm"`, `"spline_periodic"`, `"spline_natural"`, `"spline_monoH.FC"`, `"spline_hyman"`.
 #' @param xout vector of x values we want interpolated values for. Default is the original x coordinates, meaning you get the same y values back unless you change this variable.
 #' @param xname the name of the column holding the time variable
 #' @param yname the name of the column holding the variable to interpolate
 #' @param extrap logical, default `TRUE.` If `xout` exceeds the range of `x`
-#' @param ... extra args potentially passed to `splinefun`
 #' @importFrom signal interp1
 #' @importFrom stats splinefun
 #' @examples
+#' library(tibble)
 #' x <- c(18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 
 #'        63, 66, 69, 72)
 #' y <- c(1, 2267, 7914, 14540, 21261, 28700, 36647, 43381, 49306, 54509, 
@@ -25,7 +25,7 @@
 #' lines(interpolate(data_in, method = "spline_monoH.FC", xout = 10:80), 
 #'       col = "blue", lty = "28")
 #' }
-
+#' @export
 interpolate <- function(data_in, 
                         xout = data_in[[xname]], 
                         method = c("nearest", "linear", "pchip", "cubic", "logarithmic","geometric","logit", "spline_fmm", "spline_periodic", "spline_natural", "spline_monoH.FC", "spline_hyman")[1], 

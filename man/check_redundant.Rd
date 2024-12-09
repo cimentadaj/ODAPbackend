@@ -16,6 +16,7 @@ A data.frame with 3 columns: message - \code{check} - the name of the test, \cod
 Check for redundant age specification
 }
 \examples{
+ library(tibble)
 Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
               247473,223014,172260,149338,127242,105715,79614,53660,
               31021,16805,8000,4000,2000,1000)
@@ -29,6 +30,6 @@ data <- tibble(Deaths = Deaths,
                        Age = c(0, 1, seq(5, 100, by = 5)),
                        AgeInt = c(diff(Age), NA))
 
-is_age_redundant(
+check_redundant(
     data = data)
 }

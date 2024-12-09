@@ -8,5 +8,6 @@ heaping_breakpoints.R
 R/test2.R
 R/test_data_NOT_part_of_final_package.R
 test2.R
-R/test_listobj.R
-R/test_interpolate.R
+reproduce_error.csv
+test_lt.R
+test_smooth.R
