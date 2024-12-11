@@ -585,7 +585,8 @@ lt_summary_chunk <- function(data_out) {
   S   <- ineq_sd(age = data_out$Age,
                  dx  = data_out$ndx,
                  ex  = data_out$ex,
-                 ax  = data_out$nAx)
+                 ax  = data_out$nAx,
+                 check = FALSE)
   
   
   IQR        <- ineq_iqr(age   = data_out$Age, 
