@@ -143,6 +143,8 @@ lt_flexible <- function(data_in,
       mutate(nqx = lt_id_l_q(.data$lx))
   }
   
+  future::plan(future::multisession, workers = parallelly::availableCores() - 3)
+
   data_out <-
     data_in |>
     ungroup() |> 
