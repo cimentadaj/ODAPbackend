@@ -38,7 +38,8 @@ Imports:
     mgcv,
     signal,
     future,
-    furrr
+    furrr,
+    parallelly
 BugReports: https://github.com/timriffe/ODAP_Bbackend/issues
 Remotes: 
     github::timriffe/DemoTools,

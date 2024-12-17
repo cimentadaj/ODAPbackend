@@ -1,6 +1,6 @@
 # Commented out: for now all data moved to inst/extdata
 # They can be read in like so:
-# fpath <- system.file("extdata", "abridged_data.csv", package="ODAPbackend")
+# fpath <- system.file("extdata", "abridged_data.csv.gz", package="ODAPbackend")
 # read_csv(fpath)
 
 # #' dat_heap_smooth

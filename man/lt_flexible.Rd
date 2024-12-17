@@ -68,9 +68,10 @@ Wrapper for calculation of abridged-age or single-age lifetable.
 \examples{
 library(readr)
 library(dplyr)
+library(future)
 # single age data
 fpath <- system.file("extdata", 
-"single_hmd_spain.csv", 
+"single_hmd_spain.csv.gz", 
 package = "ODAPbackend")
 data_in <- read_csv(fpath) |>
   dplyr::select(-1)

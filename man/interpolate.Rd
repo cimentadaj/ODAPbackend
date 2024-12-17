@@ -41,12 +41,12 @@ x <- c(18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60,
 y <- c(1, 2267, 7914, 14540, 21261, 28700, 36647, 43381, 49306, 54509, 
 58749, 61197, 62578, 63394, 63820, 63975, 64040, 64058, 64058)
 xout = 10:80
-data_in <- tibble(x=x,y=y)
+data_in <- tibble(x = x, y = y)
 \dontrun{
 plot(data_in, xlim = c(10,80))
-lines(interpolate(data_in, method = "pchip", xout = 10:80))
-lines(interpolate(data_in, method = "logarithmic", xout = 10:80), col = "red")
-lines(interpolate(data_in, method = "spline_monoH.FC", xout = 10:80), 
+lines(interpolate(data_in, method = "pchip", xout = 10:80)$interp)
+lines(interpolate(data_in, method = "logarithmic", xout = 10:80)$interp, col = "red")
+lines(interpolate(data_in, method = "spline_monoH.FC", xout = 10:80)$interp,
       col = "blue", lty = "28")
 }
 }

@@ -82,8 +82,8 @@ check_numeric <- function(data) {
                  select = c("Deaths", 
                             "Exposures", 
                             "Age"))
-  isnumeric <- data %>%
-    map( ~ is.numeric(.)) %>%
+  isnumeric <- data |>
+    map( ~ is.numeric(.)) |>
     unlist()
   
   if (sum(isnumeric) < ncol(data)) {
@@ -519,10 +519,10 @@ check_sex <- function(data) {
 #                        Age = c(0, 1, seq(5, 100, by = 5)),
 #                        AgeInt = c(diff(Age), NA))
 # 
-# check_data(
+# lt_external_plausibility(
 #     data = data)
 
-check_data <- function(data) {
+lt_external_plausibility <- function(data) {
   
   # Ensure '.id' column exists
   if (!(".id" %in% colnames(data))) {
