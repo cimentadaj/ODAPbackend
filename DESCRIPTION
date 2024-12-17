@@ -36,7 +36,9 @@ Imports:
     Hmisc,
     cowplot,
     mgcv,
-    signal
+    signal,
+    future,
+    furrr
 BugReports: https://github.com/timriffe/ODAP_Bbackend/issues
 Remotes: 
     github::timriffe/DemoTools,
