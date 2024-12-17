@@ -22,7 +22,7 @@
 #' library(dplyr)
 #' # single age data
 #' fpath <- system.file("extdata", 
-#' "single_hmd_spain.csv", 
+#' "single_hmd_spain.csv.gz", 
 #' package = "ODAPbackend")
 #' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1)
@@ -102,7 +102,7 @@ smooth_flexible <- function(data_in,
            Sex = tolower(Sex)) |>
     # dplyr::select(all_of(c(".id", "Sex", "Age", variable, by_args))) |>
     group_nest(across(all_of(c(".id", by_args)))) |>  # Use across to group by multiple columns
-    mutate(result = map(data, ~ group_func(.x)))  # Apply function
+    mutate(result = map(.data$data, ~ group_func(.x)))  # Apply function
     
   # Process each group separately
   # results <- data_in |>
@@ -151,7 +151,7 @@ smooth_flexible <- function(data_in,
 #' library(dplyr)
 #' # 5-year age data
 #' fpath <- system.file("extdata", 
-#' "five_hmd_spain.csv", 
+#' "five_hmd_spain.csv.gz", 
 #' package = "ODAPbackend")
 #' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
@@ -531,7 +531,7 @@ graduate_auto <- function(data_in,
 #' library(readr)
 #' library(dplyr)
 #' fpath <- system.file("extdata", 
-#' "five_hmd_spain.csv", 
+#' "five_hmd_spain.csv.gz", 
 #' package = "ODAPbackend")
 #' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
@@ -667,7 +667,7 @@ graduate_auto_5 <- function(dat_5,
 #' library(dplyr)
 #' # single age data
 #' fpath <- system.file("extdata", 
-#' "abridged_hmd_spain.csv", 
+#' "abridged_hmd_spain.csv.gz", 
 #'  package = "ODAPbackend")
 #' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
@@ -1232,7 +1232,7 @@ smooth_flexible_chunk <- function(data_in,
 #' library(dplyr)
 #' # single age data
 #' fpath <- system.file("extdata", 
-#' "abridged_hmd_spain.csv", 
+#' "abridged_hmd_spain.csv.gz", 
 #'  package = "ODAPbackend")
 #' data_in <- read_csv(fpath, show_col_types = FALSE) |>
 #'   dplyr::select(-1) |>

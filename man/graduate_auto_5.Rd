@@ -23,7 +23,7 @@ Implements the graduation with method protocol procedure for data with 5-year ag
 library(readr)
 library(dplyr)
 fpath <- system.file("extdata", 
-"five_hmd_spain.csv", 
+"five_hmd_spain.csv.gz", 
 package = "ODAPbackend")
 data_in <- read_csv(fpath) |>
   dplyr::select(-1) |>
