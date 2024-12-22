@@ -37,7 +37,7 @@ library(readr)
 library(dplyr)
 # 5-year age data
 fpath <- system.file("extdata", 
-"five_hmd_spain.csv", 
+"five_hmd_spain.csv.gz", 
 package = "ODAPbackend")
 data_in <- read_csv(fpath) |>
   dplyr::select(-1) |>

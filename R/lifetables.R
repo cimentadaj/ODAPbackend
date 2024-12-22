@@ -15,9 +15,13 @@
 #' @importFrom dplyr mutate filter group_modify first bind_rows group_by ungroup .data case_match arrange
 #' @importFrom purrr map_lgl
 #' @importFrom tidyselect all_of
+#' @importFrom tibble as_tibble
 #' @importFrom tidyr unnest
 #' @importFrom DemoTools age2int lt_id_d_q lt_id_l_q
 #' @importFrom rlang set_names .data
+#' @importFrom future plan multisession
+#' @importFrom furrr future_map_dfr
+#' @importFrom parallelly availableCores
 #' @return A list with 3 elements: `data_out` - single or abridged life table of data.frame format with corresponding columns:
 #' Age integer. Lower bound of abridged age class,
 #' AgeInt integer. Age class widths.
@@ -38,9 +42,10 @@
 #' @examples
 #' library(readr)
 #' library(dplyr)
+#' library(future)
 #' # single age data
 #' fpath <- system.file("extdata", 
-#' "single_hmd_spain.csv", 
+#' "single_hmd_spain.csv.gz", 
 #' package = "ODAPbackend")
 #' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1)
@@ -227,7 +232,7 @@ lt_flexible <- function(data_in,
 #' library(dplyr)
 #' # single age data
 #' fpath <- system.file("extdata", 
-#' "single_hmd_spain.csv", 
+#' "single_hmd_spain.csv.gz", 
 #' package = "ODAPbackend")
 #' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
@@ -420,7 +425,7 @@ lt_flexible_chunk <- function(
 #' library(dplyr)
 #' # single age data
 #' fpath <- system.file("extdata", 
-#' "single_hmd_spain.csv", 
+#' "single_hmd_spain.csv.gz", 
 #' package = "ODAPbackend")
 #' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
@@ -530,7 +535,7 @@ lt_plot <- function(data_in,
 #' library(dplyr)
 #' # single age data
 #' fpath <- system.file("extdata", 
-#' "single_hmd_spain.csv", 
+#' "single_hmd_spain.csv.gz", 
 #' package = "ODAPbackend")
 #' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
@@ -590,7 +595,7 @@ lt_summary <- function(data_out){
 #' library(dplyr)
 #' # single age data
 #' fpath <- system.file("extdata", 
-#' "single_hmd_spain.csv", 
+#' "single_hmd_spain.csv.gz", 
 #' package = "ODAPbackend")
 #' data_in <- read_csv(fpath) |>
 #'   dplyr::select(-1) |>
@@ -694,34 +699,34 @@ modal_age <- function(data_out) {
 #' library(dplyr)
 #' # single age data
 #' fpath <- system.file("extdata", 
-#' "single_hmd_spain.csv", 
+#' "single_hmd_spain.csv.gz", 
 #' package = "ODAPbackend")
-# data_in <- read_csv(fpath) |>
-#   dplyr::select(-1)
-# 
-# data_out <- lt_flexible(
-#   data_in,
-#   OAnew      = 100,
-#   age_out    = "single",
-#   extrapFrom = 80,
-#   extrapFit  = NULL,  # Default NULL, computed later
-#   extrapLaw  = NULL,
-#   radix      = 1e+05,
-#   SRB        = 1.05,
-#   a0rule     = "Andreev-Kingkade",
-#   axmethod   = "UN (Greville)"
-# )
-# 
-# lt_check(data_out)
+#' data_in <- read_csv(fpath) |>
+#'   dplyr::select(-1)
+#' 
+#' data_out <- lt_flexible(
+#'   data_in,
+#'   OAnew      = 100,
+#'   age_out    = "single",
+#'   extrapFrom = 80,
+#'   extrapFit  = NULL,  # Default NULL, computed later
+#'   extrapLaw  = NULL,
+#'   radix      = 1e+05,
+#'   SRB        = 1.05,
+#'   a0rule     = "Andreev-Kingkade",
+#'   axmethod   = "UN (Greville)"
+#' )
+#' 
+#' lt_check(data_out)
 #' 
 
 lt_check <- function(data_out) {
   # read hmd data
    fpath <- system.file("extdata", 
-   "hmd_qx_ex.csv", 
+   "hmd_qx_ex.csv.gz", 
    package = "ODAPbackend")
 
-  zz <- read_csv(fpath, show_col_types = FALSE)
+  data_hmd <- read_csv(fpath, show_col_types = FALSE)
   
   # how values were calculated
   # zz <- zz |>
@@ -733,25 +738,33 @@ lt_check <- function(data_out) {
   #   dplyr::select(-c(.id, Year, Sex))
   
   # This is our data_out
-  z <- data_out |>
-    group_by(.id, Sex) |>
-    summarise(q0 = nqx[Age == 0],
-              e0 = ex[Age == 0],
-              q45_60 = 1 - prod(1 - nqx[Age %in% c(45:60)])) |>
+  data_user <- data_out |>
+    group_by(.data$.id, .data$Sex) |>
+    summarise(q0 = .data$nqx[.data$Age == 0],
+              e0 = .data$ex[.data$Age == 0],
+              q45_60 = 1 - 
+                prod(1 - 
+                       .data$nqx[.data$Age 
+                                 %in% c(45:60)])) |>
     ungroup() |>
-    select(-Sex)
+    select(-c(.data$Sex))
   
   a <- ggplot() +
-    geom_point(data = na.omit(zz), aes(x = q0, y = e0), alpha = 0.3) +
-    geom_point(data = z,
+    geom_point(data = na.omit(data_hmd), 
+               aes(x = .data$q0,
+                   y = .data$e0), 
+               alpha = 0.3) +
+    geom_point(data = data_user,
                aes(
-                 x = q0,
-                 y = e0,
-                 color = as.factor(.id)
+                 x = .data$q0,
+                 y = .data$e0,
+                 color = as.factor(.data$.id)
                ),
                size = 2) +
     theme_minimal() +
-    labs(title = "Relationship between q0 and e0", x = "q0 (Infant Mortality Rate)", y = "e0 (Life Expectancy at Birth)") +
+    labs(title = "Relationship between q0 and e0", 
+         x = "q0 (Infant Mortality Rate)", 
+         y = "e0 (Life Expectancy at Birth)") +
     scale_color_discrete(name = ".id column levels") +
     scale_y_continuous(breaks = pretty_breaks()) +
     scale_x_continuous(breaks = pretty_breaks()) +
@@ -762,16 +775,20 @@ lt_check <- function(data_out) {
     )
   
   b <- ggplot() +
-    geom_point(data = na.omit(zz), aes(x = q45_60, y = e0), alpha = 0.3) +
-    geom_point(data = z,
+    geom_point(data = na.omit(data_hmd), 
+               aes(x = .data$q45_60, 
+                   y = .data$e0), 
+               alpha = 0.3) +
+    geom_point(data = data_user,
                aes(
-                 x = q45_60,
-                 y = e0,
-                 color = as.factor(.id)
+                 x = .data$q45_60,
+                 y = .data$e0,
+                 color = as.factor(.data$.id)
                ),
                size = 2) +
     theme_minimal() +
-    labs(title = "Relationship between q0 and 45q60", x = "q0 (Infant Mortality Rate)", y = "45q60 (Probability of survivaving to 60\n conditional on surviving to 45)") +
+    labs(title = "Relationship between q0 and 45q60", 
+         x = "q0 (Infant Mortality Rate)", y = "45q60 (Probability of survivaving to 60\n conditional on surviving to 45)") +
     scale_color_discrete(name = ".id column levels") +
     scale_y_continuous(breaks = pretty_breaks()) +
     scale_x_continuous(breaks = pretty_breaks()) +
@@ -780,6 +797,7 @@ lt_check <- function(data_out) {
       legend.title    = element_text(face = "bold"),
       axis.text       = element_text(color = "black")
     )
+  
   fig <- plot_grid(a, b, nrow = 2)
   
   return(fig)

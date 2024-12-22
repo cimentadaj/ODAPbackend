@@ -11,3 +11,5 @@ test2.R
 reproduce_error.csv
 test_lt.R
 test_smooth.R
+combined_data.csv
+deaths_pop_Brazil.csv

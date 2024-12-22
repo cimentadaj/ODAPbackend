@@ -10,6 +10,11 @@
 #' @param extrap logical, default `TRUE.` If `xout` exceeds the range of `x`
 #' @importFrom signal interp1
 #' @importFrom stats splinefun
+#' @importFrom dplyr ungroup reframe mutate select
+#' @importFrom tidyr unnest
+#' @importFrom tidyselect all_of
+#' @importFrom rlang sym !!
+#' @importFrom purrr map2
 #' @examples
 #' library(tibble)
 #' x <- c(18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 
@@ -17,13 +22,14 @@
 #' y <- c(1, 2267, 7914, 14540, 21261, 28700, 36647, 43381, 49306, 54509, 
 #' 58749, 61197, 62578, 63394, 63820, 63975, 64040, 64058, 64058)
 #' xout = 10:80
-#' data_in <- tibble(x=x,y=y)
+#' data_in <- tibble(x = x, y = y)
 #' \dontrun{
 #' plot(data_in, xlim = c(10,80))
-#' lines(interpolate(data_in, method = "pchip", xout = 10:80))
-#' lines(interpolate(data_in, method = "logarithmic", xout = 10:80), col = "red")
-#' lines(interpolate(data_in, method = "spline_monoH.FC", xout = 10:80), 
+#' lines(interpolate(data_in, method = "pchip", xout = 10:80)$interp)
+#' lines(interpolate(data_in, method = "logarithmic", xout = 10:80)$interp, col = "red")
+#' lines(interpolate(data_in, method = "spline_monoH.FC", xout = 10:80)$interp,
 #'       col = "blue", lty = "28")
+
 #' }
 #' @export
 interpolate <- function(data_in, 
@@ -31,32 +37,79 @@ interpolate <- function(data_in,
                         method = c("nearest", "linear", "pchip", "cubic", "logarithmic","geometric","logit", "spline_fmm", "spline_periodic", "spline_natural", "spline_monoH.FC", "spline_hyman")[1], 
                         xname = "x", 
                         yname = "y",
-                        extrap = TRUE){
-  x <- data_in[[xname]]
-  y <- data_in[[yname]]
-  stopifnot(length(x) == length(y))
+                        extrap = TRUE) {
   
-  if (grepl("spline",method)){
-    method <- gsub(method, pattern = "spline_", replacement = "")
-    yout <- splinefun(x = x, 
-                      y = y,
-                      method = method,
-                      ties = mean)(xout)
+  stopifnot(
+    length(data_in[[xname]]) == 
+      length(data_in[[yname]]))
+  
+  if (!(".id" %in% colnames(data_in))) {
+    data_in <- data_in |>
+      mutate(.id = "all")
+  }
+  
+  if (grepl("spline", method)){
+    
+    method <- gsub(method, 
+                   pattern = "spline_", 
+                   replacement = "")
+    
+    out_df <- data_in |>
+      ungroup() |>
+      reframe(
+        interp_func = list(splinefun(
+          x = .data[[xname]],
+          y = .data[[yname]],
+          method = method,
+          ties   = mean
+        )),
+        .by = all_of(c(".id"))
+      ) |>
+      mutate(
+        !!xname := list(xout),  # Ensure `xout` is added as a list for proper alignment
+        interp = map2(.data$interp_func, !!sym(xname), ~ .x(.y))  # Apply function to xout
+      ) |>
+      unnest(cols = c(!!sym(xname), "interp")) |>
+      select(-c("interp_func"))
+    
   } 
-  if (method %in% c("linear","geometric","logarithmic","logit")){
-    transform <- ifelse(method == "linear", "none", method)
-    yout <- interp_linear(x = x, y = y, xout = xout, transform = transform)
+  if (method %in% c("linear", "geometric", 
+                    "logarithmic", "logit")) {
+    
+    transform <- ifelse(method == "linear", 
+                        "none", method)
+    
+    out_df <- data_in |>
+      ungroup() |> 
+      reframe(
+        interp = interp_linear(
+          x = .data[[xname]],
+          y = .data[[yname]],
+          xout = xout,
+          transform = transform
+        ), 
+        .by = all_of(c(".id"))) |>
+      mutate(!!xname := xout)
+    
   }
   if (method %in% c("pchip","cubic","nearest")){
-    yout <- interp1(x = x, 
-                   y = y, 
-                   xi = xout, 
-                   method = method, 
-                   extrap = extrap)
+      
+    out_df <- data_in |>
+      ungroup() |> 
+      reframe(
+        interp = interp1(
+          x = .data[[xname]],
+                y = .data[[yname]],
+                xi = xout,
+                method = method,
+                extrap = extrap
+                ), 
+        .by = all_of(c(".id"))) |>
+      mutate(!!xname := xout)
+    
   }
     
-  
-  out_df <- tibble(!!xname := xout, !!yname := yout)
+  # out_df <- tibble(!!xname := xout, !!yname := yout)
   return(out_df)
 }
 
@@ -123,3 +176,45 @@ interp_linear <- function(x,
   yout
 }
 
+#' @title `check_interpolate`
+#' @description Creates a plot of original data as points and interpolated result as line for each `.id`.
+#' @param data_out a data.frame or tibble. The data.frame output of the `interpolate` function.
+#' @param data_in a data.frame or tibble. The original data provided by user
+#' @return A figure of original data as points and interpolated result as line for each `.id`
+#' @importFrom dplyr mutate select summarise group_by
+#' @importFrom scales pretty_breaks
+#' @importFrom ggplot2 ggplot geom_point geom_line theme_minimal aes theme element_text scale_x_continuous scale_y_continuous 
+#' @export
+#' @examples
+#' library(tibble)
+#' x <- c(18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 
+#'        63, 66, 69, 72)
+#' y <- c(1, 2267, 7914, 14540, 21261, 28700, 36647, 43381, 49306, 54509, 
+#' 58749, 61197, 62578, 63394, 63820, 63975, 64040, 64058, 64058)
+#' xout = 10:80
+#' data_in <- tibble(x = x, y = y)
+#' data_out <- 
+#' interpolate(data_in, method = "pchip", xout = 10:80)
+#' check_interpolate(data_in, data_out)
+#'
+
+check_interpolate <- function(data_in, data_out) { 
+  
+  if (!(".id" %in% colnames(data_in))) {
+    data_in <- data_in |>
+      mutate(.id = "all")
+  }
+  
+  ggplot() + 
+    geom_point(data = data_in, aes(x = .data$x,
+                                   y = .data$y,
+                                   color = .data$.id)) +
+    geom_line(data = data_out, aes(x = .data$x,
+                                   y = .data$interp,
+                                   color = .data$.id)) + 
+    theme_minimal() + 
+    theme(legend.position = "bottom",
+          axis.text = element_text(color = "black")) + 
+    scale_x_continuous(breaks = pretty_breaks()) + 
+    scale_y_continuous(breaks = pretty_breaks())
+}
