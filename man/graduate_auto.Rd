@@ -52,4 +52,5 @@ ex1 <- graduate_auto(data_in,
 ex1$data_out
 # arguments
 ex1$arguments
+
 }

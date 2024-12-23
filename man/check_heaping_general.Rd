@@ -2,12 +2,12 @@
 % Please edit documentation in R/input_diagnostics.R
 \name{check_heaping_general}
 \alias{check_heaping_general}
-\title{check_heaping_general}
+\title{\code{check_heaping_general}}
 \usage{
 check_heaping_general(data, y)
 }
 \arguments{
-\item{data}{data.frame. User file from the read_data command with the minimum data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals}
+\item{data}{data.frame. User file from the read_data command with the minimum data on \code{Exposures}, \code{Death} and \code{Age}. Data can be both in 5 and 1 year age intervals}
 
 \item{y}{character.Variable name for which the heaping should be checked \code{Deaths} or \code{Exposures}.}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/input_diagnostics.R
 \name{check_heaping_user}
 \alias{check_heaping_user}
-\title{check_heaping_user}
+\title{\code{check_heaping_user}}
 \usage{
 check_heaping_user(data, y, ageMin, ageMax)
 }

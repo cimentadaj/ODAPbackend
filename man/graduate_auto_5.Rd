@@ -30,4 +30,5 @@ data_in <- read_csv(fpath) |>
   filter(.id == 1)
 
 graduate_auto_5(data_in, "Exposures")$Exposures
+
 }

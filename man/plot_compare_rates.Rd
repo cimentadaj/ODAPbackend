@@ -9,12 +9,12 @@ plot_compare_rates(data_in, data_out, extrapFrom)
 \arguments{
 \item{data_in}{tibble or data.frame. Should contain the empirical numeric Mx value to be plotted and numeric \code{Age} values.}
 
-\item{data_out}{tibble or data.frame. Modelled numeric Mx value to be plotted and numeric Age values.}
+\item{data_out}{tibble or data.frame. Modeled numeric Mx value to be plotted and numeric Age values.}
 
-\item{extrapFrom}{numeric. \code{extrapFrom} is an age interval from which the lifetable was extrapolated.}
+\item{extrapFrom}{numeric. \code{extrapFrom} is an age interval from which the life table was extrapolated.}
 }
 \value{
-A line graph with a black line corresponding to empirical Mx data and a red line corresponding to modelled Mx data from the chosen extrapFrom value for each group specified by \code{.id} column.
+A line graph with a black line corresponding to empirical Mx data and a red line corresponding to modeled \code{Mx} data from the chosen extrapFrom value for each group specified by \code{.id} column.
 }
 \description{
 Makes a line graph of the log10 transformed empirical mortality rate (Mx) data and fitted data from a chosen age. Can work with .id argument indicating groups
@@ -48,5 +48,6 @@ data_out <- lt_flexible(
   Sex = "t"
 )
 
-plot_compare_rates(data_in, data_out, 80)#' 
+plot_compare_rates(data_in, data_out, 80)
+
 }
