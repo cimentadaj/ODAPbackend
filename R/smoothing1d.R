@@ -122,6 +122,7 @@ smooth1d_chunk <- function(data_in.,
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr unnest
 #' @importFrom rlang set_names .data
+#' @export
 #' @examples
 #' library(tibble)
 #' x = c(1950.77104722793, 1951.77104722793, 1952.77104722793, 1952.77104722793, 
