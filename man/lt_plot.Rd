@@ -45,7 +45,7 @@ data_out <- lt_flexible(
 
 ex1 <-  lt_plot(
   data_in = data_in,
-  data_out = data_out,
+  data_out = data_out$data_out,
   extrapFrom = 80)
   
 ex1$`1`$nMx

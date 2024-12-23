@@ -38,6 +38,6 @@ data_out <- lt_flexible(
   axmethod   = "UN (Greville)"
 )
 
-lt_check(data_out)
+lt_check(data_out$data_out)
 
 }

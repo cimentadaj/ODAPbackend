@@ -85,6 +85,6 @@ data_out <-
                    a0rule    = "ak",
                    axmethod  = "un")
 
-data_out
+data_out$data_out
 
 }

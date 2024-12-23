@@ -25,8 +25,8 @@ data1           <- data
 data1$Sex       <- "Female"
 data1$Exposures <- data1$Exposures
 data1$Deaths    <- data1$Deaths
-data <- data \%>\%
- full_join(data1) \%>\%
+data <- data |> 
+ full_join(data1) |> 
  mutate(Deaths = ifelse(Sex == "Female", Deaths + rpois(22, lambda = 50), Deaths))
 
 plot_initial_two_sex(data = data)

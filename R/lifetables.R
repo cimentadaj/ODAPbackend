@@ -61,7 +61,7 @@
 #'   SRB        = 1.05,
 #'   a0rule     = "Andreev-Kingkade",
 #'   axmethod   = "UN (Greville)"
-#' )
+#' )$data_out
 #' 
 
 lt_flexible <- function(data_in,
@@ -252,7 +252,7 @@ lt_flexible <- function(data_in,
 #'                    a0rule    = "ak",
 #'                    axmethod  = "un")
 #' 
-#' data_out
+#' data_out$data_out
 #' 
  
 lt_flexible_chunk <- function(
@@ -445,7 +445,7 @@ lt_flexible_chunk <- function(
 #' 
 #' ex1 <-  lt_plot(
 #'   data_in = data_in,
-#'   data_out = data_out,
+#'   data_out = data_out$data_out,
 #'   extrapFrom = 80)
 #'   
 #' ex1$`1`$nMx
@@ -554,7 +554,7 @@ lt_plot <- function(data_in,
 #'   axmethod   = "UN (Greville)"
 #' )
 #' 
-#' lt_summary(data_out)
+#' lt_summary(data_out$data_out)
 #' 
 
 lt_summary <- function(data_out){
@@ -614,7 +614,7 @@ lt_summary <- function(data_out){
 #'   axmethod   = "UN (Greville)"
 #' )
 #' 
-#' lt_summary_chunk(data_out)
+#' lt_summary_chunk(data_out$data_out)
 #' 
 
 lt_summary_chunk <- function(data_out) {
@@ -691,7 +691,7 @@ modal_age <- function(data_out) {
 #' @importFrom dplyr group_by select summarise group_by
 #' @importFrom readr read_csv
 #' @importFrom cowplot plot_grid
-#' @importFrom ggplot2 ggplot geom_point theme_minimal aes theme element_blank element_text scale_x_continuous scale_y_continuous scale_color_discrete labs
+#' @importFrom ggplot2 ggplot geom_point theme_minimal aes theme element_blank element_text scale_x_log10 scale_y_continuous scale_color_discrete labs
 #' @importFrom stats na.omit
 #' @export
 #' @examples
@@ -717,7 +717,7 @@ modal_age <- function(data_out) {
 #'   axmethod   = "UN (Greville)"
 #' )
 #' 
-#' lt_check(data_out)
+#' lt_check(data_out$data_out)
 #' 
 
 lt_check <- function(data_out) {
@@ -767,7 +767,7 @@ lt_check <- function(data_out) {
          y = "e0 (Life Expectancy at Birth)") +
     scale_color_discrete(name = ".id column levels") +
     scale_y_continuous(breaks = pretty_breaks()) +
-    scale_x_continuous(breaks = pretty_breaks()) +
+    scale_x_log10() +
     theme(
       legend.position = "bottom",
       legend.title    = element_text(face = "bold"),
@@ -791,7 +791,7 @@ lt_check <- function(data_out) {
          x = "q0 (Infant Mortality Rate)", y = "45q60 (Probability of survivaving to 60\n conditional on surviving to 45)") +
     scale_color_discrete(name = ".id column levels") +
     scale_y_continuous(breaks = pretty_breaks()) +
-    scale_x_continuous(breaks = pretty_breaks()) +
+    scale_x_log10() +
     theme(
       legend.position = "bottom",
       legend.title    = element_text(face = "bold"),

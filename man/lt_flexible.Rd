@@ -87,6 +87,6 @@ data_out <- lt_flexible(
   SRB        = 1.05,
   a0rule     = "Andreev-Kingkade",
   axmethod   = "UN (Greville)"
-)
+)$data_out
 
 }
