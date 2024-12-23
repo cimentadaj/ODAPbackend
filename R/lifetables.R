@@ -189,7 +189,7 @@ lt_flexible <- function(data_in,
     ##     age_out    = age_out
     ##   )
     ## ) %>%
-    ungroup() %>%
+    ungroup()  |> 
     as_tibble()
   
   return(list(data_out = data_out))
@@ -470,14 +470,14 @@ lt_plot <- function(data_in,
   
   id1 <- unique(data_in$.id)
   
-  library(tictoc)
-  tic()
+  # library(tictoc)
+  # tic()
   plots <- data_out |>
     group_split(.data$.id, .keep = TRUE) |>
     ## furrr::future_map(~ plot_lifetable(.x)) |>
     map(~ plot_lifetable(.x)) |>
     set_names(id1)
-  toc()
+  # toc()
   
   # sorry JC, forgot this!
   d_in <-  data_in |>
