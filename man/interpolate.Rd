@@ -16,7 +16,7 @@ interpolate(
 )
 }
 \arguments{
-\item{data_in}{data.frame or tibble. Should contain numeric volumns for x and y, although the names may be different than x and y, which you can control using the \code{xname} and \code{yname} arguments. x is the time variable, and y is the thing to interpolate.}
+\item{data_in}{data.frame or tibble. Should contain numeric columns for x and y, although the names may be different than x and y, which you can control using the \code{xname} and \code{yname} arguments. x is the time variable, and y is the thing to interpolate.}
 
 \item{xout}{vector of x values we want interpolated values for. Default is the original x coordinates, meaning you get the same y values back unless you change this variable.}
 
@@ -49,4 +49,5 @@ lines(interpolate(data_in, method = "logarithmic", xout = 10:80)$interp, col = "
 lines(interpolate(data_in, method = "spline_monoH.FC", xout = 10:80)$interp,
       col = "blue", lty = "28")
 }
+
 }

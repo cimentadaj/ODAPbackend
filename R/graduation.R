@@ -46,6 +46,7 @@
 #' ex1$figures$`1_2012`$figure
 #' ex1$figures$`2_2012`$figure
 #' ex1$figures$`3_2012`$figure
+#' 
 
 smooth_flexible <- function(data_in,
                             variable      = "Deaths",
@@ -94,7 +95,6 @@ smooth_flexible <- function(data_in,
   }
 
   # by_args <- names(data_in)[!names(data_in) %in% c("Age", "Deaths", "Exposures", "Mx_emp", "Sex")]
-  
 
   results <-
     data_in |>
@@ -129,7 +129,6 @@ smooth_flexible <- function(data_in,
               # arguments = f_args,
               figures   = figures
               ))
-
 }
 
 #' @title `graduate_auto`
@@ -166,6 +165,7 @@ smooth_flexible <- function(data_in,
 #' ex1$data_out
 #' # arguments
 #' ex1$arguments
+#' 
 
 graduate_auto <- function(data_in,
                           age_out  = c("single", "abridged", "5-year"),
@@ -174,7 +174,6 @@ graduate_auto <- function(data_in,
                           Sex      = c("t", "f", "m"),
                           constrain_infants = TRUE) {
   
-
   ## f_args  <- capture_args()
   age_out <- match.arg(age_out, c("single", "abridged", "5-year"))
   Sex     <- match.arg(Sex,     c("t", "f", "m"))
@@ -513,7 +512,6 @@ graduate_auto <- function(data_in,
               # arguments = f_args
 
               ))
-  
 }
 
 #' @title `graduate_auto_5`
@@ -538,6 +536,7 @@ graduate_auto <- function(data_in,
 #'   filter(.id == 1)
 #' 
 #' graduate_auto_5(data_in, "Exposures")$Exposures
+#' 
 
 graduate_auto_5 <- function(dat_5, 
                             variable) {
@@ -701,7 +700,6 @@ smooth_flexible_chunk <- function(data_in,
                                   Sex = c("t", "f", "m"),
                                   constrain_infants = TRUE) {
   
-
   ## f_args <- capture_args()
   
   data_orig <- data_in
@@ -733,7 +731,6 @@ smooth_flexible_chunk <- function(data_in,
   Sex <- substr(Sex, 1, 1) |> 
     tolower()
   Sex <- match.arg(Sex, c("t", "f", "m"))
-  
   
   # get variables
   value       <- data_in[, variable, drop = TRUE]
@@ -811,7 +808,6 @@ smooth_flexible_chunk <- function(data_in,
                                    data_out = data_in,
                                    variable = variable)
       
-
       return(list(data      = data_orig,
                   figure    = figure
                   ))
@@ -900,7 +896,6 @@ smooth_flexible_chunk <- function(data_in,
   }
   
   # HERE
-  
   # NOTE: can't return 5-year output yet even if desired, because
   # some graduation methods shoft between 5-year age groups, and this
   # 'light' smoothing might be desired.
@@ -1259,6 +1254,7 @@ smooth_flexible_chunk <- function(data_in,
 #' results$data_original
 #' # figure
 #' results$figure
+#' 
 
 plot_smooth_compare <- function(data_in, 
                                 data_out, 

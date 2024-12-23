@@ -31,4 +31,5 @@ data <- tibble(Deaths = Deaths,
 
 check_rows(
     data = data)
+    
 }

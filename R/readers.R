@@ -1,5 +1,5 @@
 #' @title `read_data`
-#' @description Read the data with supported file extension into the program. The file should contain at minimum 3 columns "Deaths", "Exposures","Age" named this way or positioned in a corresponding order.
+#' @description Read the data with supported file extension into the program. The file should contain at minimum 3 columns `Deaths`, `Exposures`, `Age` named this way or positioned in a corresponding order.
 #' @param user_file character. File name with corresponding extension e.g. `data.csv`.
 #' @param skip numeric. Number of rows to skip before reading the data. Defaults to `0`.
 #' @return A tibble with with 5 numeric columns: Deaths, Exposures, Age, AgeInt, Mx_emp.
@@ -18,6 +18,7 @@
 #'     user_file = "data.csv",
 #'     skip = 2)
 #' }
+#' 
 
 read_data <- function(user_file, skip = 0) {
   
@@ -80,10 +81,10 @@ read_data <- function(user_file, skip = 0) {
 #' @param keys character vector of columns definining strata
 #' @importFrom dplyr cur_group cur_group_id mutate group_by_at ungroup
 #' @export
+#' 
 
 create_groupid <- function(data, keys) {
   
-
   if (length(keys) == 0) {
     data$`.id` <- 1
     data$`.id_label` <- "All"
@@ -106,6 +107,7 @@ create_groupid <- function(data, keys) {
 #' @return logical TRUE if strata completely defined.
 #' @importFrom dplyr group_by summarize n
 #' @export
+#' 
 
 check_groupid <- function(data){
 

@@ -10,19 +10,19 @@ lt_summary(data_out)
 \item{data_out}{a data.frame or tibble. The data.frame output of the \code{lt_flexible} function.}
 }
 \value{
-A  data.frame containing the information on the following useful lifetable statistics:
+A  data.frame containing the information on the following useful life table statistics:
 e0 - life expectancy at birth
 e65 - life expectancy at age 65
 \code{S[1]} - The standard deviation in age at death from birth
 \code{S[11]} - The standard deviation in age at death from age 10
-IQR1 - interquartile range survivorship age from a lifetable
-IQR2 - interquartile range survivorship age from a lifetable
-IQR3 - interquartile range survivorship age from a lifetable
+IQR1 - interquartile range survivorship age from a life table
+IQR2 - interquartile range survivorship age from a life table
+IQR3 - interquartile range survivorship age from a life table
 mod_age - modal age at death
 q15_45 - probability that the person ages 54 will die at age 60
 }
 \description{
-Creates a table of useful summary statistics from the lifetable.
+Creates a table of useful summary statistics from the life table.
 }
 \examples{
 library(readr)
@@ -49,4 +49,5 @@ data_out <- lt_flexible(
 )
 
 lt_summary(data_out)
+
 }

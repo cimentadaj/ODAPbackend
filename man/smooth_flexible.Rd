@@ -72,4 +72,5 @@ ex1$arguments
 ex1$figures$`1_2012`$figure
 ex1$figures$`2_2012`$figure
 ex1$figures$`3_2012`$figure
+
 }

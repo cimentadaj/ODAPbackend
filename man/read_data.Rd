@@ -15,7 +15,7 @@ read_data(user_file, skip = 0)
 A tibble with with 5 numeric columns: Deaths, Exposures, Age, AgeInt, Mx_emp.
 }
 \description{
-Read the data with supported file extension into the program. The file should contain at minimum 3 columns "Deaths", "Exposures","Age" named this way or positioned in a corresponding order.
+Read the data with supported file extension into the program. The file should contain at minimum 3 columns \code{Deaths}, \code{Exposures}, \code{Age} named this way or positioned in a corresponding order.
 }
 \examples{
 \dontrun{
@@ -23,4 +23,5 @@ read_data(
     user_file = "data.csv",
     skip = 2)
 }
+
 }

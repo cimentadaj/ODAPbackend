@@ -2,7 +2,7 @@
 % Please edit documentation in R/list_utils.R
 \name{capture_args}
 \alias{capture_args}
-\title{capture_args}
+\title{\code{capture_args}}
 \usage{
 capture_args()
 }
@@ -26,4 +26,5 @@ g <- function(x=1,y){
 f(x=1,y=1:10)
 f(x=1,y=1:10,z="constant",a="b")
 g(y=1:10)
+
 }

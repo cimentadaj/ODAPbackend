@@ -1,4 +1,4 @@
-#' @title capture_args
+#' @title `capture_args`
 #' @description returns a list of all arguments passed to a function, such that you could re-call the function using `do.call()`
 #' @details If you pass in a `data.frame`, such as `data_in`, the whole thing is copied in the respective argument, which is returned. If you have an object in memory called `data_i`, defined as `data.frame(a=1:3,b=letters[1:3])` and you do `f(data_in = data_i)`, then the output is not `list()`
 #' @importFrom utils modifyList
@@ -15,6 +15,7 @@
 #' f(x=1,y=1:10)
 #' f(x=1,y=1:10,z="constant",a="b")
 #' g(y=1:10)
+#' 
 
 capture_args <- function() {
   # Get the parent environment (i.e., the environment of the function that called capture_args)

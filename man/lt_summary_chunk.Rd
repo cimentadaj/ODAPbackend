@@ -49,4 +49,5 @@ data_out <- lt_flexible(
 )
 
 lt_summary_chunk(data_out)
+
 }

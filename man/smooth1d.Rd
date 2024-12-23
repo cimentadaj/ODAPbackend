@@ -2,7 +2,7 @@
 % Please edit documentation in R/smoothing1d.R
 \name{smooth1d}
 \alias{smooth1d}
-\title{smooth1d}
+\title{\code{smooth1d}}
 \usage{
 smooth1d(
   data_in,
@@ -96,4 +96,5 @@ xout <- 1950:2018 + .5
                        xout = xout, smoothing_par =1)$y, 
         col = "purple", lty="22")
 }
+
 }

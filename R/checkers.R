@@ -184,16 +184,17 @@ check_missing_cols <- function(data) {
 #'               247473,223014,172260,149338,127242,105715,79614,53660,
 #'               31021,16805,8000,4000,2000,1000)
 #'
-#'Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
+#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 #'            1335,3257,2200,4023,2167,4578,2956,4212,
 #'            2887,2351,1500,900,500,300)
 #'
-#'data <- tibble(Deaths = Deaths,
+#' data <- tibble(Deaths = Deaths,
 #'                        Exposures = Exposures,
 #'                        Age = c(0, 1, seq(5, 100, by = 5)))
 #'
 #' check_rows(
 #'     data = data)
+#'     
 
 check_rows <- function(data) {
   if (nrow(data) < 10) {
@@ -226,17 +227,18 @@ check_rows <- function(data) {
 #'               247473,223014,172260,149338,127242,105715,79614,53660,
 #'               31021,16805,8000,4000,2000,1000)
 #'
-#'Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
+#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 #'            1335,3257,2200,4023,2167,4578,2956,4212,
 #'            2887,2351,1500,900,500,300)
 #'
-#'data <- tibble(Deaths = Deaths,
+#' data <- tibble(Deaths = Deaths,
 #'                        Exposures = Exposures,
 #'                        Age = c(0, 1, seq(5, 100, by = 5)),
 #'                        AgeInt = c(diff(Age), NA))
 #'
 #' check_nas(
 #'     data = data)
+#'     
 
 check_nas <- function(data) {
   nas <- data |>
@@ -281,17 +283,18 @@ check_nas <- function(data) {
 #'               247473,223014,172260,149338,127242,105715,79614,53660,
 #'               31021,16805,8000,4000,2000,1000)
 #'
-#'Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
+#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 #'            1335,3257,2200,4023,2167,4578,2956,4212,
 #'            2887,2351,1500,900,500,300)
 #'
-#'data <- tibble(Deaths = Deaths,
+#' data <- tibble(Deaths = Deaths,
 #'                        Exposures = Exposures,
 #'                        Age = c(0, 1, seq(5, 100, by = 5)),
 #'                        AgeInt = c(diff(Age), NA))
 #'
 #' check_coherent(
 #'     data = data)
+#'     
 
 check_coherent <- function(data) {
   if ("AgeInt" %in% colnames(data)) {
@@ -328,17 +331,18 @@ check_coherent <- function(data) {
 #'               247473,223014,172260,149338,127242,105715,79614,53660,
 #'               31021,16805,8000,4000,2000,1000)
 #'
-#'Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
+#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 #'            1335,3257,2200,4023,2167,4578,2956,4212,
 #'            2887,2351,1500,900,500,300)
 #'
-#'data <- tibble(Deaths = Deaths,
+#' data <- tibble(Deaths = Deaths,
 #'                        Exposures = Exposures,
 #'                        Age = c(0, 1, seq(5, 100, by = 5)),
 #'                        AgeInt = c(diff(Age), NA))
 #'
 #' check_sequential(
 #'     data = data)
+#'     
 
 check_sequential <- function(data) {
   tst <- is_age_sequential(data$Age)
@@ -372,17 +376,18 @@ check_sequential <- function(data) {
 #'               247473,223014,172260,149338,127242,105715,79614,53660,
 #'               31021,16805,8000,4000,2000,1000)
 #'
-#'Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
+#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 #'            1335,3257,2200,4023,2167,4578,2956,4212,
 #'            2887,2351,1500,900,500,300)
 #'
-#'data <- tibble(Deaths = Deaths,
+#' data <- tibble(Deaths = Deaths,
 #'                        Exposures = Exposures,
 #'                        Age = c(0, 1, seq(5, 100, by = 5)),
 #'                        AgeInt = c(diff(Age), NA))
 #'
 #' check_redundant(
 #'     data = data)
+#'     
 
 check_redundant <- function(data) {
   if ("AgeInt" %in% colnames(data)) {
@@ -418,17 +423,18 @@ check_redundant <- function(data) {
 #'               247473,223014,172260,149338,127242,105715,79614,53660,
 #'               31021,16805,8000,4000,2000,1000)
 #'
-#'Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
+#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 #'            1335,3257,2200,4023,2167,4578,2956,4212,
 #'            2887,2351,1500,900,500,300)
 #'
-#'data <- tibble(Deaths = Deaths,
+#' data <- tibble(Deaths = Deaths,
 #'                        Exposures = Exposures,
 #'                        Age = c(0, 1, seq(5, 100, by = 5)),
 #'                        AgeInt = c(diff(Age), NA))
 #'
 #' check_lower(
 #'     data = data)
+#'     
 
 check_lower <- function(data) {
   if (min(data$Age) != 0) {
@@ -459,11 +465,11 @@ check_lower <- function(data) {
 #'               247473,223014,172260,149338,127242,105715,79614,53660,
 #'               31021,16805,8000,4000,2000,1000)
 #'
-#'Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
+#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 #'            1335,3257,2200,4023,2167,4578,2956,4212,
 #'            2887,2351,1500,900,500,300)
 #'
-#'data <- tibble(Deaths = Deaths,
+#' data <- tibble(Deaths = Deaths,
 #'                        Exposures = Exposures,
 #'                        Age = c(0, 1, seq(5, 100, by = 5)),
 #'                        AgeInt = c(diff(Age), NA),
@@ -471,6 +477,7 @@ check_lower <- function(data) {
 #'
 #' check_sex(
 #'     data = data)
+#'
 #'
 
 check_sex <- function(data) {
@@ -505,24 +512,25 @@ check_sex <- function(data) {
 #' @importFrom purrr map
 #' @export
 #' @examples
-#'  library(tibble)
+#' library(tibble)
 #' Exposures <- c(100958,466275,624134,559559,446736,370653,301862,249409,
 #'               247473,223014,172260,149338,127242,105715,79614,53660,
 #'               31021,16805,8000,4000,2000,1000)
 #'
-#'Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
+#' Deaths <- c(8674,1592,618,411,755,1098,1100,1357,
 #'            1335,3257,2200,4023,2167,4578,2956,4212,
 #'            2887,2351,1500,900,500,300)
 #'
-# data <- tibble(Deaths = Deaths,
-#                        Exposures = Exposures,
-#                        Age = c(0, 1, seq(5, 100, by = 5)),
-#                        AgeInt = c(diff(Age), NA))
-# 
-# lt_external_plausibility(
-#     data = data)
+#' data <- tibble(Deaths = Deaths,
+#'                        Exposures = Exposures,
+#'                        Age = c(0, 1, seq(5, 100, by = 5)),
+#'                        AgeInt = c(diff(Age), NA))
+#' 
+#' check_data(
+#'     data = data)
+#'     
 
-lt_external_plausibility <- function(data) {
+check_data <- function(data) {
   
   # Ensure '.id' column exists
   if (!(".id" %in% colnames(data))) {
@@ -533,7 +541,6 @@ lt_external_plausibility <- function(data) {
   id <- unique(data$.id)
   
   # Perform checks
-
   
   # Split data by '.id', apply checks, and combine results
   split_data <- split(data, data$.id)
@@ -554,7 +561,5 @@ lt_external_plausibility <- function(data) {
                                 ch4, ch5, ch6, 
                                 ch7, ch8, ch9))
 
-  
   return(result)
 }
-
