@@ -20,11 +20,11 @@ lt_flexible(
 )
 }
 \arguments{
-\item{data_in}{data.frame or tibble. Should contain numeric columns \code{Age}, \code{Deaths}, and \code{Exposures}, or \code{nMx} or any of the following lifetable functions: \code{nqx}, \code{ndx}, \code{lx}. Can have a \code{.id} column in which case the results will be generated for each group as specified by this column.}
+\item{data_in}{data.frame or tibble. Should contain numeric columns \code{Age}, \code{Deaths}, and \code{Exposures}, or \code{nMx} or any of the following life table functions: \code{nqx}, \code{ndx}, \code{lx}. Can have a \code{.id} column in which case the results will be generated for each group as specified by this column.}
 
 \item{OAnew}{integer. Desired open age group (5-year ages only). Default to \code{100}. If higher, then rates will be extrapolated.}
 
-\item{age_out}{character. Indicates whether single or abridged lifetable output is desired. Takes values \code{single}, or \code{abridged}. Defaults to \code{single}.}
+\item{age_out}{character. Indicates whether single or abridged life table output is desired. Takes values \code{single}, or \code{abridged}. Defaults to \code{single}.}
 
 \item{extrapFrom}{integer. Age from which to impute extrapolated mortality.}
 
@@ -32,7 +32,7 @@ lt_flexible(
 
 \item{extrapLaw}{character. If extrapolating, which parametric mortality law should be invoked? Options include \code{"Kannisto"}, \code{"Kannisto_Makeham"}, \code{"Makeham"}, \code{"Gompertz"}, \code{"GGompertz"}, \code{"Beard"}, \code{"Beard_Makeham"}, \code{"Quadratic"}. Defaults to \code{Kannisto} if the highest age is at least 90, otherwise o \code{Makeham}.}
 
-\item{radix}{numeric. Lifetable radix, \code{l(0)}. Defaults to \code{100000}.}
+\item{radix}{numeric. Life table radix, \code{l(0)}. Defaults to \code{100000}.}
 
 \item{SRB}{numeric. The sex ratio at birth (boys/girls). Defaults to \code{1.05}.}
 
@@ -40,7 +40,7 @@ lt_flexible(
 
 \item{axmethod}{character. Method used for \code{a(x)} calculation. Either \code{pas} or \code{un}.}
 
-\item{Sex}{character. Either \code{m} for males, \code{f} for females or \code{t} for total. This variable defaults to \code{t}. If there is more than one sex in the data, then the lifetable will be calculated for each sex.}
+\item{Sex}{character. Either \code{m} for males, \code{f} for females or \code{t} for total. This variable defaults to \code{t}. If there is more than one sex in the data, then the life table will be calculated for each sex.}
 
 \item{by_args}{character. A vector of columns should be also included in the output. These columns are usually ones that are used for \code{.id} construction. Defaults to \code{NULL}. It is important to not include \code{Sex} in this vector.}
 }
@@ -63,7 +63,7 @@ by_args - chosen additional arguments
 \code{arguments} - a list of arguments used in fitting \code{lt_flixible} function, \code{arguments2} - a list of arguments used for \code{lt_flexible_chunk} fitting.
 }
 \description{
-Wrapper for calculation of abridged-age or single-age lifetable.
+Wrapper for calculation of abridged-age or single-age life table.
 }
 \examples{
 library(readr)
@@ -88,4 +88,5 @@ data_out <- lt_flexible(
   a0rule     = "Andreev-Kingkade",
   axmethod   = "UN (Greville)"
 )
+
 }

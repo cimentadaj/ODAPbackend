@@ -32,4 +32,5 @@ data <- tibble(Deaths = Deaths,
 
 check_redundant(
     data = data)
+    
 }

@@ -34,4 +34,5 @@ data <- tibble(Deaths = Deaths,
 check_sex(
     data = data)
 
+
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/lifetables.R
 \name{lt_check}
 \alias{lt_check}
-\title{\code{check_data}}
+\title{\code{lt_check}}
 \usage{
 lt_check(data_out)
 }
@@ -13,7 +13,7 @@ lt_check(data_out)
 A  figure where the users \code{e(0)} values would be indicated in color and HMD values would be black:
 }
 \description{
-Creates a plot of \code{e(0)} values from Human Mortality Database and compare it with those obtained by user.
+Creates a plot of \code{e(0)} values from Human Mortality Database (HMD) and compare it with those obtained by user.
 }
 \examples{
 library(readr)

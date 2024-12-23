@@ -1,6 +1,5 @@
-#' @title smooth1d_chunk
-#' @description
-#' Smooth a univariate time series, optionally using `weights.` Choose between the super-smoother (`"supsmu"`) method, loess  (`"lowess"` or `"loess"`) , smoothing splines (`"cubicsplines"`), thin-plate splines (`"gam-tp"`), or p-splines  (`"gam-ps"`). Input data may have multiple observations per x coordinate. Output can be for arbitrary x-coordinates (`xout`).
+#' @title `smooth1d_chunk`
+#' @description Smooth a univariate time series, optionally using `weights.` Choose between the super-smoother (`"supsmu"`) method, loess  (`"lowess"` or `"loess"`) , smoothing splines (`"cubicsplines"`), thin-plate splines (`"gam-tp"`), or p-splines  (`"gam-ps"`). Input data may have multiple observations per x coordinate. Output can be for arbitrary x-coordinates (`xout`).
 #' @details `"supsmu"` method takes a `smoothing_par` between 0 and 10. `"lowess"` and 
 #' @param data_in. `data.frame` with x and y coordinates to fit to. Optionally with `weights`. Should refer to a single subset of data.
 #' @param method character. Smoothing method desired. options `"supsmu"` (default),`"lowess"`,`"loess"`,`"cubicspline"`,`"gam-tp"`,`"gam-ps"`
@@ -13,9 +12,11 @@
 #' @importFrom signal interp1
 #' @importFrom mgcv gam
 #' @export
+#' 
+
 smooth1d_chunk <- function(data_in., 
-                     method = c("supsmu","lowess","loess",
-                                "cubicspline","gam-tp","gam-ps")[1],
+                     method = c("supsmu", "lowess", "loess",
+                                "cubicspline", "gam-tp", "gam-ps")[1],
                      smoothing_par = 1,
                      xout = data_in.[["x"]],
                      xname = "x",
@@ -68,7 +69,6 @@ smooth1d_chunk <- function(data_in.,
     data_out <- tibble(!!xname := xout, !!yname := pred)
   }
   
-  
   if (method == "cubicspline") {
     if (is.numeric(smoothing_par)){
       fit  <- smooth.spline(x = x, 
@@ -103,13 +103,12 @@ smooth1d_chunk <- function(data_in.,
     data_out <- tibble(!!xname := xout, !!yname := pred)
   }
   
-  data_out
+  return(data_out)
   
 }
 
-#' @title smooth1d
-#' @description
-#' Smooth a univariate time series, optionally using `weights.` Choose between the super-smoother (`"supsmu"`) method, loess  (`"lowess"` or `"loess"`) , smoothing splines (`"cubicsplines"`), thin-plate splines (`"gam-tp"`), or p-splines  (`"gam-ps"`). Input data may have multiple observations per x coordinate. Output can be for arbitrary x-coordinates (`xout`). If grouping variables have been declared, then we use the same parameters for each subset.
+#' @title `smooth1d`
+#' @description Smooth a univariate time series, optionally using `weights.` Choose between the super-smoother (`"supsmu"`) method, loess  (`"lowess"` or `"loess"`) , smoothing splines (`"cubicsplines"`), thin-plate splines (`"gam-tp"`), or p-splines  (`"gam-ps"`). Input data may have multiple observations per x coordinate. Output can be for arbitrary x-coordinates (`xout`). If grouping variables have been declared, then we use the same parameters for each subset.
 #' @details `"supsmu"` method takes a `smoothing_par` between 0 and 10. `"lowess"` and 
 #' @param data_in `data.frame` with x and y coordinates to fit to. Optionally with `weights`
 #' @param method character. Smoothing method desired. options `"supsmu"` (default),`"lowess"`,`"loess"`,`"cubicspline"`,`"gam-tp"`,`"gam-ps"`
@@ -187,9 +186,11 @@ smooth1d_chunk <- function(data_in.,
 #'                        xout = xout, smoothing_par =1)$y, 
 #'         col = "purple", lty="22")
 #' }
+#' 
+
 smooth1d <- function(data_in, 
-                     method = c("supsmu","lowess","loess",
-                                "cubicspline","gam-tp","gam-ps")[1],
+                     method = c("supsmu", "lowess", "loess",
+                                "cubicspline", "gam-tp", "gam-ps")[1],
                      smoothing_par = 1,
                      xout = data_in[["x"]] |> unique(),
                      xname = "x",
@@ -220,8 +221,8 @@ smooth1d <- function(data_in,
   # data_out <- data_out |>
   #   filter(map_lgl(data, is.data.frame))|>
   #   unnest(.data$data)
-
-return(data_out)
+  return(data_out)
+  
 }
 
 #' @title `check_smooth`

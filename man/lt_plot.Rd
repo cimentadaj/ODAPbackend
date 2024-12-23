@@ -2,7 +2,7 @@
 % Please edit documentation in R/lifetables.R
 \name{lt_plot}
 \alias{lt_plot}
-\title{title \code{lt_plot}}
+\title{\code{lt_plot}}
 \usage{
 lt_plot(data_in, data_out, extrapFrom = extrapFrom)
 }
@@ -14,10 +14,10 @@ lt_plot(data_in, data_out, extrapFrom = extrapFrom)
 \item{extrapFrom}{integer. Age from which to impute extrapolated mortality.}
 }
 \description{
-Plot wrapper, creates lifetable plot list returned by \code{lt_flexible()}
+Plot wrapper, creates life table plot list returned by \code{lt_flexible()}
 }
 \details{
-This function should be run after \code{lt_flexible()}, so that you can pass both \code{data_in} and \code{data_out}. There is no fallback at this time to generate \code{data_out} on the fly if missing. \code{extrapFrom} should be passe dat this time to indicate the jump-off in the plot. In the future, this may be detected or passed in another way.
+This function should be run after \code{lt_flexible()}, so that you can pass both \code{data_in} and \code{data_out}. There is no fallback at this time to generate \code{data_out} on the fly if missing. \code{extrapFrom} should be passed at this time to indicate the jump-off in the plot. In the future, this may be detected or passed in another way.
 }
 \examples{
 library(readr)
@@ -53,4 +53,5 @@ ex1$`1`$lx
 ex1$`1`$ndx
 ex1$`1`$nqx
 ex1$nMx
+
 }

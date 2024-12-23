@@ -1,7 +1,6 @@
-
-#' check_heaping_general
+#' @title `check_heaping_general`
 #' @description Check the age heaping for 5 or 1 year data.
-#' @param data data.frame. User file from the read_data command with the minimum data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals
+#' @param data data.frame. User file from the read_data command with the minimum data on `Exposures`, `Death` and `Age`. Data can be both in 5 and 1 year age intervals
 #' @param y character.Variable name for which the heaping should be checked `Deaths` or `Exposures`.
 #' @return A data.frame with 2 columns `method` - the method used for age heaping evaluation and `result` - the resulting heaping measure
 #' @importFrom stringr str_detect 
@@ -16,6 +15,7 @@
 #'     y = "Exposures")
 #' }
 #' 
+
 check_heaping_general <- function(data, y) { 
   
   tbl <- tibble("level" = c(c("Highly accurate", "Fairly accurate", 
@@ -50,7 +50,6 @@ check_heaping_general <- function(data, y) {
   roughness <- check_heaping_roughness(subset(data, select = y, drop = TRUE), data$Age, ageMin = 30)
   sawtooth  <- check_heaping_sawtooth( subset(data, select = y, drop = TRUE), data$Age, ageMin = 30)
 
-  
   r <- cut(roughness, breaks = c(0,.1,.2,.5,1.5,10),
            labels = c("Highly accurate", "Fairly accurate", "Approximate",
                       "Rough","Very rough")) |> as.character()
@@ -79,7 +78,7 @@ check_heaping_general <- function(data, y) {
   
 }
 
-#' check_heaping_user
+#' @title `check_heaping_user`
 #' @description Check the age heaping for 5 or 1 year data, but this time give user control over minimum and maximum evaluation age.
 #' @param data data.frame. User file from the read_data command with the minimum data on Exposures, Death and Age. Data ca be both in 5 and 1 year age intervals
 #' @param y chracter.Variable name for which the heaping should be checked `Deaths` or `Exposures`
@@ -96,6 +95,7 @@ check_heaping_general <- function(data, y) {
 #'     y = "Exposures")
 #' }
 #' 
+
 check_heaping_user <- function(data, y, ageMin, ageMax) { 
   
   if(is_single(data$Age)) { 

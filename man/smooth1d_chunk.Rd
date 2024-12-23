@@ -2,7 +2,7 @@
 % Please edit documentation in R/smoothing1d.R
 \name{smooth1d_chunk}
 \alias{smooth1d_chunk}
-\title{smooth1d_chunk}
+\title{\code{smooth1d_chunk}}
 \usage{
 smooth1d_chunk(
   data_in.,

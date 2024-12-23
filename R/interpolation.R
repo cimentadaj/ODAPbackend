@@ -1,7 +1,6 @@
-
 #' @title `interpolate`
 #' @description Several univariate interpolation methods. Methods allowed include nearest neighbor (`"nearest"`), Piecewise Cubic Hermite Interpolating Polynomial (`"pchip"`), cubic interpolation from four nearest neighbours (`"cubic"`), and `"spline"` interpolation using  assorted methods available in `stats::splinefun()`. `"linear"`,"`logarithmic`",`"geometric"`, and `"logit"` interpolation are also possible based on linear interpolations of y transforms.
-#' @param data_in data.frame or tibble. Should contain numeric volumns for x and y, although the names may be different than x and y, which you can control using the `xname` and `yname` arguments. x is the time variable, and y is the thing to interpolate. 
+#' @param data_in data.frame or tibble. Should contain numeric columns for x and y, although the names may be different than x and y, which you can control using the `xname` and `yname` arguments. x is the time variable, and y is the thing to interpolate. 
 #' @details Logarithmic interpolation requires all values by greater than 0, geometric requires non-negative values, and logit requires all values to be between 0 and 1.
 #' @param method character. options `"nearest"`, `"linear"`, `"logarithmic"`, `"geometric"`, `"logit"`, `"pchip"`, `"cubic"`, `"spline_fmm"`, `"spline_periodic"`, `"spline_natural"`, `"spline_monoH.FC"`, `"spline_hyman"`.
 #' @param xout vector of x values we want interpolated values for. Default is the original x coordinates, meaning you get the same y values back unless you change this variable.
@@ -15,6 +14,7 @@
 #' @importFrom tidyselect all_of
 #' @importFrom rlang sym !!
 #' @importFrom purrr map2
+#' @export
 #' @examples
 #' library(tibble)
 #' x <- c(18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 
@@ -29,9 +29,9 @@
 #' lines(interpolate(data_in, method = "logarithmic", xout = 10:80)$interp, col = "red")
 #' lines(interpolate(data_in, method = "spline_monoH.FC", xout = 10:80)$interp,
 #'       col = "blue", lty = "28")
-
 #' }
-#' @export
+#' 
+
 interpolate <- function(data_in, 
                         xout = data_in[[xname]], 
                         method = c("nearest", "linear", "pchip", "cubic", "logarithmic","geometric","logit", "spline_fmm", "spline_periodic", "spline_natural", "spline_monoH.FC", "spline_hyman")[1], 
@@ -40,8 +40,8 @@ interpolate <- function(data_in,
                         extrap = TRUE) {
   
   stopifnot(
-    length(data_in[[xname]]) == 
-      length(data_in[[yname]]))
+    length(data_in[[xname]]) == length(data_in[[yname]])
+    )
   
   if (!(".id" %in% colnames(data_in))) {
     data_in <- data_in |>
@@ -73,6 +73,7 @@ interpolate <- function(data_in,
       select(-c("interp_func"))
     
   } 
+  
   if (method %in% c("linear", "geometric", 
                     "logarithmic", "logit")) {
     
@@ -92,6 +93,7 @@ interpolate <- function(data_in,
       mutate(!!xname := xout)
     
   }
+  
   if (method %in% c("pchip","cubic","nearest")){
       
     out_df <- data_in |>
@@ -113,7 +115,7 @@ interpolate <- function(data_in,
   return(out_df)
 }
 
-#' @title interp_linear
+#' @title `interp_linear`
 #' @description Perform a linear interpolation using `approxfun()`, potentially on a transform of the data. With no transform, we do a direct linear interpolation. For geometric/ logarithmic/ logit, we do a linear interpolation of the square root/ log/ logit of the data, then back transform the result.
 #' @param x,y numeric vectors giving the coordinates of the points to be interpolated.
 #' @param xout an optional set of numeric values specifying where interpolation is to take place.
@@ -121,6 +123,7 @@ interpolate <- function(data_in,
 #' @param extrap logical, Default `TRUE`, do we allow extrapolation beyond the range of x? If so, it's constant at the nearest value.
 #' @details For geometric transformations, `y` must be non-negative. For logarithmic, `y` must be greater than 0, and for logit we require `y` values between 0 and 1 (not inclusive). Direct linear extrapolation could extend into negative values, but the other options do not. Geometric interpolation may perform poorly if extrapolating beyond the tails. logit interpolation can also behave awkward in the tails. Logarithmic is behaves quite well for most demography applications.
 #' @importFrom Hmisc approxExtrap
+#' @export
 #' @examples
 #' 
 #' x <- seq(18,36,by=3)
@@ -139,10 +142,12 @@ interpolate <- function(data_in,
 #'   lines(xout, interp_linear(x,y=ylogit,xout,"none"), col = "#202020", lty = "35")
 #'   lines(xout, interp_linear(x,y=ylogit,xout,"logit"), col = "#FF0000", lty = "53",lwd=2)
 #' }
+#' 
+
 interp_linear <- function(x,
                           y,
                           xout = x,
-                          transform = c("none","geometric","logarithmic","logit")[1],
+                          transform = c("none", "geometric", "logarithmic", "logit")[1],
                           extrap = TRUE){
   
   if (transform == "logarithmic"){
@@ -173,7 +178,8 @@ interp_linear <- function(x,
     yout <- exp(yout) / (1+exp(yout))
   }
   
-  yout
+  return(yout)
+  
 }
 
 #' @title `check_interpolate`

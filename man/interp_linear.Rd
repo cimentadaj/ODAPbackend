@@ -2,7 +2,7 @@
 % Please edit documentation in R/interpolation.R
 \name{interp_linear}
 \alias{interp_linear}
-\title{interp_linear}
+\title{\code{interp_linear}}
 \usage{
 interp_linear(
   x,
@@ -45,4 +45,5 @@ lines(xout, interp_linear(x,y,xout,"logarithmic"), col = "#0000FF", lty = "82",l
   lines(xout, interp_linear(x,y=ylogit,xout,"none"), col = "#202020", lty = "35")
   lines(xout, interp_linear(x,y=ylogit,xout,"logit"), col = "#FF0000", lty = "53",lwd=2)
 }
+
 }

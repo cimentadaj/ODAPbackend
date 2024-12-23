@@ -19,13 +19,13 @@ lt_flexible_chunk(
 )
 }
 \arguments{
-\item{data_in_chunk}{a \code{data.frame} or \code{tibble}. 3 numeric columns \code{Age}, \code{Deaths}, and \code{Exposures}, or \code{nMx} or any of the following lifetable functions: \code{nqx}, \code{npx}, \code{ndx}, \code{lx}. Can optionally have columns \code{Sex} and \code{.id} in which case the table will be calculated for each level in these columns. Can also have an additional column.}
+\item{data_in_chunk}{a \code{data.frame} or \code{tibble}. 3 numeric columns \code{Age}, \code{Deaths}, and \code{Exposures}, or \code{nMx} or any of the following life table functions: \code{nqx}, \code{npx}, \code{ndx}, \code{lx}. Can optionally have columns \code{Sex} and \code{.id} in which case the table will be calculated for each level in these columns. Can also have an additional column.}
 
 \item{Sex}{character. Either \code{m} for males, \code{f} for females, or \code{t} for total (default).}
 
 \item{OAnew}{integer. Desired open age group (5-year ages only). Default \code{100}. If higher then rates are extrapolated.}
 
-\item{age_out}{character. Indicates whether single or abridged lifetable output is desired. Takes values \code{single}, or \code{abridged}. Defaults to \code{single}.}
+\item{age_out}{character. Indicates whether single or abridged life table output is desired. Takes values \code{single}, or \code{abridged}. Defaults to \code{single}.}
 
 \item{extrapFrom}{integer. Age from which to impute extrapolated mortality. Defaults to \code{NULL}.}
 
@@ -33,7 +33,7 @@ lt_flexible_chunk(
 
 \item{extrapLaw}{character. If extrapolating, which parametric mortality law should be invoked? Options include \code{Kannisto}, \code{Kannisto_Makeham}, \code{Makeham}, \code{Gompertz}, \code{GGompertz}, \code{Beard}, \code{Beard_Makeham}, \code{Quadratic}. Defaults to \code{Kannisto} if the highest age is at least 90, otherwise to \code{Makeham}.}
 
-\item{radix}{numeric. Lifetable radix, \code{l(0)}. Default \code{100000}.}
+\item{radix}{numeric. Life table radix, \code{l(0)}. Default \code{100000}.}
 
 \item{SRB}{numeric. the sex ratio at birth (boys/girls). Defaults to \code{1.05}.}
 
@@ -57,7 +57,7 @@ ex numeric. Age-specific remaining life expectancy.
 Sex character. Sex.
 }
 \description{
-Calculate an abridged or a single-age lifetable.
+Calculate an abridged or a single-age life table.
 }
 \examples{
 library(readr)
@@ -86,6 +86,5 @@ data_out <-
                    axmethod  = "un")
 
 data_out
-
 
 }
