@@ -149,31 +149,47 @@ lt_flexible <- function(data_in,
       mutate(nqx = lt_id_l_q(.data$lx))
   }
   
-  plan(multisession, workers = availableCores() - 3)
-  
+  ## future::plan(future::multisession, workers = parallelly::availableCores() - 3)
+
+
   data_out <-
     data_in |>
     ungroup() |> 
     arrange(.data$.id, .data$Age) |> 
-    group_by(.data$.id, .add = TRUE) |>
-    group_split() |>
     # Map over them in parallel and row-bind results:
-    future_map_dfr(
-      ~ lt_flexible_chunk(
-        .x,
-        Sex        = NULL,
-        OAnew      = OAnew,
-        extrapFrom = extrapFrom,
-        extrapFit  = extrapFit,
-        radix      = radix,
-        extrapLaw  = extrapLaw,
-        SRB        = SRB,
-        a0rule     = a0rule,
-        axmethod   = axmethod,
-        age_out    = age_out
-      )
-    ) |>
-    ungroup() |>
+    group_by(.data$.id) |> 
+    group_modify(
+      ~lt_flexible_chunk(.x, 
+                        Sex        = NULL,  
+                        OAnew      = OAnew,  
+                        extrapFrom = extrapFrom,
+                        extrapFit  = extrapFit, 
+                        radix      = radix,
+                        extrapLaw  = extrapLaw,
+                        SRB        = SRB,
+                        a0rule     = a0rule,
+                        axmethod   = axmethod,
+                        age_out    = age_out),
+      .keep = TRUE
+    ) |> 
+    ## group_by(.data$.id, .add = TRUE) %>%
+    ## group_split() %>%
+    ## furrr::future_map_dfr(
+    ##   ~ lt_flexible_chunk(
+    ##     .x,
+    ##     Sex        = NULL,
+    ##     OAnew      = OAnew,
+    ##     extrapFrom = extrapFrom,
+    ##     extrapFit  = extrapFit,
+    ##     radix      = radix,
+    ##     extrapLaw  = extrapLaw,
+    ##     SRB        = SRB,
+    ##     a0rule     = a0rule,
+    ##     axmethod   = axmethod,
+    ##     age_out    = age_out
+    ##   )
+    ## ) %>%
+    ungroup() %>%
     as_tibble()
   
   return(list(data_out = data_out))
@@ -259,7 +275,6 @@ lt_flexible_chunk <- function(
   Age    <- data_in_chunk$Age
   AgeInt <- age2int(Age, OAvalue = 5)
   useMx_emp <- any(grepl("Mx_emp", colnames(data_in_chunk)))
-  id <- unique(data_in_chunk$.id)
 
   # TR: note if dx or lx were given, then direct conversion to nqx
   # already happened in lt_flexible, which calls this function
@@ -388,8 +403,7 @@ lt_flexible_chunk <- function(
   
   # Add sex column to output
   data_out <- data_out |>
-    mutate(Sex = Sex, .before = 1) |>
-    mutate(.id = id,  .before = 1)
+    mutate(Sex = Sex, .before = 1)
   
   return(data_out)
   
@@ -445,7 +459,9 @@ lt_plot <- function(data_in,
                     data_out, 
                     extrapFrom = extrapFrom){
   
-  future::plan(future::multisession, workers = parallelly::availableCores() - 3)
+
+  ## future::plan(future::multisession, workers = parallelly::availableCores() - 3)
+
 
   if (!(".id" %in% colnames(data_in))){
     data_in <- data_in |>
@@ -454,10 +470,14 @@ lt_plot <- function(data_in,
   
   id1 <- unique(data_in$.id)
   
+  library(tictoc)
+  tic()
   plots <- data_out |>
     group_split(.data$.id, .keep = TRUE) |>
-    furrr::future_map(~ plot_lifetable(.x)) |>
+    ## furrr::future_map(~ plot_lifetable(.x)) |>
+    map(~ plot_lifetable(.x)) |>
     set_names(id1)
+  toc()
   
   # sorry JC, forgot this!
   d_in <-  data_in |>
