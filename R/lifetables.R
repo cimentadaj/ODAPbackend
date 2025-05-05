@@ -418,6 +418,7 @@ lt_flexible_chunk <- function(
 #' @param data_in a `data.frame` or `tibble` with columns `Age`, `Deaths`, and `Exposures` and `.id`
 #' @param data_out `tibble` as produced by `lt_flexible()`
 #' @param extrapFrom integer. Age from which to impute extrapolated mortality.
+#' @param i18n An optional i18n object for translation.
 #' @export
 #' @examples
 #' library(readr)
@@ -454,10 +455,10 @@ lt_flexible_chunk <- function(
 #' ex1$`1`$nqx
 #' ex1$nMx
 #' 
-
 lt_plot <- function(data_in,
                     data_out, 
-                    extrapFrom = extrapFrom){
+                    extrapFrom = extrapFrom,
+                    i18n = NULL){
   
 
   ## future::plan(future::multisession, workers = parallelly::availableCores() - 3)
@@ -475,7 +476,7 @@ lt_plot <- function(data_in,
   plots <- data_out |>
     group_split(.data$.id, .keep = TRUE) |>
     ## furrr::future_map(~ plot_lifetable(.x)) |>
-    map(~ plot_lifetable(.x)) |>
+    map(~ plot_lifetable(.x, i18n = i18n)) |>
     set_names(id1)
   # toc()
   
@@ -499,7 +500,8 @@ lt_plot <- function(data_in,
                       .y = d_in, 
                       ~ plot_compare_rates(data_in  = .y,
                                            data_out = .x,
-                                           extrapFrom = extrapFrom)))
+                                           extrapFrom = extrapFrom,
+                                           i18n = i18n)))
   
   plots$nMx <- data$new
   
@@ -515,6 +517,7 @@ lt_plot <- function(data_in,
 #' @title `lt_summary`
 #' @description Creates a table of useful summary statistics from the life table.
 #' @param data_out a data.frame or tibble. The data.frame output of the `lt_flexible` function.
+#' @param i18n An optional i18n object for translation.
 #' @return A  data.frame containing the information on the following useful life table statistics:
 #' e0 - life expectancy at birth
 #' e65 - life expectancy at age 65
@@ -556,8 +559,7 @@ lt_plot <- function(data_in,
 #' 
 #' lt_summary(data_out$data_out)
 #' 
-
-lt_summary <- function(data_out){
+lt_summary <- function(data_out, i18n = NULL){
   
   if (!(".id" %in% colnames(data_out))){
     data_out <- data_out |>
@@ -565,7 +567,7 @@ lt_summary <- function(data_out){
   }
   
   out <- data_out |>
-    reframe(lt_summary_chunk(data_out = .data), 
+    reframe(lt_summary_chunk(data_out = .data, i18n = i18n), 
             .by = .data$.id)
   
   return(out)
@@ -575,6 +577,7 @@ lt_summary <- function(data_out){
 #' @title `lt_summary_chunk`
 #' @description Creates a table of useful summary statistics from the lifetable.
 #' @param data_out a data.frame or tibble. The data.frame output of the `lt_flexible` function.
+#' @param i18n An optional i18n object for translation.
 #' @return A  data.frame containing the information on the following useful lifetable statistics:
 #' e0 - life expectancy at birth
 #' e65 - life expectancy at age 65
@@ -616,8 +619,7 @@ lt_summary <- function(data_out){
 #' 
 #' lt_summary_chunk(data_out$data_out)
 #' 
-
-lt_summary_chunk <- function(data_out) {
+lt_summary_chunk <- function(data_out, i18n = NULL) {
   
   e0  <- data_out$ex[data_out$Age == 0]
   e65 <- data_out$ex[data_out$Age == 65]
@@ -649,16 +651,29 @@ lt_summary_chunk <- function(data_out) {
                 IQR,
                 q_20_65) |> 
     pivot_longer(everything(), names_to = "measure", values_to = "value") |> 
-    mutate(label = c("e_0","Median","Mode","e_65","\\sigma_0","\\sigma_{10}","IQR","{}_{45}q_{20}"),
-           message = c("life expectancy at birth",
-                       "median age at death",
-                       "modal age at death",
-                       "remaining life expectancy at age 65",
-                       "lifespan variation calculated as standard deviation of age at death",
-                       "standard deviation of remaining lifespan conditional on survival to age 10",
-                       "interquartile range of age at death distribution",
-                       "conditional probability of death between ages 20 and 65"))
+    mutate(label = c("e_0",
+                     translate_text("Median", i18n),
+                     translate_text("Mode", i18n),
+                     "e_65",
+                     "\\sigma_0",
+                     "\\sigma_{10}",
+                     "IQR",
+                     "{}_{45}q_{20}"),
+           message = c(translate_text("Life Expectancy at Birth", i18n),
+                       translate_text("Median Age at Death", i18n),
+                       translate_text("Modal Age at Death", i18n),
+                       translate_text("Remaining Life Expectancy at Age 65", i18n),
+                       translate_text("Lifespan Variation Calculated as Standard Deviation of Age at Death", i18n),
+                       translate_text("Standard Deviation of Remaining Lifespan Conditional on Survival to Age 10", i18n),
+                       translate_text("Interquartile Range of Age at Death Distribution", i18n),
+                       translate_text("Conditional Probability of Death Between Ages 20 and 65", i18n)))
   
+  # Translate column names (except .id)
+  names(out)[names(out) == "measure"] <- translate_text("Measure", i18n)
+  names(out)[names(out) == "value"] <- translate_text("Value", i18n)
+  names(out)[names(out) == "label"] <- translate_text("Label", i18n)
+  names(out)[names(out) == "message"] <- translate_text("Message", i18n)
+
   return(out)
   
 }
