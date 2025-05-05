@@ -15,7 +15,8 @@ smooth_flexible(
   u5m = NULL,
   constrain_infants = TRUE,
   Sex = "t",
-  by_args = NULL
+  by_args = NULL,
+  i18n = NULL
 )
 }
 \arguments{
@@ -36,6 +37,8 @@ smooth_flexible(
 \item{Sex}{character. Either \code{m} for males, \code{f} for females, or \code{t} for total (default). Please note that in case this parameter is not explicitly provided, the function will scan the data for the column with the corresponding name and use its levels automatically.}
 
 \item{by_args}{character. A vector of columns should be also included in the output. These columns are usually ones that are used for \code{.id} construction. Defaults to \code{NULL}. It is important to not include \code{Sex} in this vector.}
+
+\item{i18n}{An optional i18n object for translation.}
 }
 \value{
 data_out. A list of lists. For each separate group specified by the \code{.id} column, the function will generate a list that contains 2 lists: data and figures. Data tibble with two numeric columns - smoothed counts for the chosen \code{variable} and \code{Age} - chosen age grouping and one character column indicating \code{.id} groups. May optionally include the columns identified in \code{by_args}. And two figures data.frames - \code{data_adjusted} and \code{data_original} corresponding to the data.frames with pre and post-old age mortality adjustment and a \code{ggplot2} figure visualizing the corresponding differences.

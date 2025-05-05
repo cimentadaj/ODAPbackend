@@ -4,7 +4,7 @@
 \alias{plot_compare_rates}
 \title{\code{plot_compare_rates}}
 \usage{
-plot_compare_rates(data_in, data_out, extrapFrom)
+plot_compare_rates(data_in, data_out, extrapFrom, i18n = NULL)
 }
 \arguments{
 \item{data_in}{tibble or data.frame. Should contain the empirical numeric Mx value to be plotted and numeric \code{Age} values.}
