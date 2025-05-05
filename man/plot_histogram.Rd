@@ -4,12 +4,14 @@
 \alias{plot_histogram}
 \title{\code{plot_histogram}}
 \usage{
-plot_histogram(data, y)
+plot_histogram(data, y, i18n = NULL)
 }
 \arguments{
 \item{data}{tibble. Empirical data downloaded  with the \code{read_data} function}
 
 \item{y}{character. This argument indicates whether the \code{Exposures} or \code{Deaths} should be plotted.}
+
+\item{i18n}{An optional i18n object for translation.}
 }
 \value{
 A histogram for either Deaths or Exposures

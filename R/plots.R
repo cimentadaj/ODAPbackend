@@ -466,6 +466,7 @@ pyramid <- function(data, y) {
 #' @title `plot_input_rates`
 #' @description Plots a line graph of the log10 transformed empirical mortality rate (Mx).
 #' @param data tibble. Empirical data downloaded  with the `read_data` function
+#' @param i18n An optional i18n object for translation.
 #' @return A linechart of log 10 scaled empirical `M(x)` values
 #' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
@@ -487,7 +488,7 @@ pyramid <- function(data, y) {
 #' plot_input_rates(data_in)
 #'
 
-plot_input_rates <- function(data) {
+plot_input_rates <- function(data, i18n = NULL) {
   
   data <- data |>
     mutate(nMx = round(.data$Deaths / .data$Exposures,8),
@@ -515,9 +516,9 @@ plot_input_rates <- function(data) {
     scale_y_log10() +
     theme_light() +
     labs(
-      x = "Age",
-      y = "nMx (log10 scale)",
-      subtitle = "Empirical Mx for a given age range on a log10 scale."
+      x = translate_text("Age", i18n),
+      y = translate_text("nMx (log10 scale)", i18n),
+      subtitle = translate_text("Empirical Mx for a given age range on a log10 scale.", i18n)
     ) +
     theme(
       axis.text = element_text(size = 10, color = "black"),
@@ -532,10 +533,23 @@ plot_input_rates <- function(data) {
   )
 }
 
+# Helper function for translation with fallback
+translate_text <- function(text, i18n = NULL) {
+  if (!is.null(i18n) && !is.null(text)) {
+    tryCatch({
+      return(i18n$t(text))
+    }, error = function(e) {
+      return(text)  # Fallback to original if translation fails
+    })
+  }
+  return(text)
+}
+
 #' @title `plot_histogram`
 #' @description Plots a histogram of population or death, depending on the user's choice.
 #' @param data tibble. Empirical data downloaded  with the `read_data` function
 #' @param y character. This argument indicates whether the `Exposures` or `Deaths` should be plotted.
+#' @param i18n An optional i18n object for translation.
 #' @return A histogram for either Deaths or Exposures
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend element_blank
 #' @importFrom scales label_log pretty_breaks
@@ -556,24 +570,53 @@ plot_input_rates <- function(data) {
 #' plot_histogram(data_in, "Deaths")
 #' 
 
-plot_histogram <- function(data, y) {
+plot_histogram <- function(data, y, i18n = NULL) {
+  # Define key translations for user-facing elements
+  age_text <- translate_text("Age", i18n)
+  y_text <- translate_text(y, i18n)
+  subtitle_prefix <- translate_text("Age histogram of ", i18n)
   
   if (! "AgeInt" %in% colnames(data)){
-    data <- data |> 
+    data <- 
+    data |> 
       mutate(AgeInt = age2int(.data$Age, OAvalue = 1))
   }
   
+  # Note y doesn't get translated before calling plot_histogram
+  # so this referring to the english y name
   y_sym <- sym(y)
   
-  data <- data |> 
-    mutate(y_plot = !!y_sym / .data$AgeInt,
-           age_label = case_when(Age == max(Age) ~ paste0(max(Age), "+"),
-                                 TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")"))) |> 
+  data <- 
+  data |> 
+    mutate(
+      y_plot = !!y_sym / .data$AgeInt,
+      age_label = case_when(
+        Age == max(Age) ~ paste0(max(Age), "+"),
+        TRUE ~ paste0("[", Age, ",", Age + AgeInt, ")")
+        )
+    ) |> 
     dplyr::select(.data$Age, .data$AgeInt, .data$age_label, !!y_sym, .data$y_plot)
+
+  # Translate column names that will be visible in tooltips/hover
+  if (!is.null(i18n)) {
+    if (y == "Deaths" || y == "Exposures") {
+      # Rename the column in data_display for tooltip visualization
+      names(data)[names(data) == y] <- y_text
+    }
+    names(data)[names(data) == "Age"] <- age_text
+  }
+
+  y_sym <- sym(y_text)
   
-  figure <- data |> 
-    ggplot(aes(x = .data$Age + .data$AgeInt / 2, 
-               y = .data$y_plot, width = .data$AgeInt), color = "black") +
+  figure <- 
+  data |> 
+    ggplot(
+      aes(
+        x = .data[[age_text]] + .data$AgeInt / 2, 
+        y = .data$y_plot, width = .data$AgeInt
+      ), 
+      color = "black"
+    ) +
     geom_col() +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_continuous(
@@ -590,17 +633,17 @@ plot_histogram <- function(data, y) {
       plot.subtitle = element_text(color = "black", size = 14)
     ) +
     labs(
-      subtitle = str_c("Age histogram of ", y, "."),
-      y = y,
-      x = "Age"
+      subtitle = str_c(subtitle_prefix, y_text, "."),
+      y = y_text,
+      x = age_text
     )
-  
-  return(
-    lst(
+
+  res <- lst(
       figure,
-      data = data |> select(.data$Age, .data$age_label, !!y_sym)
-    )
+      data = data |> select(.data[[age_text]], .data$age_label, !!y_sym)
   )
+
+  res
 }
 
 # temporary exclusion
@@ -653,6 +696,7 @@ plot_histogram <- function(data, y) {
 #' @title `plot_initial_single_sex`
 #' @description Plots a line graph of the log10 transformed empirical mortality rate `M(x)`, population histogram and death histogram if the data contains information on only one sex.
 #' @param data tibble. Empirical data that was downloaded with the `read_data` function.
+#' @param i18n An optional i18n object for translation.
 #' @return A named list with 3 elements: `Exposures` - population pyramid, `Deaths` - death pyramid and `Empirical Mx` - log 10 transformed empirical `M(x)` value.
 #' @importFrom ggplot2 ggplot scale_y_log10 scale_y_continuous coord_flip theme_bw scale_fill_brewer theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
@@ -683,8 +727,12 @@ plot_histogram <- function(data, y) {
 #' ex1$`Empirical Mx`
 #' 
 
-plot_initial_single_sex <- function(data) {
+plot_initial_single_sex <- function(data, i18n = NULL) {
+  # Define key translations for user-facing elements
+  ages_between_text <- translate_text("Ages between: ", i18n)
+  age_text <- translate_text("Age", i18n)
   
+  # Prepare the data
   data <- 
     data |> 
     mutate(Mx_emp    = Deaths / Exposures,
@@ -698,11 +746,13 @@ plot_initial_single_sex <- function(data) {
   # ------------------ #
   # exposures bar plot #
   # ------------------ #
-  Exposures    <- plot_histogram(data = data, y = "Exposures")
-  dt           <- data
+  Exposures <- plot_histogram(data = data, y = "Exposures", i18n = i18n)
+  dt <- data
   dt$Exposures <- round(dt$Exposures / dt$AgeInt, 8)
-  dt$age_label <- paste0("Ages between: ", dt$age_label)
-  
+  dt$age_label <- paste0(ages_between_text, dt$age_label)
+
+  names(dt)[names(dt) == "Age"] <- age_text
+
   Exposures$figure <-
     Exposures$figure +
     geom_col(
@@ -712,14 +762,17 @@ plot_initial_single_sex <- function(data) {
         text = .data$age_label
       )
     )
+  
   # ------------------ #
   #    deaths bar plot #
   # ------------------ #
-  Deaths <- plot_histogram(data = data, y = "Deaths")
+  Deaths <- plot_histogram(data = data, y = "Deaths", i18n = i18n)
   
-  dt           <- data
-  dt$Deaths    <- round(dt$Deaths / dt$AgeInt, 8)
-  dt$age_label <- paste0("Ages between: ", dt$age_label)
+  dt <- data
+  dt$Deaths <- round(dt$Deaths / dt$AgeInt, 8)
+  dt$age_label <- paste0(ages_between_text, dt$age_label)
+
+  names(dt)[names(dt) == "Age"] <- age_text
   
   Deaths$figure <-
     Deaths$figure +
@@ -734,12 +787,13 @@ plot_initial_single_sex <- function(data) {
   # ------------------ #
   # rates plot         #
   # ------------------ #
-  `Empirical Mx` <- plot_input_rates(data = data)
+  # Use the original function for now, as requested to only modify specific functions
+  `Empirical Mx` <- plot_input_rates(data = data, i18n = i18n)
   
-  dt           <- data
+  dt <- data
   dt$age_plot <- dt$`Age Mid`
-  dt$age_label <- paste0("Ages beween: ", dt$age_label)
-  dt$nMx       <- round(dt$Deaths / dt$Exposures, 8)
+  dt$age_label <- paste0(ages_between_text, dt$age_label)
+  dt$nMx <- round(dt$Deaths / dt$Exposures, 8)
   
   `Empirical Mx`$figure <-
     `Empirical Mx`$figure +
@@ -747,16 +801,17 @@ plot_initial_single_sex <- function(data) {
       data = dt,
       aes(
         text = .data$age_label
-
       )
     )
   
+  # Return the original list structure with original keys
   return(lst(Exposures, Deaths, `Empirical Mx`))
 }
 
 #' @title `plot_initial_data`
 #' @description Plots the corresponding 3 graphics for single sex or both sexes depending on data provided by the user.
 #' @param data tibble. Empirical data that was downloaded with the `read_data` function.
+#' @param i18n An optional i18n object for translation.
 #' @return A list with 3 corresponding plots for either one or two sex.
 #' @importFrom ggplot2 ggplot geom_col scale_y_continuous coord_flip theme_light scale_fill_brewer theme theme element_text guide_legend
 #' @importFrom scales label_log pretty_breaks
@@ -780,8 +835,7 @@ plot_initial_single_sex <- function(data) {
 #' result$Deaths$figure
 #' result$`Empirical Mx`$figure
 #' 
-
-plot_initial_data <- function(data) {
+plot_initial_data <- function(data, i18n = NULL) {
   
   if("Sex" %in% colnames(data)) {
     
@@ -802,7 +856,7 @@ plot_initial_data <- function(data) {
     
   } else {
     
-    result <- plot_initial_single_sex(data)
+    result <- plot_initial_single_sex(data, i18n = i18n)
     
   }
   
