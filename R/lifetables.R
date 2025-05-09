@@ -668,6 +668,13 @@ lt_summary_chunk <- function(data_out, i18n = NULL) {
                        translate_text("Interquartile Range of Age at Death Distribution", i18n),
                        translate_text("Conditional Probability of Death Between Ages 20 and 65", i18n)))
   
+  # Note from Jorge C: pleassseee let's leave the order as is. If we change this order
+  # then I have to change the order (not adding any other columns or anything) in the
+  # app_reports.R file from the front end. Long story short, this is hardcoded to be
+  # the positions of the columns because of translation of the column names changing
+  # depending on the language.
+  out <- out[c("label", "value", "message")]
+
   # Translate column names (except .id)
   names(out)[names(out) == "measure"] <- translate_text("Measure", i18n)
   names(out)[names(out) == "value"] <- translate_text("Value", i18n)
