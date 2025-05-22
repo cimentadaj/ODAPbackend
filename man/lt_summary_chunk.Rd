@@ -4,10 +4,12 @@
 \alias{lt_summary_chunk}
 \title{\code{lt_summary_chunk}}
 \usage{
-lt_summary_chunk(data_out)
+lt_summary_chunk(data_out, i18n = NULL)
 }
 \arguments{
 \item{data_out}{a data.frame or tibble. The data.frame output of the \code{lt_flexible} function.}
+
+\item{i18n}{An optional i18n object for translation.}
 }
 \value{
 A  data.frame containing the information on the following useful lifetable statistics:

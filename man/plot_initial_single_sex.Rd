@@ -4,10 +4,12 @@
 \alias{plot_initial_single_sex}
 \title{\code{plot_initial_two_sex}}
 \usage{
-plot_initial_single_sex(data)
+plot_initial_single_sex(data, i18n = NULL)
 }
 \arguments{
 \item{data}{tibble. Empirical data that was downloaded with the \code{read_data} function.}
+
+\item{i18n}{An optional i18n object for translation.}
 }
 \value{
 A named list with 3 elements: \code{Exposures} - population pyramid, \code{Deaths} - death pyramid and #\verb{Empirical Mx} - log 10 transformed empirical \code{M(x)} value

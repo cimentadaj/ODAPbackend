@@ -4,10 +4,12 @@
 \alias{plot_initial_data}
 \title{\code{plot_initial_data}}
 \usage{
-plot_initial_data(data)
+plot_initial_data(data, i18n = NULL)
 }
 \arguments{
 \item{data}{tibble. Empirical data that was downloaded with the \code{read_data} function.}
+
+\item{i18n}{An optional i18n object for translation.}
 }
 \value{
 A list with 3 corresponding plots for either one or two sex.
