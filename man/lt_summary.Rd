@@ -4,10 +4,12 @@
 \alias{lt_summary}
 \title{\code{lt_summary}}
 \usage{
-lt_summary(data_out)
+lt_summary(data_out, i18n = NULL)
 }
 \arguments{
 \item{data_out}{a data.frame or tibble. The data.frame output of the \code{lt_flexible} function.}
+
+\item{i18n}{An optional i18n object for translation.}
 }
 \value{
 A  data.frame containing the information on the following useful life table statistics:

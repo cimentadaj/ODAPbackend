@@ -4,7 +4,7 @@
 \alias{lt_plot}
 \title{\code{lt_plot}}
 \usage{
-lt_plot(data_in, data_out, extrapFrom = extrapFrom)
+lt_plot(data_in, data_out, extrapFrom = extrapFrom, i18n = NULL)
 }
 \arguments{
 \item{data_in}{a \code{data.frame} or \code{tibble} with columns \code{Age}, \code{Deaths}, and \code{Exposures} and \code{.id}}
@@ -12,6 +12,8 @@ lt_plot(data_in, data_out, extrapFrom = extrapFrom)
 \item{data_out}{\code{tibble} as produced by \code{lt_flexible()}}
 
 \item{extrapFrom}{integer. Age from which to impute extrapolated mortality.}
+
+\item{i18n}{An optional i18n object for translation.}
 }
 \description{
 Plot wrapper, creates life table plot list returned by \code{lt_flexible()}

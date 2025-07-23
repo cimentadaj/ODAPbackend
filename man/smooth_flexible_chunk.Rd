@@ -14,7 +14,8 @@ smooth_flexible_chunk(
     "Strong", "Zigzag"),
   u5m = NULL,
   Sex = c("t", "f", "m"),
-  constrain_infants = TRUE
+  constrain_infants = TRUE,
+  i18n = NULL
 )
 }
 \arguments{
@@ -33,6 +34,8 @@ smooth_flexible_chunk(
 \item{Sex}{character. Either \code{m} for males, \code{f} for females, or \code{t} for total (default). Please note that in case this parameter is not explicitly provided, the function will scan the data for the column with the corresponding name and use its levels automatically.}
 
 \item{constrain_infants}{logical. If age 0 is a separate age class, shall we constrain its proportion within the age group 0-5 in the output? Default to \code{TRUE}.}
+
+\item{i18n}{An optional i18n object for translation.}
 }
 \value{
 data_out. A list with 3 elements: - \code{data} - tibble with two numeric columns - smoothed counts for the chosen \code{variable}, \code{Age} - chosen age grouping, and \code{Sex}, \code{figure} - a figure with corresponding data illustrating pre and post-adjustment data, \code{arguments} - a list of arguments used in the function.
