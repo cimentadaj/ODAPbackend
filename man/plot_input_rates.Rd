@@ -4,10 +4,12 @@
 \alias{plot_input_rates}
 \title{\code{plot_input_rates}}
 \usage{
-plot_input_rates(data)
+plot_input_rates(data, i18n = NULL)
 }
 \arguments{
 \item{data}{tibble. Empirical data downloaded  with the \code{read_data} function}
+
+\item{i18n}{An optional i18n object for translation.}
 }
 \value{
 A linechart of log 10 scaled empirical \code{M(x)} values

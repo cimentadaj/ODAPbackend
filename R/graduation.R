@@ -9,6 +9,7 @@
 #' @param age_out character. The desired age structure of the output file. Possible options include `single` - for single years, `5-year` - for 5-year data, and `abridged` - for abridged data, e.g. 0, 1, 5, etc.
 #' @param Sex character. Either `m` for males, `f` for females, or `t` for total (default). Please note that in case this parameter is not explicitly provided, the function will scan the data for the column with the corresponding name and use its levels automatically.
 #' @param by_args character. A vector of columns should be also included in the output. These columns are usually ones that are used for `.id` construction. Defaults to `NULL`. It is important to not include `Sex` in this vector.
+#' @param i18n An optional i18n object for translation.
 #' @importFrom dplyr mutate group_nest first across pull
 #' @importFrom tidyr unnest unite
 #' @importFrom purrr set_names map
@@ -47,7 +48,6 @@
 #' ex1$figures$`2_2012`$figure
 #' ex1$figures$`3_2012`$figure
 #' 
-
 smooth_flexible <- function(data_in,
                             variable      = "Deaths",
                             age_out       = c("single", "abridged", "5-year"),
@@ -61,7 +61,8 @@ smooth_flexible <- function(data_in,
                             u5m               = NULL,
                             constrain_infants = TRUE,
                             Sex = "t",
-                            by_args = NULL) {
+                            by_args = NULL,
+                            i18n = NULL) {
   
   ## f_args <- capture_args()
   
@@ -78,7 +79,7 @@ smooth_flexible <- function(data_in,
     data_in$Sex <- Sex
   }
   
-  group_func <- function(group_data) {
+  group_func <- function(group_data, i18n) {
     
     Sex <- first(group_data$Sex)
     
@@ -90,7 +91,8 @@ smooth_flexible <- function(data_in,
       rough_method      = rough_method,
       u5m               = u5m,
       Sex               = Sex,
-      constrain_infants = constrain_infants
+      constrain_infants = constrain_infants,
+      i18n              = i18n
     )
   }
 
@@ -102,7 +104,7 @@ smooth_flexible <- function(data_in,
            Sex = tolower(Sex)) |>
     # dplyr::select(all_of(c(".id", "Sex", "Age", variable, by_args))) |>
     group_nest(across(all_of(c(".id", by_args)))) |>  # Use across to group by multiple columns
-    mutate(result = map(.data$data, ~ group_func(.x)))  # Apply function
+    mutate(result = map(.data$data, ~ group_func(.x, i18n = i18n)))  # Apply function
     
   # Process each group separately
   # results <- data_in |>
@@ -655,6 +657,7 @@ graduate_auto_5 <- function(dat_5,
 #' @param u5m numeric. Under-five mortality rate. Defaults to `NULL`.
 #' @param age_out character. The desired age structure of the output file. Possible options include `single` - for single years, `5-year` - for 5-year data, and `abridged` - for abridged data, e.g. 0, 1, 5, etc.
 #' @param Sex character. Either `m` for males, `f` for females, or `t` for total (default). Please note that in case this parameter is not explicitly provided, the function will scan the data for the column with the corresponding name and use its levels automatically.
+#' @param i18n An optional i18n object for translation.
 #' @importFrom dplyr case_when mutate group_by summarize rename left_join select join_by pull
 #' @importFrom tibble tibble
 #' @importFrom rlang := !! sym .data
@@ -698,7 +701,8 @@ smooth_flexible_chunk <- function(data_in,
                                                    "Strong", "Zigzag"),
                                   u5m = NULL,
                                   Sex = c("t", "f", "m"),
-                                  constrain_infants = TRUE) {
+                                  constrain_infants = TRUE,
+                                  i18n = NULL) {
   
   ## f_args <- capture_args()
   
@@ -806,7 +810,8 @@ smooth_flexible_chunk <- function(data_in,
       
       figure <- plot_smooth_compare(data_in = data_orig,
                                    data_out = data_in,
-                                   variable = variable)
+                                   variable = variable,
+                                   i18n = i18n)
       
       return(list(data      = data_orig,
                   figure    = figure
@@ -837,7 +842,8 @@ smooth_flexible_chunk <- function(data_in,
     
     figure <- plot_smooth_compare(data_in = data_orig,
                                   data_out = data_out,
-                                  variable = variable)
+                                  variable = variable,
+                                  i18n = i18n)
     
     return(list(data      = data_out,
                 figure    = figure
@@ -904,7 +910,8 @@ smooth_flexible_chunk <- function(data_in,
     
     figure <- plot_smooth_compare(data_in = data_orig,
                                   data_out = data5,
-                                  variable = variable)
+                                  variable = variable,
+                                  i18n = i18n)
     
     return(list(data      = data5,
                 figure    = figure
@@ -1201,7 +1208,8 @@ smooth_flexible_chunk <- function(data_in,
   # return figure as elsewhere
   figure <- plot_smooth_compare(data_in = data_orig,
                                 data_out = data_out,
-                                variable = variable)
+                                variable = variable,
+                                i18n = i18n)
   
   return(list(data      = data_out,
               figure    = figure
@@ -1216,6 +1224,7 @@ smooth_flexible_chunk <- function(data_in,
 #' @param data_in tibble or data.frame. A tibble with two numeric columns - population or death counts - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1, 5 etc, and corresponding Age `column`. 
 #' @param data_out A tibble with two numeric columns - smoothed counts for the chosen variable as produced by the `smooth_flexible`, or `smooth_flexible_chunk`, and `Age` - corresponding Age column.
 #' @param variable character. A scalar with the `variable` name which is to be plotted. The list of possible options includes `Pop`, `Population`, `Exp`, `Exposures` or `Deaths`.
+#' @param i18n An optional i18n object for translation.
 #' @importFrom dplyr case_when mutate group_by summarize rename left_join select join_by pull
 #' @importFrom ggplot2 ggplot aes geom_line geom_point scale_y_continuous scale_x_continuous theme_light theme element_text ggtitle
 #' @importFrom scales pretty_breaks comma
@@ -1255,10 +1264,15 @@ smooth_flexible_chunk <- function(data_in,
 #' # figure
 #' results$figure
 #' 
-
 plot_smooth_compare <- function(data_in, 
                                 data_out, 
-                                variable) {
+                                variable,
+                                i18n = NULL) {
+  
+  # Translate the variable name for display if translation exists
+  variable_display <- translate_text(variable, i18n)
+  age_text <- translate_text("Age", i18n)
+  title_text <- paste(translate_text("Original (black) and adjusted (red)", i18n), variable_display, translate_text("data", i18n))
   
   data_in <- data_in |> 
     mutate(
@@ -1278,18 +1292,30 @@ plot_smooth_compare <- function(data_in,
                             TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")")),
       plot_y = !!sym(variable) / .data$AgeInt)
   
-  figure <- ggplot() +
-    geom_line(data = data_in,  aes(x = data_in$age_mid, y = data_in$plot_y), color = "black") +
-    geom_point(data = data_in,  aes(x = data_in$age_mid, y = data_in$plot_y), color = "black") +
-    geom_line(data = data_out, aes(x = data_out$age_mid, y = data_out$plot_y), color = "red", linewidth = 1) +
+  # Translate column names for display
+  names(data_in)[names(data_in) == "age_mid"] <- age_text
+  names(data_out)[names(data_out) == "age_mid"] <- age_text
+
+  names(data_in)[names(data_in) == "plot_y"] <- variable_display
+  names(data_out)[names(data_out) == "plot_y"] <- variable_display
+
+  sym_variable_display <- sym(variable_display)
+  sym_age_text <- sym(age_text)
+
+  figure <- 
+  ggplot() +
+    geom_line(data = data_in,  aes(x = !!sym_age_text, y = !!sym_variable_display), color = "black") +
+    geom_point(data = data_in,  aes(x = !!sym_age_text, y = !!sym_variable_display), color = "black") +
+    geom_line(data = data_out, aes(x = !!sym_age_text, y = !!sym_variable_display), color = "red", linewidth = 1) +
     scale_x_continuous(breaks = pretty_breaks()) +
     scale_y_continuous(breaks = pretty_breaks(), labels = comma) +
     theme_light() +
     theme(axis.text = element_text(color = "black"),
           plot.title = element_text(size = 12)) +
-    labs(title = paste("Original (black) and adjusted (red)", variable, "data"),
-         x = "Age",
-         y = variable)
+    labs(title = title_text,
+         x = age_text,
+         y = variable_display)
+  
   
   return(lst(figure, 
              data_adjusted = data_out,

@@ -4,7 +4,7 @@
 \alias{plot_smooth_compare}
 \title{\code{plot_smooth_compare}}
 \usage{
-plot_smooth_compare(data_in, data_out, variable)
+plot_smooth_compare(data_in, data_out, variable, i18n = NULL)
 }
 \arguments{
 \item{data_in}{tibble or data.frame. A tibble with two numeric columns - population or death counts - provided in single age intervals, 5-year age intervals, or abridged age format e.g. with ages 0, 1, 5 etc, and corresponding Age \code{column}.}
@@ -12,6 +12,8 @@ plot_smooth_compare(data_in, data_out, variable)
 \item{data_out}{A tibble with two numeric columns - smoothed counts for the chosen variable as produced by the \code{smooth_flexible}, or \code{smooth_flexible_chunk}, and \code{Age} - corresponding Age column.}
 
 \item{variable}{character. A scalar with the \code{variable} name which is to be plotted. The list of possible options includes \code{Pop}, \code{Population}, \code{Exp}, \code{Exposures} or \code{Deaths}.}
+
+\item{i18n}{An optional i18n object for translation.}
 }
 \value{
 list. A named list with 3 elements: \code{figure} - a plot of original versus adjusted data, \code{data_adjusted} - and \code{data_original}.
