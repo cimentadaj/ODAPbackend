@@ -3,6 +3,7 @@
 #' @param data_in tibble or data.frame. Should contain the empirical numeric Mx value to be plotted and numeric `Age` values.
 #' @param data_out tibble or data.frame. Modeled numeric Mx value to be plotted and numeric Age values.
 #' @param extrapFrom numeric. `extrapFrom` is an age interval from which the life table was extrapolated.
+#' @param i18n translation parameter for UI frontend. You can ignore this.
 #' @return A line graph with a black line corresponding to empirical Mx data and a red line corresponding to modeled `Mx` data from the chosen extrapFrom value for each group specified by `.id` column. 
 #' @importFrom ggplot2 ggplot geom_line scale_x_continuous scale_y_log10 theme_light geom_vline labs theme element_text
 #' @importFrom scales label_log pretty_breaks
@@ -36,7 +37,7 @@
 #'   a0rule     = "Andreev-Kingkade",
 #'   axmethod   = "UN (Greville)",
 #'   Sex = "t"
-#' )
+#' )$data_out
 #' 
 #' plot_compare_rates(data_in, data_out, 80)
 #' 
@@ -185,7 +186,7 @@ plot_compare_rates <- function(data_in, # raw mx to plot
 #'     a0rule = "ak",
 #'     axmethod = "un",
 #'     Sex = "m"
-#'   )
+#'   )$data_out
 #' result <- plot_lifetable(data_out)
 #' result$nMx$nMx_plot
 #' result$lx$lx_plot
