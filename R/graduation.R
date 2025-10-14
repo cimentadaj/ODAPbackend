@@ -1272,6 +1272,11 @@ plot_smooth_compare <- function(data_in,
   # Translate the variable name for display if translation exists
   variable_display <- translate_text(variable, i18n)
   age_text <- translate_text("Age", i18n)
+  # TR: kludge 2025-10-14 in order to avoid having two columns called Age
+  # in data_out when the language is English, which breaks ggplot code.
+  age_text <- paste0(" ",age_text," ")
+  # same
+  variable_display <- paste0(" ",variable_display," ")
   title_text <- paste(translate_text("Original (black) and adjusted (red)", i18n), variable_display, translate_text("data", i18n))
   
   data_in <- data_in |> 
