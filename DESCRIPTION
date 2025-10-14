@@ -1,8 +1,8 @@
 Package: ODAPbackend
 Type: Package
 Title: Standardize, Evaluate, and Adjust Demographic Data
-Version: 00.03.005
-Date: 2024-12-23
+Version: 00.03.006
+Date: 2025-10-14
 Authors@R: c(
    person("Tim", "Riffe", role = c("aut", "cre"), 
           email = "tim.riffe@gmail.com", comment = c(ORCID = "0000-0002-2673-4622")),
@@ -39,7 +39,8 @@ Imports:
     signal,
     future,
     furrr,
-    parallelly
+    parallelly,
+    magrittr
 BugReports: https://github.com/timriffe/ODAP_Bbackend/issues
 Remotes: 
     github::timriffe/DemoTools,
