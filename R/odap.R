@@ -15,6 +15,16 @@
 #' @param country_code Numeric vector of country codes to filter by (default \code{356}).
 #' @param year Numeric vector of years to filter by (default \code{1971}).
 #' @param sex Character scalar indicating sex to filter by, e.g., \code{"M"} or \code{"F"} (default \code{"M"}).
+#' @importFrom dplyr filter arrange across select mutate group_by reframe ungroup full_join group_nest
+#' @importFrom tibble as_tibble
+#' @importFrom DemoTools lt_single_mx OPAG groupAges
+#' @importFrom tidyr pivot_longer
+#' @importFrom ggplot2 ggplot geom_point geom_line aes scale_color_manual labs theme_minimal theme element_text
+#' @importFrom tidyselect all_of any_of
+#' @importFrom purrr map map2
+#' @importFrom rlang .data %||%
+#' @importFrom magrittr %>% 
+#' @export
 #'
 #' @details
 #' The function:
@@ -58,26 +68,6 @@
 #' # Plot original vs redistributed population
 #' print(res$figures$India)
 #' }
-#'
-#' @importFrom dplyr filter arrange across select mutate group_by reframe ungroup full_join group_nest
-#' @importFrom tibble as_tibble
-#' @importFrom DemoTools lt_single_mx OPAG groupAges
-#' @importFrom tidyr pivot_longer
-#' @importFrom ggplot2 ggplot geom_point geom_line aes scale_color_manual labs theme_minimal theme element_text
-#' @importFrom tidyselect all_of any_of
-#' @importFrom purrr map map2
-#' @importFrom rlang .data %||%
-#' @importFrom magrittr %>% 
-#' @export
-
-# !!!!!!!!!!
-# if 2022 and 2024 are not there then warning, that there are no single ages
-# on a fork of demotools include the update function
-# do a separate script for examples and ODAP flowcontrol and ignore this in package building
-# change Pop for data_in
-# check for nLx column in data_in
-
-# just a working name
 odap_opag <- function(data_in           = NULL,
                       Age_fit           = c(60, 70),
                       AgeInt_fit        = c(10, 10),
