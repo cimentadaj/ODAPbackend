@@ -12,11 +12,11 @@ library(dplyr)
 
 
 data_in <- readr::read_csv(system.file("extdata",
-                                       "abridged_data.csv",
+                                       "abridged_data.csv.gz",
                                        package="ODAPbackend"))
 
 data_in <- readr::read_csv(system.file("extdata",
-                                       "dat_heap_smooth.csv",
+                                       "dat_heap_smooth.csv.gz",
                                        package="ODAPbackend"))
 # character string of file name, presumed in data/ folder
 # returns data.frame
