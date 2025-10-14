@@ -1,5 +1,6 @@
 library(tidyverse)
 library(wpp2024)
+library(DemoTools)
 # ------
 data(popAge1dt)
 data(mx1dt)

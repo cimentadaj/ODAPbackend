@@ -60,7 +60,7 @@ ex numeric. Age-specific remaining life expectancy.
 .id character A group indicator for which the results will be generated. In case of missing the .id column will return \code{all}
 Sex - corresponding sex
 by_args - chosen additional arguments
-\code{arguments} - a list of arguments used in fitting \code{lt_flixible} function, \code{arguments2} - a list of arguments used for \code{lt_flexible_chunk} fitting.
+\code{arguments} - a list of arguments used in fitting \code{lt_flexible} function, \code{arguments2} - a list of arguments used for \code{lt_flexible_chunk} fitting.
 }
 \description{
 Wrapper for calculation of abridged-age or single-age life table.
@@ -68,7 +68,7 @@ Wrapper for calculation of abridged-age or single-age life table.
 \examples{
 library(readr)
 library(dplyr)
-library(future)
+library(future) # ? why this one?
 # single age data
 fpath <- system.file("extdata", 
 "single_hmd_spain.csv.gz", 
