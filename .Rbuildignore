@@ -8,6 +8,7 @@ ui_flow_control*
 heaping_breakpoints.R
 R/test2.R
 R/test_data_NOT_part_of_final_package.R
+R/package_stuff.R
 test2.R
 reproduce_error.csv
 test_lt.R
