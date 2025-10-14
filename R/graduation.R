@@ -1320,4 +1320,15 @@ plot_smooth_compare <- function(data_in,
   return(lst(figure, 
              data_adjusted = data_out,
              data_original = data_in))
-  }
+}
+
+
+
+
+
+
+
+
+
+
+

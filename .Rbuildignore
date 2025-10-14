@@ -4,7 +4,7 @@ new_flow_control.R
 test.R
 build.R
 .gitignore
-ui_flow_control.R
+ui_flow_control*
 heaping_breakpoints.R
 R/test2.R
 R/test_data_NOT_part_of_final_package.R
@@ -14,3 +14,5 @@ test_lt.R
 test_smooth.R
 combined_data.csv
 deaths_pop_Brazil.csv
+R/basepop_single_sketch.R
+

@@ -37,12 +37,12 @@
 #' .id character A group indicator for which the results will be generated. In case of missing the .id column will return `all`
 #' Sex - corresponding sex
 #' by_args - chosen additional arguments
-#' `arguments` - a list of arguments used in fitting `lt_flixible` function, `arguments2` - a list of arguments used for `lt_flexible_chunk` fitting. 
+#' `arguments` - a list of arguments used in fitting `lt_flexible` function, `arguments2` - a list of arguments used for `lt_flexible_chunk` fitting. 
 #' @export
 #' @examples
 #' library(readr)
 #' library(dplyr)
-#' library(future)
+#' library(future) # ? why this one?
 #' # single age data
 #' fpath <- system.file("extdata", 
 #' "single_hmd_spain.csv.gz", 

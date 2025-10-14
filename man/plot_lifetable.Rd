@@ -45,7 +45,7 @@ data_out <-
     a0rule = "ak",
     axmethod = "un",
     Sex = "m"
-  )
+  )$data_out
 result <- plot_lifetable(data_out)
 result$nMx$nMx_plot
 result$lx$lx_plot

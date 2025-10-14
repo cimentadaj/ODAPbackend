@@ -12,6 +12,8 @@ plot_compare_rates(data_in, data_out, extrapFrom, i18n = NULL)
 \item{data_out}{tibble or data.frame. Modeled numeric Mx value to be plotted and numeric Age values.}
 
 \item{extrapFrom}{numeric. \code{extrapFrom} is an age interval from which the life table was extrapolated.}
+
+\item{i18n}{translation parameter for UI frontend. You can ignore this.}
 }
 \value{
 A line graph with a black line corresponding to empirical Mx data and a red line corresponding to modeled \code{Mx} data from the chosen extrapFrom value for each group specified by \code{.id} column.
@@ -46,7 +48,7 @@ data_out <- lt_flexible(
   a0rule     = "Andreev-Kingkade",
   axmethod   = "UN (Greville)",
   Sex = "t"
-)
+)$data_out
 
 plot_compare_rates(data_in, data_out, 80)
 

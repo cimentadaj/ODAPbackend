@@ -1,4 +1,3 @@
-
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!! NOTE:
 # This script remakes the DemoTools functions
 # DemoTools::downloadSRB()
@@ -14,21 +13,25 @@
 # gender     = "both"
 # nLxDatesIn = 1950:2030
 # method     = "linear"
+# output     = "5-year"
 # 
 # 
 # refDate  <- 1986
 # location <- "Brazil"
 
+
+# updated to handle 5-year output ot single year output (age)
 download_Lx <- function(nLx      = NULL,
                         location = NULL,
                         gender   = NULL,
                         nLxDatesIn = NULL,
                         method = "linear",
+                        output = "5-year",
                         ...) {
   
   verbose <- getOption("basepop_verbose", TRUE)
   
-  # if nLx is provided by user just return back the nLx datatable
+  # if nLx is provided by user just return back the nLx data
   if(!is.null(nLx)) {
     
     return(nLx)
@@ -40,7 +43,9 @@ download_Lx <- function(nLx      = NULL,
     
     # if no location return error
     if(is.null(location)) {
+      
       stop("You need to provide a location to download the data for nLx")
+      
     }
     
     # since we will need to download data anyway, I have changed the
@@ -71,12 +76,18 @@ download_Lx <- function(nLx      = NULL,
     
     # if any date chosen is less then 1950 or more than wpp version + 1
     if(any(nLxDatesIn < 1950, nLxDatesIn > (parse_number(latest_wpp) + 1))) {
-      cat(paste0(
-        "Careful, choosing beyond range 1950-",
-        parse_number(latest_wpp)
-      ))
       
+      cat(paste0("Careful, choosing beyond range 1950-", parse_number(latest_wpp)))
+  
     }
+    
+    
+    if(is.numeric(location)) {
+      
+      location_code <- location
+      
+    } else {
+    
     
     # find location code from the provided location
     # if location is misspelled return NA
@@ -85,6 +96,7 @@ download_Lx <- function(nLx      = NULL,
       unique() %>%
       as.numeric()
     
+    }
     # ------------------------------------------------------ #
     # if we need message print it
     if(verbose) {
@@ -156,22 +168,50 @@ download_Lx <- function(nLx      = NULL,
       # wide format
       pivot_wider(names_from  = year, 
                   values_from = nLx)
+    
+    
+    # what type of age output is desired
+    if(output == "5-year") {
+      
+      out <- out %>%
+        mutate(age = (age %/% 5) * 5) %>%  # floor to nearest 5-year start
+        group_by(country_code, name, sex, age) %>%
+        summarise(across(where(is.numeric), ~ sum(., na.rm = TRUE)), .groups = "drop")
+      
+    }
+    
     return(out)
     
   }
 }
 
 
+# add them in demotools
+# make a list that actually use these in demotools
+
+# add them in demotools
+# make a list that actually use these in demotools
+# if we need a five year version aggregate one year data
+# group_ages in demotools
+#
 
 # Asfrmat     = NULL
 # location    = "Argentina"
 # AsfrDatesIn = 1950:2030
+# 
+# 
+# Asfrmat = NULL
+# location = country_code
+# AsfrDatesIn = refDate_start:refDate
+# method      = "linear"
+# output      = "single"
 
 
 download_Asfr <- function(Asfrmat     = NULL,
                           location    = NULL,
                           AsfrDatesIn = NULL,
                           method      = "linear",
+                          output      = "5-year",
                           ...) {
   
   
@@ -179,11 +219,15 @@ download_Asfr <- function(Asfrmat     = NULL,
   
   
   if (!is.null(Asfrmat)) {
+    
     return(Asfrmat)
+    
   }
   
   if (is.null(location)) {
+    
     stop("You need to provide a location to download the data for Asfrmat")
+    
   }
   
   # ------------------------------------------------------ #
@@ -192,7 +236,9 @@ download_Asfr <- function(Asfrmat     = NULL,
   
   # stop if none
   if(length(installed_wpp) == 0) { 
+    
     stop("No wpp package installed.")
+    
   }
   # find the lates one
   latest_wpp <- sort(installed_wpp, decreasing = TRUE)[1]
@@ -212,11 +258,22 @@ download_Asfr <- function(Asfrmat     = NULL,
   # ------------------------------------------------------ #
   # find location code from the provided location
   # if location is misspelled return NA
-  location_code <- percentASFR1dt %>%
-    as_tibble() %>% 
-    subset(name %in% location, select = country_code) %>%
-    unique() %>%
-    as.numeric()
+  
+  if(is.numeric(location)) {
+    
+    location_code <- location
+    
+  } else {
+    
+    location_code <- percentASFR1dt %>%
+      as_tibble() %>% 
+      subset(name %in% location, select = country_code) %>%
+      unique() %>%
+      as.numeric()
+    
+    }
+  
+  
   
   if(verbose) {
     cat(paste0(
@@ -268,112 +325,38 @@ download_Asfr <- function(Asfrmat     = NULL,
     unnest(data) %>%
     mutate(age = age)
   
+  if(output == "5-year") {
+    
+    nLx <- download_Lx(location   = location,
+                       gender     = "female",
+                       nLxDatesIn = AsfrDatesIn,
+                       method     = "linear",
+                       output     = "single") %>% 
+      select(-sex) %>% 
+      pivot_longer(-c(country_code, name, age),
+                   names_to  = "year",
+                   values_to = "nLx")
+    
+    out <-  out %>% 
+      pivot_longer(-c(country_code, name, age),
+                   names_to  = "year",
+                   values_to = "asfr") %>%
+      left_join(nLx) %>% 
+      filter(!is.na(asfr)) %>%
+      mutate(age = (age %/% 5) * 5) %>%
+      group_by(country_code, name, year, age) %>%
+      summarise(
+        asfr = sum(asfr * nLx) / sum(nLx),
+        .groups = "drop"
+      ) %>% 
+      pivot_wider(names_from  = year,
+                  values_from = asfr)
+    
+  }  
+  
   return(out)
+  
 }
-
-# !!!!!!!!!!!!!!!!!!! DISREGARD THIS CODE ITS AN OLD ATTEMPT !!!!!!!!!!!!!!!!!!!!!
-
-
-# download_SRB <- function(SRB, location, DatesOut, verbose = TRUE) {
-#   
-#   
-#   if (!is.null(SRB)) {
-#     if (length(SRB) > 3)
-#       stop("SRB can only accept three dates at maximum")
-#     rep_times <- 3 - length(SRB)
-#     SRB <- c(SRB, rep(SRB, times = rep_times))
-#     return(stats::setNames(SRB[1:3], DatesOut))
-#   }
-#   
-#   
-#   if (length(DatesOut) > 3) { 
-#     stop("SRB can only accept three dates at maximum")
-#   }
-#   
-#   
-#   installed_wpp <- grep("^wpp\\d{4}$", rownames(installed.packages()), value = TRUE)
-#   
-#   # stop if none
-#   if(length(installed_wpp) == 0) { 
-#     stop("No wpp package installed.")
-#   }
-#   # find the lates one
-#   latest_wpp <- sort(installed_wpp, decreasing = TRUE)[1]
-#   
-#   # download mx1dt data from the latest package version
-#   data("sexRatio1", package = latest_wpp)
-#   
-#   # WPP2019_births <- DemoToolsData::WPP2019_births
-#   
-#   
-#   SRB_default <- round((1 - 0.4886) / 0.4886, 3)
-#   
-#   
-#   location_code <- sexRatio1 %>%
-#     as_tibble() %>% 
-#     subset(name %in% location, select = country_code) %>%
-#     unique() %>%
-#     as.numeric()
-#   
-#   
-#   
-#   if (is.na(location_code)) {
-#     if (verbose) {
-#       cat(paste(
-#         location,
-#         "not available in wpp"
-#       ))
-#       cat(paste("Assuming SRB to be", SRB_default, "\n"))
-#     }
-#     return(stats::setNames(rep(SRB_default, 3), DatesOut))
-#   }
-#   
-#   if(verbose) {
-#     cat(
-#       paste0(
-#         "\nbirths not provided. Downloading births for ",
-#         location,
-#         ", for years between ",
-#         round(DatesOut[1], 1),
-#         " and ",
-#         round(DatesOut[length(DatesOut)], 1),
-#         "\n"
-#       )
-#     )
-#   }
-#   
-#   dt <- sexRatio1 %>%
-#     as_tibble() %>%
-#     filter(country_code == location_code) %>% 
-#     pivot_longer(-c(country_code, name),
-#                  names_to = "year",
-#                  values_to = "SRB") %>% 
-#     filter(year %in% floor(DatesOut))
-#   
-#   
-#   years_srb <- dt$year
-#   
-#   SRB <- stats::setNames(dt$SRB, years_srb)
-#   
-#   if(length(SRB) == 0) { 
-#     return(stats::setNames(rep(SRB_default, 3), DatesOut))
-#   }
-#   DatesOut    <- floor(DatesOut)
-#   yrs_present <- DatesOut %in% years_srb
-#   
-#   if(any(!yrs_present)) {
-#     
-#     yrs_not_present <- mean(SRB[as.character(DatesOut[yrs_present])])
-#     
-#     yrs_not_present <- stats::setNames(rep(yrs_not_present, sum(!yrs_present)), DatesOut[!yrs_present])
-#     SRB <- c(SRB, yrs_not_present)
-#     
-#   }
-#   
-#   SRB <- SRB[order(as.numeric(names(SRB)))]
-#   return(SRB)
-# }
-
 
 # SRB        = NULL
 # location   = "Argentina"
@@ -401,7 +384,6 @@ download_SRB <- function(SRB = NULL,
     
   }
   
-
   installed_wpp <- grep("^wpp\\d{4}$", rownames(installed.packages()), value = TRUE)
   
   if(length(installed_wpp) == 0) stop("No WPP package installed.")
@@ -410,11 +392,19 @@ download_SRB <- function(SRB = NULL,
   
   data("sexRatio1", package = latest_wpp)
   
+  
+  if(is.numeric(location)) {
+    
+    location_code <- location
+    
+  } else {
+  
   location_code <- sexRatio1 %>%
     as_tibble() %>%
     subset(name %in% location, select = country_code) %>%
     unique() %>%
     as.numeric()
+  }
   
   if (is.na(location_code)) {
     if (verbose) cat(location, "not available in wpp. Using default SRB:", SRB_default, "\n")
@@ -434,7 +424,7 @@ download_SRB <- function(SRB = NULL,
     filter(year %in% floor(DatesOut))
   
   years_srb <- dt$year
-  SRB <- stats::setNames(dt$SRB, years_srb)
+  SRB       <- stats::setNames(dt$SRB, years_srb)
   
   # Fill missing years with mean SRB
   DatesOut_floor <- floor(DatesOut)
@@ -449,3 +439,35 @@ download_SRB <- function(SRB = NULL,
   
   return(SRB)
 }
+
+# which functions should be updated (apparently one)
+library(codetools)
+
+find_callers <- function(pkg = "DemoTools", fun_name = "downloadnLx") {
+  ns <- asNamespace(pkg)
+  funs <- ls(ns)
+  
+  users <- funs[sapply(funs, function(f) {
+    obj <- get(f, envir = ns)
+    if (is.function(obj)) {
+      globals <- codetools::findGlobals(obj, merge = FALSE)$functions
+      fun_name %in% globals
+    } else
+      FALSE
+  })]
+  
+  users
+  
+}
+
+# Example:
+find_callers("DemoTools", "downloadnLx")
+find_callers("DemoTools", "downloadAsfr")
+find_callers("DemoTools", "downloadSRB")
+
+
+sexRatio1 %>%
+  as_tibble() %>%
+  subset(name %in% location, select = country_code) %>%
+  unique() %>%
+  as.numeric()
