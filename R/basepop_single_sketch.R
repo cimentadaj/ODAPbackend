@@ -1,3 +1,8 @@
+
+# package building ignores this script but load_all() does not,
+# so I wrap it.
+do_this <- FALSE
+if (do_this){
 library(tidyverse)
 library(wpp2024)
 library(DemoTools)
@@ -132,3 +137,4 @@ pop_hat |>
   ggplot(aes(x = age, y = pop)) +
   geom_line() +
   geom_line(data = popF |> filter(age < 10),color = "red")
+}
