@@ -1,91 +1,87 @@
-
-# load packages to run this example
-# TEMPORARY Thing
-library(DemoTools)
-library(tidyverse)
-library(wpp2024)
-library(ODAPbackend)
-
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# !!! IMPORTANT NOTE:
-# If you want to run the function
-# the examples of implementation are provided in the end of the script
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# ---------------------------------------------------------------------------- #
-# We start with preparing the model data for testing
-# ---------------------------------------------------------------------------- #
-# prepare mx data as a dataframe
-Pop <- pop1m_ind %>% 
-  as.data.frame() %>%
-  rownames_to_column() %>% 
-  set_names(c("age", "Pop")) %>%
-  mutate(sex = "M", 
-         year = 1971, 
-         name = "India") %>% 
-  as_tibble() %>% 
-  mutate(age = as.numeric(age) - 1)
-
-# ---------------------------------------------------------------------------- #
-# imagine we use India, 1971, males as in the example provided by DemoTools
-data("mx1dt")
-nLx <- mx1dt    %>%
-  select(-mxB) %>% 
-  as_tibble()  %>% 
-  pivot_longer(c(mxM, mxF),
-               names_to  = "sex",
-               values_to = "mx") %>% 
-  mutate(sex = str_sub(sex, start = 3)) %>% 
-  filter(name == "India" | country_code == 356) %>% 
-  filter(sex == "M", year == 1971) %>%
-  group_by(name, country_code, sex, year) %>% 
-  reframe(lt_single_mx(nMx = mx, Age = age)) %>% 
-  select(country_code:sex, age = Age, nLx)
-
-
-#' ODAP OPAG Mortality and Population Redistribution Analysis
-#' 
-#' This function prepares population data and mortality life table data (`nLx`) to perform
-#' age redistribution using the OPAG method. It supports flexible input with country name/code,
-#' sex, and year filters, and handles both user-provided and WPP standard mortality data.
-#' It outputs adjusted population estimates along with diagnostic plots showing original vs redistributed populations.
-#' 
-#' @param Pop A data frame or tibble of population counts with columns including \code{age}, \code{pop}, and optionally \code{name}, \code{sex}, \code{year}, \code{country_code}.
+#' ODAP–OPAG Mortality and Population Redistribution Analysis
+#'
+#' This function prepares population data and mortality life table data (`nLx`) to perform age redistribution using the OPAG (Old-Age Population Age Group) method.  
+#' It supports flexible input with country name/code, sex, and year filters, and handles both user-provided and WPP standard mortality data.  
+#' The function outputs adjusted population estimates along with diagnostic plots comparing original vs. redistributed populations.
+#'
+#' @param data_in A data frame or tibble of population counts with columns including \code{age}, \code{pop}, and optionally \code{name}, \code{sex}, \code{year}, and \code{country_code}.
 #' @param Age_fit Numeric vector of two ages defining the age range for fitting redistribution (default \code{c(60, 70)}).
 #' @param AgeInt_fit Numeric vector of two age interval widths corresponding to \code{Age_fit} (default \code{c(10, 10)}).
-#' @param Redistribute_from Numeric scalar age threshold above which population redistribution occurs (default 80).
-#' @param nLx Optional mortality life table data frame containing columns \code{age}, \code{nLx}, and grouping columns; if NULL, data is pulled from the latest installed WPP package.
+#' @param Redistribute_from Numeric scalar age threshold above which population redistribution occurs (default \code{80}).
+#' @param OAnew Numeric scalar indicating the new open-age group upper bound (default \code{100}).
+#' @param method Character scalar specifying the redistribution method; one of \code{"mono"}, \code{"pclm"}, or \code{"uniform"} (default \code{"mono"}).
+#' @param nLx Optional mortality life table data frame containing columns \code{age}, \code{nLx}, and grouping columns. If \code{NULL}, mortality data is pulled from the latest installed WPP package.
 #' @param name Character vector of country names to filter by (default \code{"India"}).
 #' @param country_code Numeric vector of country codes to filter by (default \code{356}).
 #' @param year Numeric vector of years to filter by (default \code{1971}).
-#' @param sex Character scalar indicating sex to filter by, e.g. \code{"M"} or \code{"F"} (default \code{"M"}).
-#' 
+#' @param sex Character scalar indicating sex to filter by, e.g., \code{"M"} or \code{"F"} (default \code{"M"}).
+#'
 #' @details
-#' The function automatically handles missing grouping columns in \code{Pop}, standardizes column names,
-#' and validates age intervals. It retrieves mortality data if not provided, filters according to parameters,
-#' and groups mortality rates if age intervals are broader than 1 year.
-#' 
-#' The OPAG function is applied per unique group to redistribute populations above \code{Redistribute_from} age.
-#' Output includes both adjusted population estimates and ggplot2 objects visualizing redistribution.
-#' 
-#' @return A list with elements:
-#' \describe{
-#'   \item{\code{data_out}}{A named list of OPAG result objects by group.}
-#'   \item{\code{figures}}{A named list of ggplot2 plots showing original and redistributed populations.}
+#' The function:
+#' \itemize{
+#'   \item Standardizes and validates population input data.
+#'   \item Automatically retrieves and filters WPP mortality data (\code{nLx}) if not supplied.
+#'   \item Checks age interval consistency and aggregates mortality data if necessary.
+#'   \item Applies the OPAG redistribution method per group (e.g. country, year, sex).
+#'   \item Generates diagnostic plots comparing original and redistributed population counts.
 #' }
-#' 
-#' @import dplyr
-#' @import tidyr
-#' @import ggplot2
+#'
+#' The function uses internal helpers such as \code{conditional_filter()},
+#' \code{conditional_arrange()}, and \code{create_groupid()} to standardize and align data.
+#'
+#' @return A list with two elements:
+#' \describe{
+#'   \item{\code{data_out}}{A named list of OPAG redistribution results by group.}
+#'   \item{\code{figures}}{A named list of \code{ggplot2} objects showing original vs. redistributed populations.}
+#' }
+#'
+#' @seealso \code{\link{OPAG}}, \code{\link{lt_single_mx}}, \code{\link{groupAges}}
+#'
+#' @examples
+#' \dontrun{
+#' library(dplyr)
+#'
+#' data_in <- tibble(
+#'   age = seq(0, 100, by = 5),
+#'   pop = runif(21, 10000, 100000),
+#'   name = "India",
+#'   country_code = 356,
+#'   sex = "M",
+#'   year = 1971
+#' )
+#'
+#' res <- odap_opag(data_in, Redistribute_from = 80)
+#'
+#' # View redistributed data
+#' res$data_out$India
+#'
+#' # Plot original vs redistributed population
+#' print(res$figures$India)
+#' }
+#'
+#' @importFrom dplyr filter arrange across select mutate group_by reframe ungroup full_join group_nest
+#' @importFrom tibble as_tibble
+#' @importFrom DemoTools lt_single_mx OPAG groupAges
+#' @importFrom tidyr pivot_longer
+#' @importFrom ggplot2 ggplot geom_point geom_line aes scale_color_manual labs theme_minimal theme element_text
+#' @importFrom tidyselect all_of any_of
 #' @importFrom purrr map map2
+#' @importFrom rlang .data %||%
+#' @importFrom magrittr %>% 
 #' @export
 
-
+# !!!!!!!!!!
+# if 2022 and 2024 are not there then warning, that there are no single ages
+# on a fork of demotools include the update function
+# do a separate script for examples and ODAP flowcontrol and ignore this in package building
+# change Pop for data_in
+# check for nLx column in data_in
 
 # just a working name
-odap_opag <- function(Pop               = NULL,
+odap_opag <- function(data_in           = NULL,
                       Age_fit           = c(60, 70),
                       AgeInt_fit        = c(10, 10),
-                      Redistribute_from = 80,
+                      Redistribute_from = 80, # highest age that is at least 10 years younger than max and divisible by 10
                       OAnew             = 100,
                       method            = c("mono", "pclm", "uniform"),
                       nLx               = NULL,
@@ -128,26 +124,24 @@ odap_opag <- function(Pop               = NULL,
     }
   }
   
-  
   # ---------------------------------------------------------------------------- #
-  # Part 1: This part prepares the Pop data for further analysis by:
+  # Part 1: This part prepares the data_in data for further analysis by:
   # introducing uniform names
   # adding group columns and id if missing
   # ---------------------------------------------------------------------------- #
   
-  Pop        <- as_tibble(Pop)
-  names(Pop) <- tolower(names(Pop))
+  data_in        <- as_tibble(data_in)
+  names(data_in) <- tolower(names(data_in))
   
-  if(!"sex"          %in% names(Pop)) Pop$sex          <- sex
-  if(!"country_code" %in% names(Pop)) Pop$country_code <- country_code %||% 1
-  if(!"name"         %in% names(Pop)) Pop$name         <- name %||% "country"
-  if(!".id"          %in% names(Pop)) {
+  if(!"sex"          %in% names(data_in)) data_in$sex          <- sex
+  if(!"country_code" %in% names(data_in)) data_in$country_code <- country_code %||% 1
+  if(!"name"         %in% names(data_in)) data_in$name         <- name %||% "country"
+  if(!".id"          %in% names(data_in)) {
     
-    Pop <- create_groupid(Pop, keys = c("name", "sex", "year", "country_code"))
+    data_in <- create_groupid(data_in, keys = c("name", "sex", "year", "country_code"))
     
   }
   
- 
   # ---------------------------------------------------------------------------- #
   # Part 2: Here we deal with the standard data
   # first case is when the data is not provided by user
@@ -158,6 +152,19 @@ odap_opag <- function(Pop               = NULL,
   # if spacing is strange the warning is thrown
   # ---------------------------------------------------------------------------- #
   
+  # check if nLx column is in the names of data_in
+  if("nLx" %in% names(data_in)) { 
+    
+    nLx <- data_in %>% 
+      conditional_filter("country_code", country_code) %>%
+      conditional_filter("name", name) %>%
+      conditional_filter("year", year) %>%
+      conditional_filter("sex", sex) %>%
+      select(any_of(c("name", "country_code", "sex", "year", "age", "nLx")))
+    
+    }
+    
+  
   if(is.null(nLx)) {
     
     installed_wpp <- grep("^wpp\\d{4}$", rownames(installed.packages()), value = TRUE)
@@ -165,6 +172,15 @@ odap_opag <- function(Pop               = NULL,
     if(length(installed_wpp) == 0) stop("No wpp package installed.")
     
     latest_wpp <- sort(installed_wpp, decreasing = TRUE)[1]
+    
+    if(parse_number("wpp2024") < 2022) { 
+      
+      warning("No single ages are availabe in wpp versions earlier that wpp2022.
+              Consider updating the wpp package or change to five year solution.")
+      
+      }
+    
+    
     suppressPackageStartupMessages(library(latest_wpp, character.only = TRUE))
     data("mx1dt", package = latest_wpp)
     
@@ -196,7 +212,7 @@ odap_opag <- function(Pop               = NULL,
   }
   
   # can be changed to is_single if needed
-  age_diff    <- diff(sort(unique(Pop$age)))
+  age_diff    <- diff(sort(unique(data_in$age)))
   unique_diff <- unique(na.omit(age_diff)) # NA removed in case of strange OAG coding
   
   if(length(unique_diff) == 1) {
@@ -228,13 +244,13 @@ odap_opag <- function(Pop               = NULL,
   
   # we conditionally arrange both datasets to ensure that ids of Pop
   # match row by row with nLx. This makes it easier to work with data further
-  Pop <- conditional_arrange(Pop, c("name", "country_code", "sex", "year", "age"))
-  nLx <- conditional_arrange(nLx, c("name", "country_code", "sex", "year", "age"))
+  data_in <- conditional_arrange(data_in, c("name", "country_code", "sex", "year", "age"))
+  nLx     <- conditional_arrange(nLx, c("name", "country_code", "sex", "year", "age"))
   
-  nLx$.id_label <- Pop$.id_label
-  nLx$.id       <- Pop$.id
+  nLx$.id_label <- data_in$.id_label
+  nLx$.id       <- data_in$.id
   
-  result <- Pop %>% 
+  result <- data_in %>% 
     full_join(nLx) %>%
     group_nest(.id, .id_label) %>% 
     mutate(
@@ -265,10 +281,22 @@ odap_opag <- function(Pop               = NULL,
                       age = .y$Age_out) %>%
           filter(age > Redistribute_from)
         
-        ggplot() + 
-          geom_point(aes(x = old$age, y = old$pop)) +
-          geom_line(aes(x = new$age,  y = new$pop), color = "red") +
-          theme_minimal()
+  # A figure to compare results with original
+        ggplot() +
+          geom_point(data = old, aes(x = age, y = pop, color = "Old"), size = 2) +
+          geom_line( data = new, aes(x = age, y = pop, color = "New"), linewidth = 1) +
+          scale_color_manual(name = "Population", 
+                             values = c("Old" = "black",
+                                        "New" = "red")) +
+          labs(
+            x = "Age",
+            y = "Population"
+          ) +
+          theme_minimal(base_size = 14) +
+          theme(
+            legend.position = "bottom",
+            plot.title = element_text(face = "bold", hjust = 0.5)
+          )
       })
     )
   
@@ -282,29 +310,3 @@ odap_opag <- function(Pop               = NULL,
   ))
   
 }
-
-# here is how to use
-# without user defined nLx
-results <- odap_opag(
-  Pop = Pop,
-  nLx = NULL,
-  method = "mono"
-)
-
-results$data_out
-results$figures
-
-#  with user defined nLx
-results2 <- odap_opag(
-  Pop = Pop,
-  nLx = nLx,
-  method = "mono"
-)
-
-#naturally resulta are the same
-results2$data_out
-results2$figures
-
-
-
-

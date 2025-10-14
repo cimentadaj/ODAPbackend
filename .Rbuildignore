@@ -1,5 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+new_flow_control.R
 test.R
 build.R
 .gitignore
