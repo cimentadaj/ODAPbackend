@@ -256,6 +256,7 @@
 #' @importFrom stringr str_detect
 #' @importFrom magrittr %>% 
 #' @importFrom tibble tibble
+#' @importFrom rlang .data
 #' @export
 
 
@@ -350,35 +351,35 @@ movepop <- function(initial_date,
            deaths =  male_mx * male_pop + female_mx * female_pop)
   
   summaries <- data %>% 
-    summarise(total_births        = sum(births),
-              total_deaths        = sum(deaths),
+    summarise(total_births        = sum(.data$births),
+              total_deaths        = sum(.data$deaths),
               total_pop_initial   = sum(male_pop) + sum(female_pop),
-              crude_birth_rate    = total_births / total_pop_initial,
-              crude_death_rate    = total_deaths / total_pop_initial,
-              net_migration_rate  = annual_net_migrants / total_pop_initial,
-              growth_rate         = crude_birth_rate - crude_death_rate + net_migration_rate,
+              crude_birth_rate    = .data$total_births / .data$total_pop_initial,
+              crude_death_rate    = .data$total_deaths / .data$total_pop_initial,
+              net_migration_rate  = annual_net_migrants / .data$total_pop_initial,
+              growth_rate         = .data$crude_birth_rate - .data$crude_death_rate + .data$net_migration_rate,
               age_format          = age_format,
               tfr                 = ifelse(age_format == "five_year", 5 * sum(asfr), sum(asfr)),
               desired_date        = desired_date,
               initial_date        = initial_date,
               time_diff           = desired_date - initial_date,
-              total_pop_projected = total_pop_initial * exp(growth_rate * time_diff),
-              adjustment_factor   = total_pop_projected / total_pop_initial)
+              total_pop_projected = .data$total_pop_initial * exp(.data$growth_rate * .data$time_diff),
+              adjustment_factor   = .data$total_pop_projected / .data$total_pop_initial)
   
   
   projected_data <- data %>% 
     mutate(male_pop_projected   = summaries$adjustment_factor * male_pop,
            female_pop_projected = summaries$adjustment_factor * female_pop,
-           both_sexes_projected = male_pop_projected + female_pop_projected,
-           sex_ratio            = male_pop_projected / female_pop_projected
+           both_sexes_projected = .data$male_pop_projected + .data$female_pop_projected,
+           sex_ratio            = .data$male_pop_projected / .data$female_pop_projected
     )
   
   summaries_proj <- projected_data %>%
     summarise(age_group  = "All ages",
-              both_sexes = sum(both_sexes_projected),
-              male       = sum(male_pop_projected),
-              female     = sum(female_pop_projected),
-              sex_ratio  = sum(male_pop_projected) / sum(female_pop_projected))
+              both_sexes = sum(.data$both_sexes_projected),
+              male       = sum(.data$male_pop_projected),
+              female     = sum(.data$female_pop_projected),
+              sex_ratio  = sum(.data$male_pop_projected) / sum(.data$female_pop_projected))
   
   
   # Assemble results
