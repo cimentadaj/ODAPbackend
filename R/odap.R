@@ -45,7 +45,7 @@
 #'   \item{\code{figures}}{A named list of \code{ggplot2} objects showing original vs. redistributed populations.}
 #' }
 #'
-#' @seealso \code{link[DemoTools]{OPAG}}, \code{\link{link[DemoTools]{lt_single_mx}}, \code{\link{link[DemoTools]{groupAges}}
+#' @seealso \code{\link[DemoTools]{OPAG}}, \code{\link{link[DemoTools]{lt_single_mx}}, \code{\link{\link[DemoTools]{groupAges}}
 #'
 #' @examples
 #' \dontrun{
