@@ -15,17 +15,6 @@
 #' @param country_code Numeric vector of country codes to filter by (default \code{356}).
 #' @param year Numeric vector of years to filter by (default \code{1971}).
 #' @param sex Character scalar indicating sex to filter by, e.g., \code{"M"} or \code{"F"} (default \code{"M"}).
-#' @importFrom dplyr filter arrange across select mutate group_by reframe ungroup full_join group_nest
-#' @importFrom tibble as_tibble
-#' @importFrom DemoTools lt_single_mx OPAG groupAges
-#' @importFrom tidyr pivot_longer
-#' @importFrom ggplot2 ggplot geom_point geom_line aes scale_color_manual labs theme_minimal theme element_text
-#' @importFrom tidyselect all_of any_of
-#' @importFrom purrr map map2
-#' @importFrom rlang .data %||%
-#' @importFrom magrittr %>% 
-#' @importFrom utils installed.packages data globalVariables
-#' @export
 #'
 #' @details
 #' The function:
@@ -46,7 +35,7 @@
 #'   \item{\code{figures}}{A named list of \code{ggplot2} objects showing original vs. redistributed populations.}
 #' }
 #'
-#' @seealso \code{\link[DemoTools]{OPAG}}, \code{\link{link[DemoTools]{lt_single_mx}}, \code{\link{\link[DemoTools]{groupAges}}
+#' @seealso \code{\link{OPAG}}, \code{\link{lt_single_mx}}, \code{\link{groupAges}}
 #'
 #' @examples
 #' \dontrun{
@@ -69,6 +58,26 @@
 #' # Plot original vs redistributed population
 #' print(res$figures$India)
 #' }
+#'
+#' @importFrom dplyr filter arrange across select mutate group_by reframe ungroup full_join group_nest
+#' @importFrom tibble as_tibble
+#' @importFrom DemoTools lt_single_mx OPAG groupAges
+#' @importFrom tidyr pivot_longer
+#' @importFrom ggplot2 ggplot geom_point geom_line aes scale_color_manual labs theme_minimal theme element_text
+#' @importFrom tidyselect all_of any_of
+#' @importFrom purrr map map2
+#' @importFrom rlang .data %||%
+#' @importFrom magrittr %>% 
+#' @export
+
+# !!!!!!!!!!
+# if 2022 and 2024 are not there then warning, that there are no single ages
+# on a fork of demotools include the update function
+# do a separate script for examples and ODAP flowcontrol and ignore this in package building
+# change Pop for data_in
+# check for nLx column in data_in
+
+# just a working name
 odap_opag <- function(data_in           = NULL,
                       Age_fit           = c(60, 70),
                       AgeInt_fit        = c(10, 10),
@@ -171,52 +180,25 @@ odap_opag <- function(data_in           = NULL,
       
       }
     
+    
     suppressPackageStartupMessages(library(latest_wpp, character.only = TRUE))
     data("mx1dt", package = latest_wpp)
-
+    
     nLx <- mx1dt %>%
       as_tibble() %>%
-      select(-.data$mxB) %>%
-      conditional_filter("country_code", .env$country_code) %>%
-      conditional_filter("name", .env$name) %>%
-      conditional_filter("year", .env$year) %>%
-      pivot_longer(
-        cols = c(.data$mxM, .data$mxF),
-        names_to = "sex",
-        values_to = "mx"
-      ) %>%
-      mutate(sex = substr(.data$sex, 3, 3)) %>%
-      conditional_filter("sex", .env$sex)
-      
-      group_vars <- intersect(c("name","country_code","sex","year"), names(nLx))
-      
-      nLx <- nLx %>%
-        group_by(across(all_of(intersect(c("name", "country_code", "sex", "year"), names(.))))) %>%
-      reframe(
-        lt_single_mx(nMx = .data$mx, Age = .data$age), .groups = "drop") %>%
-      select(.data$name, 
-             .data$country_code, 
-             .data$sex, 
-             .data$year,
-             age = .data$Age, 
-             .data$AgeInt, 
-             .data$nLx)
-    # 
-    # nLx <- nLx %>%
-    #   as_tibble() %>%
-    #   select(-"mxB") %>%
-    #   conditional_filter("country_code", country_code) %>%
-    #   conditional_filter("name", name) %>%
-    #   conditional_filter("year", year) %>%
-    #   pivot_longer(c("mxM", "mxF"), 
-    #                names_to  = "sex", 
-    #                values_to = "mx") %>%
-    #   mutate(sex = substr(sex, 3, 3)) %>%
-    #   conditional_filter("sex", sex) %>%
-    #   group_by(across(all_of(intersect(c("name", "country_code", "sex", "year"), names(.))))) %>%
-    #   reframe(lt_single_mx(nMx = .data$mx, Age = .data$age)) %>%
-    #   ungroup() %>%
-    #   select("name", "country_code", "sex", "year", age = "Age", "AgeInt", "nLx")
+      select(-mxB) %>%
+      conditional_filter("country_code", country_code) %>%
+      conditional_filter("name", name) %>%
+      conditional_filter("year", year) %>%
+      pivot_longer(c(mxM, mxF), 
+                   names_to  = "sex", 
+                   values_to = "mx") %>%
+      mutate(sex = substr(sex, 3, 3)) %>%
+      conditional_filter("sex", sex) %>%
+      group_by(across(all_of(intersect(c("name", "country_code", "sex", "year"), names(.))))) %>%
+      reframe(lt_single_mx(nMx = mx, Age = age)) %>%
+      ungroup() %>%
+      select(name:year, age = Age, AgeInt, nLx)
     
   } else {
     
@@ -250,7 +232,7 @@ odap_opag <- function(data_in           = NULL,
       group_by(across(all_of(intersect(c("name", "country_code", "sex", "year"), names(.))))) %>%
       reframe(
         age = seq(0, max(age), by = age_spacing),
-        nLx = groupAges(.data$nLx, Age = .data$age, N = age_spacing),
+        nLx = groupAges(nLx, Age = age, N = age_spacing),
         .groups = "drop"
       )
   }
@@ -268,87 +250,48 @@ odap_opag <- function(data_in           = NULL,
   nLx$.id_label <- data_in$.id_label
   nLx$.id       <- data_in$.id
   
-  # result <- data_in %>% 
-  #   full_join(nLx) %>%
-  #   group_nest(.data$.id, .data$.id_label) %>% 
-  #   mutate(
-  #     results = map(data, ~ {
-  #       Age_vals  <- unique(.x$age)
-  #       Pop_vals  <- .x$pop
-  #       nLx_vals  <- .x$nLx
-  #       
-  #       OPAG(
-  #         Pop               = Pop_vals,
-  #         Age_Pop           = Age_vals,
-  #         nLx               = nLx_vals,
-  #         Age_nLx           = Age_vals,
-  #         Age_fit           = Age_fit,
-  #         AgeInt_fit        = AgeInt_fit,
-  #         Redistribute_from = Redistribute_from,
-  #         OAnew             = OAnew,
-  #         method            = method
-  #       )
-  #     }),
-  #     
-  #     plots = map2(data, results, ~ {
-  #       old <- tibble(pop = .x$pop, 
-  #                     age = .x$age) %>%
-  #         filter(age > Redistribute_from)
-  #       
-  #       new <- tibble(pop = .y$Pop_out, 
-  #                     age = .y$Age_out) %>%
-  #         filter(age > Redistribute_from)
-  #       
-  # # A figure to compare results with original
-  #       ggplot() +
-  #         geom_point(data = old, aes(x = age, y = pop, color = "Old"), size = 2) +
-  #         geom_line( data = new, aes(x = age, y = pop, color = "New"), linewidth = 1) +
-  #         scale_color_manual(name = "Population", 
-  #                            values = c("Old" = "black",
-  #                                       "New" = "red")) +
-  #         labs(
-  #           x = "Age",
-  #           y = "Population"
-  #         ) +
-  #         theme_minimal(base_size = 14) +
-  #         theme(
-  #           legend.position = "bottom",
-  #           plot.title = element_text(face = "bold", hjust = 0.5)
-  #         )
-  #     })
-  #   )
-  
   result <- data_in %>% 
     full_join(nLx) %>%
-    group_nest(.data$.id, .data$.id_label) %>%
+    group_nest(.id, .id_label) %>% 
     mutate(
-      results = map(.data$data, ~ {
-        Age_vals <- unique(.x$age)
-        Pop_vals <- .x$pop
-        nLx_vals <- .x$nLx
+      results = map(data, ~ {
+        Age_vals  <- unique(.x$age)
+        Pop_vals  <- .x$pop
+        nLx_vals  <- .x$nLx
+        
         OPAG(
-          Pop = Pop_vals,
-          Age_Pop = Age_vals,
-          nLx = nLx_vals,
-          Age_nLx = Age_vals,
-          Age_fit = .env$Age_fit,
-          AgeInt_fit = .env$AgeInt_fit,
-          Redistribute_from = .env$Redistribute_from,
-          OAnew = .env$OAnew,
-          method = .env$method
+          Pop               = Pop_vals,
+          Age_Pop           = Age_vals,
+          nLx               = nLx_vals,
+          Age_nLx           = Age_vals,
+          Age_fit           = Age_fit,
+          AgeInt_fit        = AgeInt_fit,
+          Redistribute_from = Redistribute_from,
+          OAnew             = OAnew,
+          method            = method
         )
       }),
-      plots = map2(.data$data, .data$results, ~ {
-        old <- tibble(pop = .x$pop, age = .x$age) %>%
-          filter(.data$age > .env$Redistribute_from)
-        new <- tibble(pop = .y$Pop_out, age = .y$Age_out) %>%
-          filter(.data$age > .env$Redistribute_from)
+      
+      plots = map2(data, results, ~ {
+        old <- tibble(pop = .x$pop, 
+                      age = .x$age) %>%
+          filter(age > Redistribute_from)
         
+        new <- tibble(pop = .y$Pop_out, 
+                      age = .y$Age_out) %>%
+          filter(age > Redistribute_from)
+        
+  # A figure to compare results with original
         ggplot() +
-          geom_point(data = old, aes(x = .data$age, y = .data$pop, color = "Old"), size = 2) +
-          geom_line(data = new, aes(x = .data$age, y = .data$pop, color = "New"), linewidth = 1) +
-          scale_color_manual(name = "Population", values = c("Old" = "black", "New" = "red")) +
-          labs(x = "Age", y = "Population") +
+          geom_point(data = old, aes(x = age, y = pop, color = "Old"), size = 2) +
+          geom_line( data = new, aes(x = age, y = pop, color = "New"), linewidth = 1) +
+          scale_color_manual(name = "Population", 
+                             values = c("Old" = "black",
+                                        "New" = "red")) +
+          labs(
+            x = "Age",
+            y = "Population"
+          ) +
           theme_minimal(base_size = 14) +
           theme(
             legend.position = "bottom",

@@ -142,7 +142,9 @@ plot_compare_rates <- function(data_in, # raw mx to plot
   # return a list with data and figure
   return(lst(
     nMx_plot = figure,
-    nMx_plot_data = data_out_plot |>  select(!!sym_age_mid, age_label, !!sym_nMx) |> mutate(.id = id)
+    nMx_plot_data = data_out_plot |>  
+      select(!!sym_age_mid, "age_label", !!sym_nMx) |> 
+      mutate(.id = id)
   ))
 }
 

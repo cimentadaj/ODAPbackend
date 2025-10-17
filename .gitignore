@@ -10,3 +10,5 @@ mySmoothingTemplate.r
 combined_data.csv
 deaths_pop_Brazil.csv
 reproduce_error.csv
+R/test.R
+R/point6.R
