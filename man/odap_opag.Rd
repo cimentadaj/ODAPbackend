@@ -146,7 +146,11 @@ print(res$figures$India)
 
 }
 \seealso{
+<<<<<<< HEAD
 \code{\link{OPAG}}, \code{\link{lt_single_mx}}, \code{\link{groupAges}}
 
 \code{\link{OPAG}}, \code{\link{lt_single_mx}}, \code{\link{groupAges}}
+=======
+\code{\link[DemoTools]{OPAG}}, \code{\link{link[DemoTools]{lt_single_mx}}, \code{\link{\link[DemoTools]{groupAges}}
+>>>>>>> 2f4af5b16613027e611f0591eedc863278910965
 }
