@@ -1272,13 +1272,8 @@ plot_smooth_compare <- function(data_in,
   # Translate the variable name for display if translation exists
   variable_display <- translate_text(variable, i18n)
   age_text <- translate_text("Age", i18n)
-  # TR: kludge 2025-10-14 in order to avoid having two columns called Age
-  # in data_out when the language is English, which breaks ggplot code.
-  age_text <- paste0(" ",age_text," ")
-  # same
-  variable_display <- paste0(" ",variable_display," ")
   title_text <- paste(translate_text("Original (black) and adjusted (red)", i18n), variable_display, translate_text("data", i18n))
-  
+
   data_in <- data_in |> 
     mutate(
       single = is_single(.data$Age),
@@ -1296,16 +1291,8 @@ plot_smooth_compare <- function(data_in,
       age_label = case_when(.data$Age == max(.data$Age) ~ paste0(max(.data$Age), "+"),
                             TRUE ~ paste0("[", .data$Age, ",", .data$Age + .data$AgeInt, ")")),
       plot_y = !!sym(variable) / .data$AgeInt)
-  
-  # Translate column names for display
-  names(data_in)[names(data_in) == "age_mid"] <- age_text
-  names(data_out)[names(data_out) == "age_mid"] <- age_text
-
-  names(data_in)[names(data_in) == "plot_y"] <- variable_display
-  names(data_out)[names(data_out) == "plot_y"] <- variable_display
-
-  sym_variable_display <- sym(variable_display)
-  sym_age_text <- sym(age_text)
+  sym_variable_display <- sym("plot_y")
+  sym_age_text <- sym("age_mid")
 
   figure <- 
   ggplot() +
@@ -1326,7 +1313,6 @@ plot_smooth_compare <- function(data_in,
              data_adjusted = data_out,
              data_original = data_in))
 }
-
 
 
 
