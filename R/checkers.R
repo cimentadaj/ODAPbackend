@@ -557,8 +557,148 @@ check_data <- function(data) {
   
   # Combine all the check results
 
-  result <- do.call(rbind, list(ch1, ch2, ch3, 
-                                ch4, ch5, ch6, 
+  result <- do.call(rbind, list(ch1, ch2, ch3,
+                                ch4, ch5, ch6,
+                                ch7, ch8, ch9))
+
+  return(result)
+}
+
+
+#' @title `check_numeric_opag`
+#' @description Check if the numeric columns for ODAP data (`Age`, `pop`) are numeric.
+#' @param data tibble. A tibble containing population data for ODAP analysis.
+#' @return A data.frame with 3 columns: `check` - the name of the test, `message` - The error message with corresponding information generated if the test is failed (if the test is passed evaluates to NA), `pass` - binary result of the test either "Fail" or "Pass".
+#' @importFrom purrr map
+#' @importFrom stringr str_flatten
+#' @export
+#' @examples
+#' library(tibble)
+#' data <- tibble(
+#'   Age = 0:100,
+#'   pop = c(9544406, 7471790, rep(1000000, 99)),
+#'   name = "India",
+#'   country_code = 356,
+#'   sex = "M",
+#'   year = 1971
+#' )
+#'
+#' check_numeric_opag(data = data)
+#'
+check_numeric_opag <- function(data) {
+  # For ODAP, we check Age and pop columns
+  data_check <- subset(data, select = c("Age", "pop"))
+
+  isnumeric <- data_check |>
+    map(~ is.numeric(.)) |>
+    unlist()
+
+  if (sum(isnumeric) < ncol(data_check)) {
+    message <- paste0(
+      "Please check the input data. Every column should be numeric, while columns ",
+      str_flatten(names(data_check)[!isnumeric], collapse = ", "),
+      " are not."
+    )
+  } else {
+    message <- NA_character_
+  }
+
+  data.frame(
+    check = "check_numeric_opag",
+    message = message,
+    pass = ifelse(is.na(message), "Pass", "Fail")
+  )
+}
+
+
+#' @title `check_missing_cols_opag`
+#' @description Check if any of the crucial columns are missing from ODAP population data: (`Age`, `pop`).
+#' @param data tibble. A tibble containing population data for ODAP analysis.
+#' @return A data.frame with 3 columns: `check` - the name of the test, `message` - The error message with corresponding information generated if the test is failed (if the test is passed evaluates to NA), `pass` - binary result of the test either "Fail" or "Pass".
+#' @importFrom stringr str_c str_flatten
+#' @export
+#' @examples
+#' library(tibble)
+#' data <- tibble(
+#'   Age = 0:100,
+#'   pop = c(9544406, 7471790, rep(1000000, 99)),
+#'   name = "India",
+#'   country_code = 356,
+#'   sex = "M",
+#'   year = 1971
+#' )
+#'
+#' check_missing_cols_opag(data = data)
+#'
+check_missing_cols_opag <- function(data) {
+  # For ODAP, we need Age and pop (population counts)
+  # Optional columns: name, sex, year, country_code, nLx
+  missing_cols <- setdiff(c("Age", "pop"), names(data))
+
+  if (length(missing_cols) > 0) {
+    message <- str_c(
+      "The following columns are missing from the data: ",
+      str_flatten(missing_cols, collapse = ", "),
+      ". The ODAP calculations require Age and pop (population counts)."
+    )
+  } else {
+    message <- NA_character_
+  }
+
+  data.frame(
+    check = "check_missing_cols_opag",
+    message = message,
+    pass = ifelse(is.na(message), "Pass", "Fail")
+  )
+}
+
+
+#' @title `check_data_opag`
+#' @description Upper level function that checks ODAP population data quality. Checks if the columns are numeric, if any of the columns is missing, if there is insufficient rows, if there are missing data entries, if ages do not start with 0, and also if ages are coherent, sequential and not redundant.
+#' @param data tibble. A tibble containing population data for ODAP analysis with at minimum Age and pop columns.
+#' @return A data.frame with validation results containing columns: `check`, `message`, `pass`.
+#' @export
+#' @examples
+#' library(tibble)
+#' data <- tibble(
+#'   Age = 0:100,
+#'   pop = c(9544406, 7471790, rep(1000000, 99)),
+#'   name = "India",
+#'   country_code = 356,
+#'   sex = "M",
+#'   year = 1971
+#' )
+#'
+#' check_data_opag(data = data)
+#'
+check_data_opag <- function(data) {
+
+  # Ensure '.id' column exists
+  if (!(".id" %in% colnames(data))) {
+    data$.id <- "all"
+  }
+
+  # Extract unique .id values
+  id <- unique(data$.id)
+
+  # Perform checks
+  # Split data by '.id', apply checks, and combine results
+  split_data <- split(data, data$.id)
+
+  # ODAP-specific checks (using pop instead of Deaths/Exposures)
+  ch1 <- do.call(rbind, lapply(split_data, check_numeric_opag))
+  ch2 <- do.call(rbind, lapply(split_data, check_missing_cols_opag))
+  ch3 <- do.call(rbind, lapply(split_data, check_rows))
+  ch4 <- do.call(rbind, lapply(split_data, check_nas))
+  ch5 <- do.call(rbind, lapply(split_data, check_coherent))
+  ch6 <- do.call(rbind, lapply(split_data, check_sequential))
+  ch7 <- do.call(rbind, lapply(split_data, check_redundant))
+  ch8 <- do.call(rbind, lapply(split_data, check_lower))
+  ch9 <- do.call(rbind, lapply(split_data, check_sex))
+
+  # Combine all the check results
+  result <- do.call(rbind, list(ch1, ch2, ch3,
+                                ch4, ch5, ch6,
                                 ch7, ch8, ch9))
 
   return(result)
