@@ -177,16 +177,16 @@ odap_opag <- function(data_in           = NULL,
     nLx <- mx1dt %>%
       as_tibble() %>%
       select(-.data$mxB) %>%
-      conditional_filter("country_code", .env$country_code) %>%
-      conditional_filter("name", .env$name) %>%
-      conditional_filter("year", .env$year) %>%
+      conditional_filter("country_code", country_code) %>%
+      conditional_filter("name", name) %>%
+      conditional_filter("year", year) %>%
       pivot_longer(
         cols = c(.data$mxM, .data$mxF),
         names_to = "sex",
         values_to = "mx"
       ) %>%
       mutate(sex = substr(.data$sex, 3, 3)) %>%
-      conditional_filter("sex", .env$sex)
+      conditional_filter("sex", sex)
       
       group_vars <- intersect(c("name","country_code","sex","year"), names(nLx))
       
@@ -331,18 +331,18 @@ odap_opag <- function(data_in           = NULL,
           Age_Pop = Age_vals,
           nLx = nLx_vals,
           Age_nLx = Age_vals,
-          Age_fit = .env$Age_fit,
-          AgeInt_fit = .env$AgeInt_fit,
-          Redistribute_from = .env$Redistribute_from,
-          OAnew = .env$OAnew,
-          method = .env$method
+          Age_fit = Age_fit,
+          AgeInt_fit = AgeInt_fit,
+          Redistribute_from = Redistribute_from,
+          OAnew = OAnew,
+          method = method
         )
       }),
       plots = map2(.data$data, .data$results, ~ {
         old <- tibble(pop = .x$pop, age = .x$age) %>%
-          filter(.data$age > .env$Redistribute_from)
+          filter(.data$age > Redistribute_from)
         new <- tibble(pop = .y$Pop_out, age = .y$Age_out) %>%
-          filter(.data$age > .env$Redistribute_from)
+          filter(.data$age > Redistribute_from)
         
         ggplot() +
           geom_point(data = old, aes(x = .data$age, y = .data$pop, color = "Old"), size = 2) +
