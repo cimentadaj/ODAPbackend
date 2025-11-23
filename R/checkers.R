@@ -653,6 +653,64 @@ check_missing_cols_opag <- function(data) {
 }
 
 
+#' @title `check_nlx_if_present`
+#' @description Check if nLx column is present and valid (numeric, no NAs).
+#' @param data tibble. A tibble containing population data for ODAP analysis.
+#' @return A data.frame with 3 columns: `check` - the name of the test, `message` - The error message with corresponding information generated if the test is failed (if the test is passed evaluates to NA), `pass` - binary result of the test either "Fail" or "Pass".
+#' @export
+#' @examples
+#' library(tibble)
+#' data <- tibble(
+#'   Age = 0:100,
+#'   pop = c(9544406, 7471790, rep(1000000, 99)),
+#'   nLx = runif(101, 50000, 100000)
+#' )
+#'
+#' check_nlx_if_present(data = data)
+#'
+check_nlx_if_present <- function(data) {
+  # Check for both nLx and nlx (lowercase) since column names may be converted
+  has_nlx <- "nLx" %in% names(data)
+  has_nlx_lower <- "nlx" %in% names(data)
+
+  if (has_nlx || has_nlx_lower) {
+    # Use the correct column name
+    col_name <- if (has_nlx) "nLx" else "nlx"
+
+    # Check if numeric
+    if (!is.numeric(data[[col_name]])) {
+      return(data.frame(
+        check = "check_nlx_numeric",
+        message = "Column 'nLx' must be numeric.",
+        pass = "Fail"
+      ))
+    }
+
+    # Check for NAs
+    if (any(is.na(data[[col_name]]))) {
+      return(data.frame(
+        check = "check_nlx_missing",
+        message = "Column 'nLx' contains missing values.",
+        pass = "Fail"
+      ))
+    }
+
+    return(data.frame(
+      check = "check_nlx",
+      message = NA_character_,
+      pass = "Pass"
+    ))
+  }
+
+  # No nLx column - this is fine, will use WPP data
+  return(data.frame(
+    check = "check_nlx",
+    message = NA_character_,
+    pass = "Pass"
+  ))
+}
+
+
 #' @title `check_data_opag`
 #' @description Upper level function that checks ODAP population data quality. Checks if the columns are numeric, if any of the columns is missing, if there is insufficient rows, if there are missing data entries, if ages do not start with 0, and also if ages are coherent, sequential and not redundant.
 #' @param data tibble. A tibble containing population data for ODAP analysis with at minimum Age and pop columns.
@@ -695,11 +753,12 @@ check_data_opag <- function(data) {
   ch7 <- do.call(rbind, lapply(split_data, check_redundant))
   ch8 <- do.call(rbind, lapply(split_data, check_lower))
   ch9 <- do.call(rbind, lapply(split_data, check_sex))
+  ch10 <- do.call(rbind, lapply(split_data, check_nlx_if_present))
 
   # Combine all the check results
   result <- do.call(rbind, list(ch1, ch2, ch3,
                                 ch4, ch5, ch6,
-                                ch7, ch8, ch9))
+                                ch7, ch8, ch9, ch10))
 
   return(result)
 }

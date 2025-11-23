@@ -122,17 +122,23 @@ odap_opag <- function(data_in           = NULL,
   # introducing uniform names
   # adding group columns and id if missing
   # ---------------------------------------------------------------------------- #
-  
+
+
   data_in        <- as_tibble(data_in)
   names(data_in) <- tolower(names(data_in))
-  
+
+
   if(!"sex"          %in% names(data_in)) data_in$sex          <- sex
   if(!"country_code" %in% names(data_in)) data_in$country_code <- country_code %||% 1
   if(!"name"         %in% names(data_in)) data_in$name         <- name %||% "country"
+  if(!"year"         %in% names(data_in)) data_in$year         <- year %||% 2020
+
   if(!".id"          %in% names(data_in)) {
-    
-    data_in <- create_groupid(data_in, keys = c("name", "sex", "year", "country_code"))
-    
+
+    # Only use keys that exist in the data
+    available_keys <- intersect(c("name", "sex", "year", "country_code"), names(data_in))
+    data_in <- create_groupid(data_in, keys = available_keys)
+
   }
   
   # ---------------------------------------------------------------------------- #
@@ -146,20 +152,25 @@ odap_opag <- function(data_in           = NULL,
   # ---------------------------------------------------------------------------- #
   
   # check if nLx column is in the names of data_in
-  if("nLx" %in% names(data_in)) { 
-    
-    nLx <- data_in %>% 
+  # Note: column names were converted to lowercase at line 131, so check for "nlx"
+  if("nlx" %in% names(data_in)) {
+
+    nLx <- data_in %>%
       conditional_filter("country_code", country_code) %>%
       conditional_filter("name", name) %>%
       conditional_filter("year", year) %>%
       conditional_filter("sex", sex) %>%
-      select(any_of(c("name", "country_code", "sex", "year", "age", "nLx")))
-    
+      select(any_of(c("name", "country_code", "sex", "year", "age", "nlx")))
+    # Rename nlx back to nLx for consistency with downstream code
+    if("nlx" %in% names(nLx)) {
+      names(nLx)[names(nLx) == "nlx"] <- "nLx"
+    }
+
     }
     
   
   if(is.null(nLx)) {
-    
+
     installed_wpp <- grep("^wpp\\d{4}$", rownames(installed.packages()), value = TRUE)
     
     if(length(installed_wpp) == 0) stop("No wpp package installed.")
@@ -221,40 +232,44 @@ odap_opag <- function(data_in           = NULL,
     #   select("name", "country_code", "sex", "year", age = "Age", "AgeInt", "nLx")
     
   } else {
-    
+
     nLx <- as_tibble(nLx) %>%
       conditional_filter("country_code", country_code) %>%
       conditional_filter("name", name) %>%
       conditional_filter("year", year) %>%
       conditional_filter("sex", sex) %>%
-      select(any_of(c("name", "country_code", "sex", "year", "age", "nLx")))
-    
+      select(any_of(c("name", "country_code", "sex", "year", "age", "AgeInt", "nLx")))
+
   }
   
   # can be changed to is_single if needed
   age_diff    <- diff(sort(unique(data_in$age)))
   unique_diff <- unique(na.omit(age_diff)) # NA removed in case of strange OAG coding
-  
+
   if(length(unique_diff) == 1) {
-    
+
     age_spacing <- unique_diff
-    
+
   } else {
-    
+
     stop("Mixed or irregular age spacing: ", paste(unique_diff, collapse = ", "))
-    
+
   }
   
   # --- Group nLx ages if needed --- #
   if(age_spacing %in% c(5, 10)) {
-    
+
+
     nLx <- nLx %>%
       group_by(across(all_of(intersect(c("name", "country_code", "sex", "year"), names(.))))) %>%
-      reframe(
-        age = seq(0, max(age), by = age_spacing),
-        nLx = groupAges(.data$nLx, Age = .data$age, N = age_spacing),
-        .groups = "drop"
-      )
+      reframe({
+        dat <- pick(everything())
+        age_vals <- seq(0, max(dat$age), by = age_spacing)
+        nLx_vals <- groupAges(Value = dat$nLx, Age = dat$age, N = age_spacing)
+        tibble(age = age_vals, nLx = nLx_vals)
+      })
+
+  } else {
   }
   
  
@@ -266,9 +281,9 @@ odap_opag <- function(data_in           = NULL,
   # match row by row with nLx. This makes it easier to work with data further
   data_in <- conditional_arrange(data_in, c("name", "country_code", "sex", "year", "age"))
   nLx     <- conditional_arrange(nLx, c("name", "country_code", "sex", "year", "age"))
-  
-  nLx$.id_label <- data_in$.id_label
-  nLx$.id       <- data_in$.id
+
+  # Note: .id and .id_label will be added via full_join below
+  # No need to manually assign here since nLx may have different row count after filtering
   
   # result <- data_in %>% 
   #   full_join(nLx) %>%
@@ -320,9 +335,6 @@ odap_opag <- function(data_in           = NULL,
   #     })
   #   )
   
-  cat(sprintf("[ODAP_BEFORE_MUTATE] About to create plots\n"))
-  cat(sprintf("[ODAP_BEFORE_MUTATE] i18n is NULL: %s\n", is.null(i18n)))
-  cat(sprintf("[ODAP_BEFORE_MUTATE] Redistribute_from: %s\n", Redistribute_from))
 
   # Pre-translate all UI text for plots (to avoid scope issues in map2)
   title_text <- translate_text("Population Redistribution (OPAG Method)", i18n)
@@ -332,16 +344,14 @@ odap_opag <- function(data_in           = NULL,
   redistributed_text <- translate_text("Redistributed", i18n)
   type_text <- translate_text("Type", i18n)
 
-  cat(sprintf("[ODAP_BEFORE_MUTATE] Pre-translated text:\n"))
-  cat(sprintf("[ODAP_BEFORE_MUTATE]   title='%s'\n", title_text))
-  cat(sprintf("[ODAP_BEFORE_MUTATE]   age='%s'\n", age_text))
-  cat(sprintf("[ODAP_BEFORE_MUTATE]   pop='%s'\n", pop_text))
-  cat(sprintf("[ODAP_BEFORE_MUTATE]   original='%s'\n", original_text))
-  cat(sprintf("[ODAP_BEFORE_MUTATE]   redistributed='%s'\n", redistributed_text))
-  cat(sprintf("[ODAP_BEFORE_MUTATE]   type='%s'\n", type_text))
 
+  # Join only on 'age' to attach nLx values
+  # Don't join on sex/name/year/country_code because:
+  # 1. Those are either grouping variables (user's data structure)
+  # 2. Or WPP metadata (which mortality table was used)
+  # The user selected ONE mortality table to apply to ALL groups
   result <- data_in %>%
-    full_join(nLx) %>%
+    full_join(nLx, by = "age") %>%
     group_nest(.data$.id, .data$.id_label) %>%
     mutate(
       results = map(.data$data, ~ {
@@ -361,7 +371,6 @@ odap_opag <- function(data_in           = NULL,
         )
       }),
       plots = map2(.data$data, .data$results, function(.x, .y) {
-        cat(sprintf("[ODAP_INSIDE_MAP2] Entered map2 function\n"))
         old <- tibble(pop = .x$pop, age = .x$age) %>%
           filter(.data$age > Redistribute_from)
         new <- tibble(pop = .y$Pop_out, age = .y$Age_out) %>%
@@ -370,7 +379,6 @@ odap_opag <- function(data_in           = NULL,
         # Note: translated text variables (title_text, age_text, etc.)
         # are captured from parent scope where i18n is available
 
-        cat(sprintf("[ODAP_PLOT_DEBUG] Inside map2 | age_text='%s', pop_text='%s', type_text='%s'\n", age_text, pop_text, type_text))
 
         # Rename columns to translated versions for hover tooltips (following lifetable pattern)
         names(old)[names(old) == "age"] <- age_text
@@ -381,8 +389,6 @@ odap_opag <- function(data_in           = NULL,
         names(new)[names(new) == "pop"] <- pop_text
         new[[type_text]] <- redistributed_text
 
-        cat(sprintf("[ODAP_PLOT_DEBUG] After rename | old cols: %s\n", paste(names(old), collapse=", ")))
-        cat(sprintf("[ODAP_PLOT_DEBUG] After rename | new cols: %s\n", paste(names(new), collapse=", ")))
 
         # Create named vector for colors using translated keys
         color_values <- c("black", "red")

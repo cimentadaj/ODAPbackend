@@ -15,7 +15,8 @@ odap_opag(
   name = "India",
   country_code = 356,
   year = 1971,
-  sex = "M"
+  sex = "M",
+  i18n = NULL
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ odap_opag(
 \item{year}{Numeric vector of years to filter by (default \code{1971}).}
 
 \item{sex}{Character scalar indicating sex to filter by, e.g., \code{"M"} or \code{"F"} (default \code{"M"}).}
+
+\item{i18n}{Optional internationalization object for translating plot labels and titles (default \code{NULL}).}
 }
 \value{
 A list with two elements:
