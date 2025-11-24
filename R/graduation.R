@@ -141,11 +141,13 @@ smooth_flexible <- function(data_in,
 #' @param constrain_infants logical. A scalar that indicates whether the infant proportions should be constrained or left as is. Defaults to `TRUE`.
 #' @param u5m numeric. Under-five mortality rate. Defaults to NULL.
 #' @param Sex character. Either `m` for males, `f` for females, or `t` for total (default). Please note that in case this parameter is not explicitly provided, the function will scan the data for the column with the corresponding name and use its levels automatically.
+#' @param i18n Optional internationalization object for translating plot labels and titles. Defaults to NULL.
 #' @importFrom dplyr mutate group_by filter pull select summarise
 #' @importFrom tibble tibble
 #' @importFrom rlang := !! .data
 #' @importFrom DemoTools is_single is_abridged check_heaping_bachi groupAges ageRatioScore mav graduate_mono calcAgeAbr age2int graduate_uniform names2age lt_rule_4m0_D0 lt_rule_4m0_m0
-#' @return data_out. A list with two elements: `data_out` - a tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping, and `arguments` - a list of arguments used in the function.
+#' @importFrom ggplot2 ggplot aes geom_line geom_point scale_color_manual scale_linetype_manual labs theme_minimal theme element_text
+#' @return data_out. A list with three elements: `data_out` - a tibble with two numeric columns - smoothed counts for the chosen variable and `Age` - chosen age grouping, `plot` - a ggplot2 object comparing original vs graduated data, and `arguments` - a list of arguments used in the function.
 #' @export
 #' @examples
 #' library(readr)
@@ -174,7 +176,8 @@ graduate_auto <- function(data_in,
                           variable = NULL,
                           u5m      = NULL,
                           Sex      = c("t", "f", "m"),
-                          constrain_infants = TRUE) {
+                          constrain_infants = TRUE,
+                          i18n     = NULL) {
   
   ## f_args  <- capture_args()
   age_out <- match.arg(age_out, c("single", "abridged", "5-year"))
@@ -501,18 +504,82 @@ graduate_auto <- function(data_in,
   
   # (3) possibly constrain infants
   if(age_out %in% c("abridged", "single") & age_in %in% c("abridged", "single") & constrain_infants) {
-    
+
     v_child      <- data_out[data_out$Age < 5, variable, drop = TRUE]
     vN           <- sum(v_child)
     v_child[1]   <- pct_fst_ages[1] * vN
     v_child[-1]  <- (1 - pct_fst_ages[1]) * vN * v_child[-1] / sum(v_child[-1])
     data_out[data_out$Age < 5, variable] <- v_child
-    
-  }
-  
-  return(list(data_out = data_out
-              # arguments = f_args
 
+  }
+
+  # Pre-translate all UI text for plots (to avoid scope issues in nested functions)
+  cat(sprintf("[GRADUATION] Pre-translating text | i18n_null=%s\n", is.null(i18n)))
+  graduation_text <- translate_text("Graduation", i18n)
+  age_text <- translate_text("Age", i18n)
+  original_text <- translate_text("Original", i18n)
+  graduated_text <- translate_text("Graduated", i18n)
+  type_text <- translate_text("Type", i18n)
+  variable_text <- translate_text(variable, i18n)
+
+  cat(sprintf("[GRADUATION] Translations: graduation='%s', age='%s', original='%s', graduated='%s'\n",
+              graduation_text, age_text, original_text, graduated_text))
+
+  # Create plot comparing original vs graduated data
+  plot_obj <- NULL
+  tryCatch({
+    # Combine original and graduated data
+    original_df <- data.frame(
+      Age = data_in$Age,
+      Value = data_in[[variable]],
+      Type = original_text
+    )
+
+    graduated_df <- data.frame(
+      Age = data_out$Age,
+      Value = data_out[[variable]],
+      Type = graduated_text
+    )
+
+    # Rename columns to translated versions for hover tooltips
+    names(original_df)[names(original_df) == "Age"] <- age_text
+    names(original_df)[names(original_df) == "Value"] <- variable_text
+    names(original_df)[names(original_df) == "Type"] <- type_text
+
+    names(graduated_df)[names(graduated_df) == "Age"] <- age_text
+    names(graduated_df)[names(graduated_df) == "Value"] <- variable_text
+    names(graduated_df)[names(graduated_df) == "Type"] <- type_text
+
+    plot_data <- rbind(original_df, graduated_df)
+
+    # Create named vector for colors using translated keys
+    color_values <- c("black", "blue")
+    names(color_values) <- c(original_text, graduated_text)
+
+    # Build plot using .data[[]] for runtime evaluation
+    plot_obj <- ggplot2::ggplot(plot_data, ggplot2::aes(x = .data[[age_text]], y = .data[[variable_text]],
+                                       color = .data[[type_text]],
+                                       linetype = .data[[type_text]])) +
+      ggplot2::geom_line(linewidth = 1) +
+      ggplot2::geom_point(data = plot_data[plot_data[[type_text]] == original_text, ], size = 2) +
+      ggplot2::scale_color_manual(name = type_text, values = color_values) +
+      ggplot2::scale_linetype_manual(name = type_text, values = c("solid", "solid")) +
+      ggplot2::labs(x = age_text, y = variable_text,
+           title = paste0(graduation_text, ": ", variable_text)) +
+      ggplot2::theme_minimal(base_size = 14) +
+      ggplot2::theme(
+        legend.position = "bottom",
+        plot.title = ggplot2::element_text(face = "bold", hjust = 0.5)
+      )
+
+    cat(sprintf("[GRADUATION] Plot created successfully\n"))
+  }, error = function(e) {
+    cat(sprintf("[GRADUATION] Plot creation error: %s\n", e$message))
+  })
+
+  return(list(data_out = data_out,
+              plot = plot_obj
+              # arguments = f_args
               ))
 }
 
