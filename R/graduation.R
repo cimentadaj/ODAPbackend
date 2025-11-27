@@ -997,10 +997,17 @@ smooth_flexible_chunk <- function(data_in,
   }
   
   if(any(data5[, variable, drop = TRUE] < 0)) {
-    stop(
-      "Check your input data or consider changing the selected rough method. 
-      Current smoothing process is returning negative values."
-    )
+    neg_idx <- which(data5[, variable, drop = TRUE] < 0)
+    neg_ages <- paste(data5$Age[neg_idx], collapse = ", ")
+    neg_vals <- paste(round(data5[neg_idx, variable, drop = TRUE], 2), collapse = ", ")
+
+    stop(paste0(
+      "Smoothing produced negative values for '", variable, "'\n",
+      "Method '", rough_method, "' produced negative values at ages: ", neg_ages, "\n",
+      "Values: ", neg_vals, "\n",
+      "This typically happens when data has extreme discontinuities (e.g., large jumps between age groups)\n",
+      "Try using 'auto' method instead, or check your input data for irregularities"
+    ))
   }
   
   # HERE

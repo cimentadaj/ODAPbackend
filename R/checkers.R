@@ -482,13 +482,13 @@ check_lower <- function(data) {
 
 check_sex <- function(data) {
   if (any(str_detect("Sex", names(data)))) {
-    lvls <- unique(data$Sex)
+    lvls <- tolower(unique(data$Sex))
 
-    if (all(lvls %in% c("Male", "Female", "Total"))) {
+    if (all(lvls %in% c("male", "female", "total"))) {
       message <- NA_character_
 
     } else {
-      message <- "If Sex variable is given, it should be coded with either `Male`, `Female`, or `Total`."
+      message <- "If Sex variable is given, it should be coded with either `male`, `female`, or `total`."
 
     }
 
