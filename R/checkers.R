@@ -565,6 +565,91 @@ check_data <- function(data) {
 }
 
 
+#' @title `check_missing_cols_generic`
+#' @description Check if Age column exists. For generic validation that doesn't require specific value columns.
+#' @param data tibble. A tibble with at minimum an Age column.
+#' @return A data.frame with validation results containing columns: `check`, `message`, `pass`.
+#' @export
+check_missing_cols_generic <- function(data) {
+  missing_cols <- setdiff("Age", names(data))
+
+  if (length(missing_cols) > 0) {
+    message <- "The Age column is missing from the data. The calculations are halted."
+  } else {
+    message <- NA_character_
+  }
+
+  res <- data.frame(check = "check missing columns", message = message)
+  res$pass <- ifelse(!is.na(message), "Fail", "Pass")
+  return(res)
+}
+
+
+#' @title `check_has_numeric`
+#' @description Check if the data has at least one numeric column besides Age.
+#' @param data tibble. A tibble with demographic data.
+#' @return A data.frame with validation results containing columns: `check`, `message`, `pass`.
+#' @export
+check_has_numeric <- function(data) {
+  # Get numeric columns excluding Age and internal columns
+  exclude_cols <- c("Age", "AgeInt", ".id", ".id_label")
+  numeric_cols <- names(data)[sapply(data, is.numeric)]
+  value_cols <- setdiff(numeric_cols, exclude_cols)
+
+  if (length(value_cols) == 0) {
+    message <- "No numeric value columns found. Please include at least one numeric column besides Age."
+  } else {
+    message <- NA_character_
+  }
+
+  res <- data.frame(check = "check has numeric", message = message)
+  res$pass <- ifelse(!is.na(message), "Fail", "Pass")
+  return(res)
+}
+
+
+#' @title `check_data_generic`
+#' @description Generic data validation for modules that accept any numeric column (heaping, smoothing, graduation).
+#' Requires only Age column and at least one numeric value column. Runs all standard age-related checks.
+#' @param data tibble. A tibble with Age column and at least one numeric value column.
+#' @return A data.frame with validation results containing columns: `check`, `message`, `pass`.
+#' @export
+#' @examples
+#' library(tibble)
+#' data <- tibble(
+#'   Age = c(0, 1, seq(5, 100, by = 5)),
+#'   births = runif(22, 1000, 10000),
+#'   population = runif(22, 50000, 100000)
+#' )
+#' check_data_generic(data = data)
+#'
+check_data_generic <- function(data) {
+
+  # Ensure '.id' column exists
+  if (!(".id" %in% colnames(data))) {
+    data$.id <- "all"
+  }
+
+  # Split data by '.id', apply checks, and combine results
+  split_data <- split(data, data$.id)
+
+  # Generic checks - only require Age and at least one numeric column
+  ch1 <- do.call(rbind, lapply(split_data, check_missing_cols_generic))
+  ch2 <- do.call(rbind, lapply(split_data, check_has_numeric))
+  ch3 <- do.call(rbind, lapply(split_data, check_rows))
+  ch4 <- do.call(rbind, lapply(split_data, check_nas))
+  ch5 <- do.call(rbind, lapply(split_data, check_coherent))
+  ch6 <- do.call(rbind, lapply(split_data, check_sequential))
+  ch7 <- do.call(rbind, lapply(split_data, check_redundant))
+  ch8 <- do.call(rbind, lapply(split_data, check_lower))
+
+  # Combine all the check results
+  result <- do.call(rbind, list(ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8))
+
+  return(result)
+}
+
+
 #' @title `check_numeric_opag`
 #' @description Check if the numeric columns for ODAP data (`Age`, `pop`) are numeric.
 #' @param data tibble. A tibble containing population data for ODAP analysis.
